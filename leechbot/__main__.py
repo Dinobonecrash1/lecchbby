@@ -700,7 +700,9 @@ When enabled, bot messages will be automatically deleted after the specified del
     
     elif data == "toggle_autodelete":
         BOT.Setting.auto_delete = not BOT.Setting.auto_delete
-        await handle_callback(client, callback_query)  # Refresh menu
+        # Refresh menu by re-calling autodelete callback
+        callback_query.data = "autodelete"
+        await handle_callback(client, callback_query)
     
     elif data == "set_autodelete_delay":
         await callback_query.message.edit_text(
@@ -824,21 +826,20 @@ async def handle_text_input(client, message):
     Handle text inputs for setting auto-delete delay.
     """
     global BOT
-    if BOT.State.get("setting_autodelete_delay", False):
+    if hasattr(BOT.State, 'setting_autodelete_delay') and BOT.State.setting_autodelete_delay:
         try:
             delay = int(message.text.strip())
             if 5 <= delay <= 300:
                 BOT.Setting.auto_delete_delay = delay
                 BOT.State.setting_autodelete_delay = False
                 await message.reply_text(f"**✅ Auto-delete delay set to {delay} seconds.**")
-                # Return to auto-delete menu
-                fake_callback = type('obj', (object,), {'message': message, 'data': 'autodelete'})
-                await handle_callback(client, fake_callback)
+                await message.delete()
             else:
                 await message.reply_text("**⚠️ Please enter a number between 5 and 300.**")
+                await message.delete()
         except ValueError:
             await message.reply_text("**⚠️ Invalid number. Please try again.**")
-        await message.delete()
+            await message.delete()
 
 
 # =============================================================================
