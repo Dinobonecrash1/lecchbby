@@ -563,12 +563,12 @@ async def handle_callback(client, callback_query):
         keyboard = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("<code>Monospace</code>", callback_data="code-Monospace"),
-                    InlineKeyboardButton("**Bold**", callback_data="b-Bold"),
+                    InlineKeyboardButton("Monospace", callback_data="code-Monospace"),
+                    InlineKeyboardButton("Bold", callback_data="b-Bold"),
                 ],
                 [
-                    InlineKeyboardButton("__Italic__", callback_data="i-Italic"),
-                    InlineKeyboardButton("__Underline__", callback_data="u-Underlined"),
+                    InlineKeyboardButton("Italic", callback_data="i-Italic"),
+                    InlineKeyboardButton("Underline", callback_data="u-Underlined"),
                 ],
                 [
                     InlineKeyboardButton("Regular", callback_data="p-Regular")
