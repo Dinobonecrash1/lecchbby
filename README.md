@@ -43,6 +43,7 @@ This version of **LeechBot** is a complete rewrite with a focus on **clean code,
 
 - 🧹 **Removed Custom Styling** – No more Unicode small‑caps; messages now use standard Telegram Markdown for maximum compatibility and readability.
 - ⏳ **Auto‑Delete Messages** – Optional automatic deletion of bot messages after a configurable delay, keeping your chat clean.
+- 📸 **Batch Photo Uploads** – Photos are now sent in **media groups of up to 10**, delivering cleaner galleries and faster posting.
 - ⚡ **Refactored Codebase** – Clean, modular, and well‑documented Python code for easy customisation.
 - 📦 **Expanded Link Support** – YT‑DLP, Terabox, Mega (coming soon) and improved Google Drive handling.
 - 🧠 **Smarter Progress Bars** – Real‑time speed, ETA, and percentage tracking for both downloads and uploads.
@@ -60,6 +61,7 @@ This version of **LeechBot** is a complete rewrite with a focus on **clean code,
 | ✂️ **Smart Splitting**           | Split files >2GB into chunks or zip archives to bypass Telegram limits.                          |
 | 🗜️ **Archive Handling**          | Create or extract ZIP, RAR, 7z, TAR, GZ archives with password support.                          |
 | 🖼️ **Auto Thumbnail**            | Generate thumbnails from videos or use custom images.                                            |
+| 📸 **Batch Photo Uploads**       | Photos are automatically sent in **media groups of 10**, keeping your chat organised.            |
 | 🔗 **Multi‑Link Support**        | Send multiple links at once; batch processing.                                                   |
 | 🎛️ **Interactive Settings**      | On‑the‑fly configuration via inline buttons (upload mode, video options, caption style, etc.).   |
 | 📊 **Real‑time Stats**           | Live progress bars with speed, ETA, percentage, and system resource usage.                       |
@@ -180,6 +182,7 @@ When sending links, you can append:
 | ---------------------- | ------------------------------------ | ---------------------------------------------------- |
 | **UI / UX**            | Plain text messages                  | Clean, professional Markdown with inline menus       |
 | **Auto‑Delete**        | None                                 | Configurable auto‑delete for bot messages            |
+| **Batch Photo Upload** | One‑by‑one photos                    | Media groups of 10 for cleaner delivery              |
 | **Code Structure**     | Monolithic, less documented          | Modular, fully typed, clean docstrings               |
 | **Video Converter**    | Basic FFmpeg                         | GPU‑accelerated FFmpeg + MoviePy fallback            |
 | **Archive Support**    | Limited to ZIP                       | Full 7z, RAR, TAR, GZ, multipart extraction          |
