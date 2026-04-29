@@ -19,6 +19,7 @@ from asyncio import sleep
 from os import path as ospath
 from datetime import datetime
 from pyrogram.errors import FloodWait
+from pyrogram.types import InputMediaPhoto  # <--- Added for batch upload
 from leechbot.utility.variables import BOT, Transfer, BotTimes, Messages, MSG, Paths
 from leechbot.utility.helper import sizeUnit, fileType, getTime, status_bar, thumbMaintainer, videoExtFix
 
@@ -116,7 +117,7 @@ async def upload_file(file_path: str, real_name: str):
             )
         
         elif f_type == "photo":
-            # Photo upload
+            # Photo upload (single, kept for backward compatibility)
             MSG.sent_msg = await MSG.sent_msg.reply_photo(
                 photo=file_path,
                 caption=caption,
@@ -152,3 +153,70 @@ async def upload_file(file_path: str, real_name: str):
     
     except Exception as e:
         logger.error(f"Upload error: {e}")
+
+
+# =============================================================================
+# Batch Photo Upload (New) 29-04-2026
+# =============================================================================
+async def upload_photos_batch(photo_paths: list):
+    """
+    Upload multiple photos in batches of 10 using media groups.
+    
+    Args:
+        photo_paths: list of absolute paths to photo files
+    """
+    global Transfer, MSG, BOT
+    
+    if not photo_paths:
+        return
+    
+    total_photos = len(photo_paths)
+    batch_size = 10
+    processed = 0
+    
+    for i in range(0, total_photos, batch_size):
+        batch = photo_paths[i:i + batch_size]
+        media_group = []
+        batch_names = []
+        
+        for idx, file_path in enumerate(batch):
+            real_name = ospath.basename(file_path)
+            batch_names.append(real_name)
+            
+            # Caption only on first photo of each group
+            if idx == 0:
+                caption = f"<{BOT.Options.caption}>{BOT.Setting.prefix} {real_name} {BOT.Setting.suffix}</{BOT.Options.caption}>"
+            else:
+                caption = None  # No caption for subsequent photos per Telegram API
+            
+            media_group.append(
+                InputMediaPhoto(
+                    media=file_path,
+                    caption=caption
+                )
+            )
+        
+        try:
+            # Send the media group as reply to current sent_msg
+            messages = await MSG.sent_msg.reply_media_group(
+                media_group=media_group,
+                reply_to_message_id=MSG.sent_msg.id
+            )
+            
+            # Update the chaining message to the first of this group
+            MSG.sent_msg = messages[0]
+            
+            # Track sent files
+            Transfer.sent_file.extend(messages)
+            Transfer.sent_file_names.extend(batch_names)
+            
+            processed += len(batch)
+            logger.info(f"Uploaded photo batch {processed}/{total_photos}")
+            
+        except FloodWait as e:
+            logger.warning(f"Flood wait: waiting {e.value} seconds")
+            await sleep(e.value)
+            # Retry the same batch
+            i -= batch_size  # This will retry the current batch on next loop iteration
+        except Exception as e:
+            logger.error(f"Batch photo upload error: {e}")
