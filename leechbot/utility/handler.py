@@ -21,7 +21,7 @@ from leechbot import OWNER, leechbot
 from natsort import natsorted
 from datetime import datetime
 from os import makedirs, path as ospath
-from leechbot.uploader.telegram import upload_file
+from leechbot.uploader.telegram import upload_file, upload_photos_batch  # Added import
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer
 from leechbot.utility.converters import archive, extract, videoConverter, sizeChecker
@@ -54,10 +54,35 @@ async def Leech(folder_path: str, remove: bool):
     
     Transfer.total_down_size = getSize(folder_path)
     
-    # Process and upload files
+    # Refresh file list after possible conversions
     files = [str(p) for p in pathlib.Path(folder_path).glob("**/*") if p.is_file()]
+    
+    # Separate photos from other files
+    photo_files = []
+    other_files = []
+    
     for f in natsorted(files):
         file_path = ospath.join(folder_path, f)
+        if fileType(file_path) == "photo":
+            photo_files.append(file_path)
+        else:
+            other_files.append(file_path)
+    
+    # Upload all photos in batches of 10
+    if photo_files:
+        # Update status message
+        try:
+            MSG.status_msg = await MSG.status_msg.edit_text(
+                text=Messages.task_msg + "\n**📸 Uploading photos in batches...**" + sysINFO(),
+                reply_markup=keyboard()
+            )
+        except Exception as e:
+            logger.error(f"Status update error: {e}")
+        
+        await upload_photos_batch(photo_files)
+    
+    # Process remaining files normally
+    for file_path in other_files:
         leech_result = await sizeChecker(file_path, remove)
         
         if leech_result:  # File was split
@@ -133,7 +158,7 @@ async def Leech(folder_path: str, remove: bool):
 
 
 # =============================================================================
-# Zip Handler
+# Zip Handler (unchanged)
 # =============================================================================
 async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
     """
@@ -172,7 +197,7 @@ async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
 
 
 # =============================================================================
-# Unzip Handler
+# Unzip Handler (unchanged)
 # =============================================================================
 async def Unzip_Handler(down_path: str, remove: bool):
     """
@@ -215,7 +240,7 @@ async def Unzip_Handler(down_path: str, remove: bool):
 
 
 # =============================================================================
-# Task Cancellation
+# Task Cancellation (unchanged)
 # =============================================================================
 async def cancelTask(reason: str):
     """
@@ -257,7 +282,7 @@ async def cancelTask(reason: str):
 
 
 # =============================================================================
-# Completion Logs
+# Completion Logs (unchanged)
 # =============================================================================
 async def SendLogs(is_leech: bool):
     """
