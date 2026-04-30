@@ -6,22 +6,27 @@
 # GitHub    : https://github.com/Shineii86
 # Telegram  : https://telegram.me/Shineii86
 # =============================================================================
+# License   : MIT License
+# =============================================================================
 
 """
 Telegram downloader module.
 
-Handles downloads from Telegram messages.
+Handles downloads from Telegram messages via message links.
 """
 
 import logging
 from datetime import datetime
 from os import path as ospath
+
 from leechbot import leechbot
-from leechbot.utility.handler import cancelTask
 from leechbot.utility.variables import Transfer, Paths, Messages, BotTimes
 from leechbot.utility.helper import speedETA, getTime, sizeUnit, status_bar
 
 logger = logging.getLogger(__name__)
+
+# Module-level start time (properly scoped, not a bare global)
+_download_start_time: datetime = datetime.now()
 
 
 # =============================================================================
@@ -29,29 +34,34 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 async def media_Identifier(link: str):
     """
-    Identify media from Telegram link.
-    
+    Identify media from a Telegram message link.
+
     Args:
-        link: Telegram message link
-    
+        link: Telegram message link (https://t.me/c/... or https://t.me/...)
+
     Returns:
-        tuple: (media, message)
+        tuple: (media, message) or (None, None) on failure
     """
-    parts = link.split("/")
-    message_id = int(parts[-1])
-    msg_chat_id = int("-100" + parts[4])
-    
     try:
-        message = await leechbot.get_messages(msg_chat_id, message_id)
+        parts = link.split("/")
+        message_id = int(parts[-1])
+
+        # Private channel: t.me/c/CHAT_ID/MSG_ID
+        if "t.me/c/" in link:
+            chat_id = int("-100" + parts[4])
+        else:
+            # Public channel: t.me/USERNAME/MSG_ID
+            chat_id = parts[4]
+
+        message = await leechbot.get_messages(chat_id, message_id)
     except Exception as e:
-        logger.error(f"Telegram message error: {e}")
+        logger.error(f"Telegram message fetch error: {e}")
         return None, None
-    
+
     if message is None:
         logger.error("Message not found")
         return None, None
-    
-    # Get media from message
+
     media = (
         message.document
         or message.photo
@@ -62,7 +72,7 @@ async def media_Identifier(link: str):
         or message.sticker
         or message.animation
     )
-    
+
     return media, message
 
 
@@ -70,15 +80,9 @@ async def media_Identifier(link: str):
 # Download Progress Callback
 # =============================================================================
 async def download_progress(current: int, total: int):
-    """
-    Update download progress.
-    
-    Args:
-        current: bytes downloaded
-        total: total bytes
-    """
-    speed_string, eta, percentage = speedETA(start_time, current, total)
-    
+    """Update download progress bar."""
+    speed_string, eta, percentage = speedETA(_download_start_time, current, total)
+
     await status_bar(
         down_msg=Messages.status_head,
         speed=speed_string,
@@ -86,7 +90,7 @@ async def download_progress(current: int, total: int):
         eta=getTime(eta),
         done=sizeUnit(sum(Transfer.down_bytes) + current),
         left=sizeUnit(Transfer.total_down_size),
-        engine="Telegram 💬"
+        engine="Telegram 💬",
     )
 
 
@@ -95,31 +99,34 @@ async def download_progress(current: int, total: int):
 # =============================================================================
 async def TelegramDownload(link: str, num: int):
     """
-    Download file from Telegram.
-    
+    Download file from a Telegram message.
+
     Args:
         link: Telegram message link
         num: link number for display
     """
-    global start_time
-    
+    global _download_start_time
+
     media, message = await media_Identifier(link)
-    
+
     if media is None:
-        logger.error("Could not identify Telegram media")
+        from leechbot.utility.handler import cancelTask
         await cancelTask("Could Not Identify Telegram Media")
         return
-    
-    name = media.file_name if hasattr(media, "file_name") else "Unknown"
-    Messages.status_head = f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n`{name}`\n"
-    
-    start_time = datetime.now()
+
+    name = getattr(media, "file_name", None) or "Telegram_File"
+    Messages.status_head = (
+        f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n`{name}`\n"
+    )
+
+    _download_start_time = datetime.now()
     file_path = ospath.join(Paths.down_path, name)
-    
+
     await message.download(
         progress=download_progress,
         in_memory=False,
-        file_name=file_path
+        file_name=file_path,
     )
-    
-    Transfer.down_bytes.append(media.file_size)
+
+    if hasattr(media, "file_size"):
+        Transfer.down_bytes.append(media.file_size)

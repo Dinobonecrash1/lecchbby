@@ -4,258 +4,215 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&height=300&color=gradient&text=𝗟𝗲𝗲𝗰𝗵%20𝗕𝗼𝘁&fontAlignY=30&fontSize=100&desc=𝖠𝖽𝗏𝖺𝗇𝖼𝖾𝖽%20𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆%20𝖥𝗂𝗅𝖾%20𝖳𝗋𝖺𝗇𝗌𝗅𝗈𝖺𝖽𝖾𝗋&descSize=30" />
 
 <p align="center">
-  <strong>A Pyrogram‑based Telegram Bot to transfer files / folders to Telegram and Google Drive, powered by Google Colab</strong>
+  <strong>A Pyrogram‑based Telegram Bot to transfer files / folders to Telegram and Google Drive</strong>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-0.2-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-1.0-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
-
-![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
-![Repo Size](https://img.shields.io/github/repo-size/Shineii86/LeechBot?style=for-the-badge)
-[![GitHub Stars](https://img.shields.io/github/stars/Shineii86/LeechBot?style=for-the-badge)](https://github.com/Shineii86/LeechBot/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/Shineii86/LeechBot?style=for-the-badge)](https://github.com/Shineii86/LeechBot/fork)
+</p>
 
 </div>
 
 ---
 
-## 📑 **Table of Contents**
+## 📑 Table of Contents
 
-- [✨ What's New?](#-whats-new)
+- [✨ What's New in v1.0](#-whats-new-in-v10)
 - [🚀 Features](#-features)
 - [🔗 Supported Links](#-supported-links)
-- [💡 Benefits](#-benefits)
-- [🛠️ Technology Stack](#️-technology-stack)
-- [📥 How to Deploy](#-how-to-deploy)
 - [📋 Commands & Usage](#-commands--usage)
-- [🆚 Changelog – Old vs New](#-changelog--old-vs-new)
+- [⚙️ Configuration](#%EF%B8%8F-configuration)
+- [📥 How to Deploy](#-how-to-deploy)
 - [🙏 Acknowledgements](#-acknowledgements)
-- [📄 License & Disclaimer](#-license--disclaimer)
-- [🫂 Updates & Support](#-updates--support)
-- [👤 Developer & Credits](#-developer--credits)
+- [📄 License](#-license)
 
 ---
 
-## ✨ **What's New?**
+## ✨ What's New in v1.0
 
-This version of **LeechBot** is a complete rewrite with a focus on **clean code, professional UI, and enhanced reliability**.
+This is a **major rewrite** with focus on **configurability, new download sources, and queue management**.
 
-- 🧹 **Removed Custom Styling** – No more Unicode small‑caps; messages now use standard Telegram Markdown for maximum compatibility and readability.
-- ⏳ **Auto‑Delete Messages** – Optional automatic deletion of bot messages after a configurable delay, keeping your chat clean.
-- 📸 **Batch Photo Uploads** – Photos are now sent in **media groups of up to 10**, delivering cleaner galleries and faster posting.
-- ⚡ **Refactored Codebase** – Clean, modular, and well‑documented Python code for easy customisation.
-- 📦 **Expanded Link Support** – YT‑DLP, Terabox, Mega (coming soon) and improved Google Drive handling.
-- 🧠 **Smarter Progress Bars** – Real‑time speed, ETA, and percentage tracking for both downloads and uploads.
-
----
-
-## 🚀 **Features**
-
-| Feature                          | Description                                                                                     |
-| -------------------------------- | ----------------------------------------------------------------------------------------------- |
-| 📤 **Telegram Upload**           | Upload any file / folder to Telegram (supports streaming videos, documents, audio, photos).      |
-| ☁️ **Google Drive Mirror**       | Mirror downloads directly to your Google Drive (mounted drive).                                  |
-| 📁 **Directory Leech**           | Upload entire local directories recursively.                                                     |
-| 🎬 **Video Converter**           | Convert videos to MP4 / MKV with FFmpeg or MoviePy fallback. GPU acceleration supported.         |
-| ✂️ **Smart Splitting**           | Split files >2GB into chunks or zip archives to bypass Telegram limits.                          |
-| 🗜️ **Archive Handling**          | Create or extract ZIP, RAR, 7z, TAR, GZ archives with password support.                          |
-| 🖼️ **Auto Thumbnail**            | Generate thumbnails from videos or use custom images.                                            |
-| 📸 **Batch Photo Uploads**       | Photos are automatically sent in **media groups of 10**, keeping your chat organised.            |
-| 🔗 **Multi‑Link Support**        | Send multiple links at once; batch processing.                                                   |
-| 🎛️ **Interactive Settings**      | On‑the‑fly configuration via inline buttons (upload mode, video options, caption style, etc.).   |
-| 📊 **Real‑time Stats**           | Live progress bars with speed, ETA, percentage, and system resource usage.                       |
-| 🔒 **Password Protection**       | Set ZIP and unzip passwords directly from the bot.                                               |
-| 🏷️ **Custom Filename**           | Override output filenames with the `/setname` command or inline `[name]` syntax.                 |
-| ⏳ **Auto‑Delete Messages**      | Automatically delete bot messages after a set delay (configurable in settings).                  |
+- 🔧 **`.env` Configuration** — No more hardcoded paths. All settings via environment variables with sensible defaults.
+- 📋 **Download Queue** — Queue multiple links and process them sequentially with `/queue` command.
+- 🎬 **YT-DLP Format Selection** — Choose quality (Best/1080p/720p/480p/Audio) via `/format` command.
+- ⚡ **Bandwidth Limiter** — Set max download speed via `/speed` to avoid saturating your connection.
+- 📂 **Pixeldrain Support** — Download from pixeldrain.com (single files and lists).
+- 🔥 **Mediafire Support** — Download from mediafire.com with automatic direct link extraction.
+- 📢 **Broadcast** — Send uploaded files to multiple chats with `/broadcast`.
+- 👥 **Admin Panel** — Multi-user management with `/admin add|remove|list`.
+- 🔄 **Auto-Retry** — Failed downloads automatically retry up to 3 times.
+- 🐛 **Bug Fixes** — Fixed hardcoded paths, missing imports, uninitialized globals, and more.
 
 ---
 
-## 🔗 **Supported Links**
+## 🚀 Features
 
-| Source              | Status        | Notes                                                       |
-| ------------------- | ------------- | ----------------------------------------------------------- |
-| Direct HTTP/HTTPS   | ✅ Full       | Resume supported via aria2c                                 |
-| Google Drive        | ✅ Full       | Files, folders, shared drives (auto‑auth)                   |
-| Telegram            | ✅ Full       | Public / private channel messages (requires bot in channel) |
-| YouTube / YT‑DLP    | ✅ Full       | 2000+ sites (YouTube, Facebook, Instagram, Twitter, etc.)   |
-| Terabox             | ✅ Full       | Using third‑party API                                       |
-| Mega.nz             | 🔜 Planned    | Coming soon                                                 |
-| Torrent / Magnet    | ❌ Disabled   | Against Google Colab ToS                                    |
-
----
-
-## 💡 **Benefits**
-
-- ☁️ **No VPS Needed** – Runs entirely on **Google Colab** free tier.
-- 🌐 **Blazing Speeds** – Google’s backbone delivers up to **200 MiB/s download** and **30 MiB/s upload**.
-- ♾️ **Unlimited Storage** – Telegram provides free, unlimited cloud storage.
-- 🔧 **Easy Setup** – One‑click Colab notebook, no complex configurations.
-- 🎯 **User‑Friendly** – Fully interactive with buttons, menus, and clear progress messages.
-
----
-
-## 🛠️ **Technology Stack**
-
-| Component           | Technology                                                              |
-| ------------------- | ----------------------------------------------------------------------- |
-| Bot Framework       | [Pyrogram](https://docs.pyrogram.org/) (MTProto API)                    |
-| Download Manager    | [aria2c](https://aria2.github.io/) + [yt‑dlp](https://github.com/yt-dlp/yt-dlp) |
-| Video Processing    | FFmpeg, MoviePy, GPUtil (GPU acceleration)                              |
-| Archive Handling    | 7z, unrar, zip, tar                                                    |
-| Cloud Environment   | Google Colab (Python 3.10+, Ubuntu 22.04)                               |
-| Google Drive API    | google‑api‑python‑client                                                |
-| Thumbnail Generator | PIL / Pillow                                                            |
+| Feature | Description |
+|---------|-------------|
+| 📤 **Telegram Upload** | Upload any file/folder to Telegram (video, audio, document, photo) |
+| ☁️ **Google Drive Mirror** | Mirror downloads directly to Google Drive |
+| 📁 **Directory Leech** | Upload entire local directories recursively |
+| 🎬 **Video Converter** | Convert to MP4/MKV with FFmpeg (GPU accelerated) |
+| ✂️ **Smart Splitting** | Split files >2GB into chunks |
+| 🗜️ **Archive Handling** | Create/extract ZIP, RAR, 7z, TAR, GZ with password support |
+| 🖼️ **Auto Thumbnail** | Generate from video or use custom images |
+| 📸 **Batch Photo Uploads** | Media groups of 10 for cleaner delivery |
+| 📋 **Download Queue** | Queue multiple downloads, process sequentially |
+| 🎬 **Format Selection** | Choose YT-DLP quality per-session |
+| ⚡ **Bandwidth Control** | Limit download speed |
+| 📢 **Broadcast** | Send files to multiple chats |
+| 👥 **Multi-User** | Admin panel to allow/deny users |
+| 🔄 **Auto-Retry** | Automatic retry on download failures |
+| 🔒 **Password Protection** | ZIP/unzip passwords |
+| 🏷️ **Custom Filename** | `/setname` or inline `[name]` syntax |
+| ⏳ **Auto-Delete** | Configurable auto-delete for bot messages |
 
 ---
 
-## 📥 **How to Deploy**
+## 🔗 Supported Links
 
-### 1️⃣ **One‑Click Colab**
+| Source | Status | Notes |
+|--------|--------|-------|
+| Direct HTTP/HTTPS | ✅ Full | Resume supported via aria2c |
+| Google Drive | ✅ Full | Files, folders, shared drives |
+| Telegram | ✅ Full | Public/private channel messages |
+| YouTube / YT-DLP | ✅ Full | 2000+ sites with format selection |
+| Terabox | ✅ Full | Using third-party API |
+| Mega.nz | ✅ Full | Using megatools |
+| Pixeldrain | ✅ **NEW** | Single files and lists |
+| Mediafire | ✅ **NEW** | Auto-extracted direct links |
+| Torrent / Magnet | ⚙️ Optional | Enable via `ENABLE_TORRENTS=true` |
+
+---
+
+## 📋 Commands & Usage
+
+### 📥 Download Commands
+| Command | Description |
+|---------|-------------|
+| `/start` | Show welcome message and main menu |
+| `/tupload` | Leech files/folders to Telegram |
+| `/gdupload` | Mirror files/folders to Google Drive |
+| `/drupload` | Upload a local directory |
+| `/ytupload` | Download using YT-DLP |
+
+### 📋 Queue & Control
+| Command | Description |
+|---------|-------------|
+| `/queue` | View download queue and session stats |
+| `/cancel` | Cancel current running task |
+| `/cancel_all` | Cancel task and clear queue |
+
+### ⚙️ Settings
+| Command | Description |
+|---------|-------------|
+| `/settings` | Open interactive settings menu |
+| `/setname` | Set custom filename |
+| `/zipaswd` | Set ZIP password |
+| `/unzipaswd` | Set extraction password |
+| `/format` | Set YT-DLP quality (Best/1080p/720p/480p/Audio) |
+| `/speed` | Set bandwidth limit |
+
+### 🛠️ Admin
+| Command | Description |
+|---------|-------------|
+| `/admin` | Manage allowed users |
+| `/broadcast` | Send last file to multiple chats |
+| `/stats` | System resource usage |
+| `/help` | Display all commands |
+
+### 💡 Inline Options
+When sending links, append:
+- `[custom_name.mp4]` → Override filename
+- `{zip_password}` → Password for ZIP creation
+- `(unzip_password)` → Password for archive extraction
+
+---
+
+## ⚙️ Configuration
+
+All settings are configured via **environment variables** or a `.env` file:
+
+```bash
+# Telegram Credentials (REQUIRED)
+API_ID=12345
+API_HASH=your_api_hash
+BOT_TOKEN=your_bot_token
+OWNER_ID=123456789
+DUMP_ID=-1001234567890
+
+# Paths (optional - defaults to /tmp/leechbot)
+LEECHBOT_BASE_DIR=/tmp/leechbot
+
+# Features
+MAX_CONCURRENT_DOWNLOADS=3
+AUTO_RETRY_COUNT=3
+DEFAULT_UPLOAD_MODE=media
+ENABLE_TORRENTS=false
+BANDWIDTH_LIMIT=
+
+# Google Drive
+GDRIVE_ENABLED=false
+TOKEN_PICKLE_PATH=
+
+# Multi-user (comma-separated user IDs)
+ALLOWED_USERS=123456789,987654321
+```
+
+---
+
+## 📥 How to Deploy
+
+### 1️⃣ Google Colab (One-Click)
 
 <a href="https://colab.research.google.com/github/Shineii86/LeechBot/blob/main/notebooks/LeechBot.ipynb">
   <img src="https://user-images.githubusercontent.com/125879861/255389999-a0d261cf-893a-46a7-9a3d-2bb52811b997.png" alt="Open In Colab" width="200px">
 </a>
 
-### 2️⃣ **Manual Setup (Local / VPS)**
+### 2️⃣ Manual Setup (Local / VPS)
 
 ```bash
 git clone https://github.com/Shineii86/LeechBot.git
 cd LeechBot
 pip install -r requirements.txt
-```
-
-Create a `credentials.json` file with your API details:
-
-```json
-{
-  "API_ID": 12345,
-  "API_HASH": "your_api_hash",
-  "BOT_TOKEN": "your_bot_token",
-  "USER_ID": 123456789,
-  "DUMP_ID": -1001234567890
-}
-```
-
-Run the bot:
-
-```bash
+cp .env.example .env
+# Edit .env with your credentials
 python -m leechbot
 ```
 
-### 3️⃣ **Detailed Instructions**
+### 3️⃣ Docker (Optional)
 
-- 📘 [Full Deployment Guide](https://github.com/XronTrix10/Telegram-Leecher/wiki/INSTRUCTIONS) (original base)
-- 🎥 [YouTube Tutorial](https://www.youtube.com/watch?v=6LvYd-oO3U0)
-
----
-
-## 📋 **Commands & Usage**
-
-| Command       | Description                                                |
-| ------------- | ---------------------------------------------------------- |
-| `/start`      | Show welcome message and main menu                         |
-| `/tupload`    | Leech files/folders to Telegram                            |
-| `/gdupload`   | Mirror files/folders to Google Drive                       |
-| `/drupload`   | Upload a local directory (provide absolute path)           |
-| `/ytupload`   | Download using YT‑DLP (YouTube, etc.)                      |
-| `/settings`   | Open interactive settings menu (owner only)                |
-| `/setname`    | Set a custom filename for downloads                        |
-| `/zipaswd`    | Set password for ZIP archives                              |
-| `/unzipaswd`  | Set password for extracting archives                       |
-| `/stats`      | Show system resource usage                                 |
-| `/cancel`     | Cancel the current running task                            |
-| `/help`       | Display all commands                                       |
-
-**Inline Options:**  
-When sending links, you can append:
-
-- `[custom_name.mp4]` → Override filename  
-- `{zip_password}` → Password for ZIP creation  
-- `(unzip_password)` → Password for archive extraction
+```bash
+docker build -t leechbot .
+docker run -d --env-file .env leechbot
+```
 
 ---
 
-## 🆚 **Changelog – Old vs New**
+## 🙏 Acknowledgements
 
-| **Aspect**             | **Telegram Leecher**                 | **LeechBot**                                         |
-| ---------------------- | ------------------------------------ | ---------------------------------------------------- |
-| **UI / UX**            | Plain text messages                  | Clean, professional Markdown with inline menus       |
-| **Auto‑Delete**        | None                                 | Configurable auto‑delete for bot messages            |
-| **Batch Photo Upload** | One‑by‑one photos                    | Media groups of 10 for cleaner delivery              |
-| **Code Structure**     | Monolithic, less documented          | Modular, fully typed, clean docstrings               |
-| **Video Converter**    | Basic FFmpeg                         | GPU‑accelerated FFmpeg + MoviePy fallback            |
-| **Archive Support**    | Limited to ZIP                       | Full 7z, RAR, TAR, GZ, multipart extraction          |
-| **Settings Menu**      | None                                 | Interactive inline menu with toggle switches         |
-| **Thumbnail**          | Manual only                          | Auto‑generate from video, YT‑DLP thumb support       |
-| **Link Support**       | HTTP, GDrive, YT, Telegram           | Added Terabox, improved GDrive folder handling       |
-| **Progress Updates**   | Basic text                           | Real‑time speed, ETA, percentage, system stats       |
-| **License**            | GPL‑3.0                              | MIT (more permissive)                                |
+- **Original Base:** [XronTrix10/Telegram-Leecher](https://github.com/XronTrix10/Telegram-Leecher)
+- **Enhancements:** [kjeymax/Telegram-Leecher](https://github.com/kjeymax/Telegram-Leecher)
+- **Forked Inspiration:** [ehraz786/tgdl](https://github.com/ehraz786/tgdl)
+
+Special thanks to **Pyrogram**, **aria2**, **yt-dlp**, and **Google Colab**.
 
 ---
 
-## 🙏 **Acknowledgements**
+## 📄 License
 
-This project stands on the shoulders of giants:
+This project is licensed under the **MIT License** — see [LICENSE](LICENSE).
 
-- **Original Base:** [XronTrix10/Telegram‑Leecher](https://github.com/XronTrix10/Telegram-Leecher)  
-- **Minor Fixes & Enhancements:** [kjeymax/Telegram‑Leecher](https://github.com/kjeymax/Telegram-Leecher)  
-- **Forked Inspiration:** [ehraz786/tgdl](https://github.com/ehraz786/tgdl)  
-
-> [!NOTE]
-> Special thanks to the developers of **Pyrogram**, **aria2**, **yt‑dlp**, and **Google Colab** for making this possible.
-> This project is a community‑driven enhancement of the original Telegram Leecher.
+> ⚠️ Using this bot for downloading copyrighted content without permission may violate laws. The developer assumes no liability for misuse.
 
 ---
-
-## 📄 **License & Disclaimer**
-
-This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
-
-> [!IMPORTANT]  
-> Using this bot for downloading copyrighted content without permission may violate laws.  
-> **You should NOT use it in a way that goes against Google Colab's Terms of Service**, such as running torrents, hosting web services, or engaging in bulk compute.  
-> The developer assumes no liability for misuse.
-
----
-
-## **Updates & Support**
-
-<div align="center">
-  
-##### **Updates Channel**
-
-<a href="https://t.me/MaximXBots"><img src="https://telegramcard.vercel.app/?username=MaximXBots&theme=light" alt="Channel"></a>
-
-##### **Support Group**
-
-<a href="https://t.me/MaximXGroup"><img src="https://telegramcard.vercel.app/?username=MaximxGroup&theme=light&theme=light" alt="Group"></a>
-
-</div>
-
-## 💕 Loved My Work?
-
-🚨 [Follow me on GitHub](https://github.com/Shineii86)
-
-⭐ [Give a star to this project](https://github.com/Shineii86/LeechBot)
 
 <div align="center">
 
-<a href="https://github.com/Shineii86/LeechBot">
-<img src="https://github.com/Shineii86/AniPay/blob/main/Source/Banner6.png" alt="Banner">
-</a>
-  
-  *For inquiries or collaborations*
-     
-[![Telegram Badge](https://img.shields.io/badge/-Telegram-2CA5E0?style=flat&logo=Telegram&logoColor=white)](https://telegram.me/Shineii86 "Contact on Telegram")
-[![Instagram Badge](https://img.shields.io/badge/-Instagram-C13584?style=flat&logo=Instagram&logoColor=white)](https://instagram.com/ikx7.a "Follow on Instagram")
-[![Pinterest Badge](https://img.shields.io/badge/-Pinterest-E60023?style=flat&logo=Pinterest&logoColor=white)](https://pinterest.com/ikx7a "Follow on Pinterest")
-[![Gmail Badge](https://img.shields.io/badge/-Gmail-D14836?style=flat&logo=Gmail&logoColor=white)](mailto:ikx7a@hotmail.com "Send an Email")
-
-  <sup><b>Copyright © 2026 <a href="https://telegram.me/Shineii86">Shinei Nouzen</a> All Rights Reserved</b></sup>
-
-![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
-
-<sub>Pull Requests And Contributions Are Warmly Welcomed</sub>
+**🧑‍💻 Developer:** [Shinei Nouzen](https://t.me/Shineii86)
+**📂 GitHub:** [Shineii86/LeechBot](https://github.com/Shineii86/LeechBot)
+**🔔 Updates:** [MaximXBots](https://t.me/MaximXBots)
+**💬 Support:** [MaximXGroup](https://t.me/MaximXGroup)
 
 </div>

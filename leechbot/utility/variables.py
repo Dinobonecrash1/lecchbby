@@ -6,13 +6,20 @@
 # GitHub    : https://github.com/Shineii86
 # Telegram  : https://telegram.me/Shineii86
 # =============================================================================
+# License   : MIT License
+# =============================================================================
 
 """
 Global variables and configuration classes for the bot.
+
+All mutable state lives here. Import the class you need and mutate
+its attributes directly — this module is the single source of truth.
 """
 
+import config
 from time import time
 from datetime import datetime
+from collections import deque
 from pyrogram.types import Message
 
 
@@ -24,217 +31,280 @@ class BOT:
     Main bot configuration class.
     Stores all bot settings, options, modes, and states.
     """
-    
+
     # Download sources list
-    SOURCE = []
-    
-    # Active task reference
+    SOURCE: list = []
+
+    # Active asyncio task reference
     TASK = None
-    
+
     class Setting:
-        """User preference settings"""
-        stream_upload = "media"      # Upload mode: media or document
-        convert_video = "yes"        # Video conversion enabled
-        convert_quality = "low"      # Video quality: high or low
-        caption = "regular"          # Caption font style
-        split_video = "split"        # Video handling: split or zip
-        prefix = ""                  # Filename prefix
-        suffix = ""                  # Filename suffix
-        thumbnail = False            # Thumbnail set status
-        auto_delete = False          # Auto-delete bot messages
-        auto_delete_delay = 30       # Delay in seconds
-    
+        """Persistent user preference settings (survive across tasks)."""
+        stream_upload: str = config.DEFAULT_UPLOAD_MODE  # "media" or "document"
+        convert_video: str = "Yes"
+        convert_quality: str = "Low"
+        caption: str = "Regular"
+        split_video: str = "Split"
+        prefix: str = ""
+        suffix: str = ""
+        thumbnail: bool = False
+        auto_delete: bool = False
+        auto_delete_delay: int = 30
+
     class Options:
-        """Runtime options for current task"""
-        stream_upload = True         # Streaming upload enabled
-        convert_video = True         # Video conversion enabled
-        convert_quality = False      # High quality conversion
-        is_split = True              # Split large videos
-        caption = "code"             # Caption tag type
-        video_out = "mp4"            # Output video format
-        custom_name = ""             # Custom filename
-        zip_pswd = ""                # Zip password
-        unzip_pswd = ""              # Unzip password
-    
+        """Runtime options for the current task (reset each task)."""
+        stream_upload: bool = True
+        convert_video: bool = True
+        convert_quality: bool = False
+        is_split: bool = True
+        caption: str = "code"
+        video_out: str = "mp4"
+        custom_name: str = ""
+        zip_pswd: str = ""
+        unzip_pswd: str = ""
+        ytdl_format: str = "bestvideo+bestaudio/best"  # YT-DLP format string
+        bandwidth_limit: str = config.BANDWIDTH_LIMIT
+
     class Mode:
-        """Current task mode"""
-        mode = "leech"               # Task type: leech, mirror, dir-leech
-        type = "normal"              # Upload type: normal, zip, unzip, undzip
-        ytdl = False                 # YT-DLP mode enabled
-    
+        """Current task mode."""
+        mode: str = "leech"      # leech | mirror | dir-leech
+        type: str = "normal"     # normal | zip | unzip | undzip
+        ytdl: bool = False
+
     class State:
-        """Bot state tracking"""
-        started = False              # Task started flag
-        task_going = False           # Task in progress flag
-        prefix = False               # Waiting for prefix input
-        suffix = False               # Waiting for suffix input
-        setting_autodelete_delay = False  # Waiting for delay input
+        """Bot state tracking flags."""
+        started: bool = False
+        task_going: bool = False
+        prefix: bool = False
+        suffix: bool = False
+        setting_autodelete_delay: bool = False
+
+
+# =============================================================================
+# Download Queue
+# =============================================================================
+class DownloadQueue:
+    """
+    Thread-safe download queue.
+    Allows users to queue multiple links and process them sequentially.
+    """
+
+    def __init__(self):
+        self._queue: deque = deque()
+        self._current = None
+
+    def add(self, links: list, mode: str = "leech", upload_type: str = "normal"):
+        """Add a batch of links to the queue."""
+        self._queue.append({
+            "links": links,
+            "mode": mode,
+            "type": upload_type,
+            "added_at": datetime.now(),
+        })
+
+    def next(self):
+        """Get the next item from the queue."""
+        if self._queue:
+            self._current = self._queue.popleft()
+            return self._current
+        self._current = None
+        return None
+
+    def peek(self):
+        """Look at the next item without removing it."""
+        return self._queue[0] if self._queue else None
+
+    @property
+    def pending(self) -> int:
+        return len(self._queue)
+
+    @property
+    def current(self):
+        return self._current
+
+    def clear(self):
+        self._queue.clear()
+        self._current = None
+
+    def list_items(self) -> list:
+        """Return a list summary of queued items."""
+        items = []
+        for i, item in enumerate(self._queue, 1):
+            link_count = len(item["links"])
+            first_link = item["links"][0][:60] if item["links"] else "N/A"
+            items.append(f"  {i}. `{first_link}{'...' if len(item['links'][0]) > 60 else ''}` ({link_count} link{'s' if link_count > 1 else ''})")
+        return items
+
+
+# Global queue instance
+Queue = DownloadQueue()
+
+
+# =============================================================================
+# Admin / Multi-User Management
+# =============================================================================
+class Admin:
+    """
+    Multi-user access control.
+    OWNER always has full access. Additional users are loaded from config.
+    """
+
+    _allowed: set = set(config.ALLOWED_USERS)
+
+    @classmethod
+    def is_allowed(cls, user_id: int) -> bool:
+        """Check if a user is allowed to use the bot."""
+        return user_id == config.OWNER_ID or user_id in cls._allowed
+
+    @classmethod
+    def add_user(cls, user_id: int):
+        cls._allowed.add(user_id)
+
+    @classmethod
+    def remove_user(cls, user_id: int):
+        cls._allowed.discard(user_id)
+
+    @classmethod
+    def list_users(cls) -> list:
+        users = [config.OWNER_ID] + sorted(cls._allowed)
+        return users
+
+    @classmethod
+    def is_owner(cls, user_id: int) -> bool:
+        return user_id == config.OWNER_ID
 
 
 # =============================================================================
 # YT-DLP Download Status
 # =============================================================================
 class YTDL:
-    """
-    YT-DLP download status tracker.
-    Stores real-time download information.
-    """
-    header = ""           # Progress header message
-    speed = ""            # Current download speed
-    percentage = 0.0      # Download percentage
-    eta = ""              # Estimated time of arrival
-    done = ""             # Bytes downloaded
-    left = ""             # Bytes remaining
+    """Real-time YT-DLP download status."""
+    header: str = ""
+    speed: str = ""
+    percentage: float = 0.0
+    eta: str = ""
+    done: str = ""
+    left: str = ""
 
 
 # =============================================================================
 # Transfer Statistics
 # =============================================================================
 class Transfer:
-    """
-    File transfer statistics tracker.
-    Keeps track of downloaded and uploaded bytes.
-    """
-    down_bytes = [0, 0]           # List of downloaded file sizes
-    up_bytes = [0, 0]             # List of uploaded file sizes
-    total_down_size = 0           # Total download size
-    sent_file = []                # List of sent message objects
-    sent_file_names = []          # List of sent file names
+    """File transfer statistics tracker."""
+    down_bytes: list = [0, 0]
+    up_bytes: list = [0, 0]
+    total_down_size: int = 0
+    sent_file: list = []
+    sent_file_names: list = []
 
 
 # =============================================================================
 # Task Error Handling
 # =============================================================================
 class TaskError:
-    """
-    Task error tracker.
-    Stores error state and message.
-    """
-    state = False                 # Error occurred flag
-    text = ""                     # Error message
+    """Task error tracker."""
+    state: bool = False
+    text: str = ""
 
 
 # =============================================================================
 # Time Tracking
 # =============================================================================
 class BotTimes:
-    """
-    Bot timing tracker.
-    Keeps track of various timestamps for progress calculations.
-    """
-    current_time = time()                     # Last update time
-    start_time = datetime.now()               # Task start time
-    task_start = datetime.now()               # Current subtask start time
+    """Bot timing tracker for progress calculations."""
+    current_time: float = time()
+    start_time: datetime = datetime.now()
+    task_start: datetime = datetime.now()
 
 
 # =============================================================================
-# File Paths
+# File Paths (using config.py paths)
 # =============================================================================
 class Paths:
-    """
-    File system paths.
-    Defines all working directories and file locations.
-    """
-    # Base working directory
-    WORK_PATH = "/content/tgdl/BOT_WORK"
-    
+    """File system paths — all derived from config.BASE_DIR."""
+
+    # Base paths from config
+    WORK_PATH: str = str(config.WORK_PATH)
+    down_path: str = str(config.DOWNLOADS_PATH)
+
     # Thumbnail paths
-    THMB_PATH = "/content/tgdl/leechbot/Thumbnail.jpg"
-    VIDEO_FRAME = f"{WORK_PATH}/video_frame.jpg"
-    HERO_IMAGE = f"{WORK_PATH}/Hero.jpg"
-    DEFAULT_HERO = "/content/tgdl/custom_thmb.jpg"
-    
+    THMB_PATH: str = str(config.THUMBNAIL_PATH / "Thumbnail.jpg")
+    VIDEO_FRAME: str = str(config.TEMP_PATH / "video_frame.jpg")
+    HERO_IMAGE: str = str(config.WORK_PATH / "Hero.jpg")
+    DEFAULT_HERO: str = str(config.THUMBNAIL_PATH / "default_hero.jpg")
+
     # Google Drive mount point
-    MOUNTED_DRIVE = "/content/drive"
-    
+    MOUNTED_DRIVE: str = "/content/drive"
+
     # Working subdirectories
-    down_path = f"{WORK_PATH}/Downloads"
-    temp_dirleech_path = f"{WORK_PATH}/dir_leech_temp"
-    mirror_dir = "/content/drive/MyDrive/Downloads/tgdl"
-    temp_zpath = f"{WORK_PATH}/Leeched_Files"
-    temp_unzip_path = f"{WORK_PATH}/Unzipped_Files"
-    temp_files_dir = f"{WORK_PATH}/leech_temp"
-    thumbnail_ytdl = f"{WORK_PATH}/ytdl_thumbnails"
-    
+    temp_dirleech_path: str = str(config.WORK_PATH / "dir_leech_temp")
+    mirror_dir: str = str(config.DOWNLOADS_PATH / "mirror")
+    temp_zpath: str = str(config.TEMP_PATH / "zipped")
+    temp_unzip_path: str = str(config.TEMP_PATH / "unzipped")
+    temp_files_dir: str = str(config.TEMP_PATH / "leech_temp")
+    thumbnail_ytdl: str = str(config.TEMP_PATH / "ytdl_thumbnails")
+
     # Token file
-    access_token = "/content/token.pickle"
+    access_token: str = config.TOKEN_PICKLE_PATH
 
 
 # =============================================================================
 # Message Templates
 # =============================================================================
 class Messages:
-    """
-    Message templates and texts.
-    Stores dynamic message content.
-    """
-    caution_msg = ""              # Caution message for torrents
-    download_name = ""            # Current download name
-    task_msg = ""                 # Task information message
-    status_head = ""              # Status header (set dynamically)
-    dump_task = ""                # Task log message
-    src_link = ""                 # Source link
-    link_p = ""                   # Channel link part
+    """Dynamic message content storage."""
+    caution_msg: str = ""
+    download_name: str = ""
+    task_msg: str = ""
+    status_head: str = ""
+    dump_task: str = ""
+    src_link: str = ""
+    link_p: str = ""
 
 
 # =============================================================================
 # Message Objects
 # =============================================================================
 class MSG:
-    """
-    Telegram message objects.
-    Stores references to sent messages for editing.
-    """
-    sent_msg = Message(id=1)       # Last sent message
-    status_msg = Message(id=2)     # Status message
+    """Telegram message object references."""
+    sent_msg = Message(id=1)
+    status_msg = Message(id=2)
 
 
 # =============================================================================
 # Aria2c Configuration
 # =============================================================================
 class Aria2c:
-    """
-    Aria2c downloader configuration.
-    Stores aria2c-specific settings and state.
-    """
-    link_info = False              # Link information received
-    pic_dwn_url = "https://picsum.photos/900/600"  # Random image URL
+    """Aria2c downloader state."""
+    link_info: bool = False
+    pic_dwn_url: str = "https://picsum.photos/900/600"
 
 
 # =============================================================================
 # Google Drive Service
 # =============================================================================
 class Gdrive:
-    """
-    Google Drive service.
-    Stores the Google Drive API service instance.
-    """
-    service = None                 # Google Drive API service
+    """Google Drive API service holder."""
+    service = None
 
 
 # =============================================================================
 # Bot Statistics
 # =============================================================================
 class BotStats:
-    """
-    Bot usage statistics.
-    Tracks total downloads, uploads, and other metrics.
-    """
-    total_tasks = 0                # Total completed tasks
-    total_downloaded = 0           # Total bytes downloaded
-    total_uploaded = 0             # Total bytes uploaded
-    failed_tasks = 0               # Failed task count
+    """Cumulative bot usage statistics."""
+    total_tasks: int = 0
+    total_downloaded: int = 0
+    total_uploaded: int = 0
+    failed_tasks: int = 0
+    start_time: datetime = datetime.now()
 
 
 # =============================================================================
-# Constants
+# Constants (re-exported from config for convenience)
 # =============================================================================
-# Maximum file size for Telegram (2GB)
-MAX_FILE_SIZE = 2097152000
-
-# Maximum video split size (1.9GB)
-MAX_VIDEO_SPLIT_SIZE = 1992294400
-
-# Version information
-VERSION = "0.2"
-BUILD_DATE = "2026-04-10"
+MAX_FILE_SIZE = config.MAX_FILE_SIZE
+MAX_VIDEO_SPLIT_SIZE = config.MAX_VIDEO_SPLIT_SIZE
+VERSION = config.VERSION
+BUILD_DATE = config.BUILD_DATE

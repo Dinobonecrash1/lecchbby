@@ -26,13 +26,14 @@ from datetime import datetime
 from asyncio import sleep, get_event_loop
 from leechbot import leechbot, OWNER
 from leechbot.utility.handler import cancelTask
-from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
+from leechbot.utility.variables import BOT, MSG, BotTimes, Paths, Queue, BotStats
 from leechbot.utility.task_manager import taskScheduler, task_starter
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot.utility.helper import (
     isLink, setThumbnail, message_deleter, send_settings,
-    sysINFO, sysINFO_full, status_keyboard
+    sysINFO, sysINFO_full, status_keyboard, extract_links
 )
+import config
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +55,9 @@ WELCOME_TEXT = """
 **📥 Download From Anywhere**
 `•` Direct Links, Google Drive, Telegram
 `•` YouTube, Facebook, Instagram & 2000+ sites
-`•` Terabox, Mega (soon)
+`•` Terabox, Mega, Pixeldrain, Mediafire
 
-**📤 Uploaded To Premium Destination**
+**📤 Upload To Premium Destination**
 `•` Telegram (Unlimited Storage)
 `•` Google Drive (Mirror Mode)
 `•` Local Directory Leech
@@ -66,6 +67,7 @@ WELCOME_TEXT = """
 `•` Archive Extractor (Zip, Rar, 7z)
 `•` Smart Splitting For Large Files
 `•` Custom Thumbnails & Captions
+`•` Download Queue & Bandwidth Control
 
 ───────────────────────────
 
@@ -73,6 +75,9 @@ WELCOME_TEXT = """
 `/tupload` — Upload To Telegram
 `/gdupload` — Mirror To Google Drive
 `/ytupload` — Download With Yt‑Dlp
+`/queue` — View Download Queue
+`/format` — Set YT-DLP Quality
+`/speed` — Set Bandwidth Limit
 `/settings` — Configure Bot Preferences
 
 ───────────────────────────
@@ -247,21 +252,39 @@ async def help_command(client, message):
     help_text = """
 **📖 Leechbot Help Menu**
 
-**Available Commands:**
+**📥 Download Commands:**
+/start — Start The Bot
+/tupload — Upload To Telegram
+/gdupload — Mirror To Google Drive
+/drupload — Upload Local Directory
+/ytupload — Download With Yt-Dlp
 
-/start - Start The Bot
-/tupload - Upload To Telegram
-/gdupload - Mirror To Google Drive
-/drupload - Upload Local Directory
-/ytupload - Download With Yt-Dlp
-/settings - Bot Settings
-/setname - Set Custom Filename
-/zipaswd - Set Zip Password
-/unzipaswd - Set Unzip Password
-/help - Show This Help Message
+**📋 Queue & Control:**
+/queue — View Download Queue
+/cancel — Cancel Current Task
+/cancel_all — Cancel & Clear Queue
+
+**⚙️ Settings:**
+/settings — Bot Settings Menu
+/setname — Set Custom Filename
+/zipaswd — Set Zip Password
+/unzipaswd — Set Unzip Password
+/format — Set YT-DLP Quality
+/speed — Set Bandwidth Limit
+
+**🛠️ Admin:**
+/admin — Manage Allowed Users
+/broadcast — Send File To Multiple Chats
+/stats — System Statistics
+/help — Show This Help Message
 
 **🖼️ Thumbnail:**
 Send Any Image To Set It As Thumbnail
+
+**💡 Supported Sites:**
+Direct Links, Google Drive, Telegram
+YouTube, Facebook, Instagram & 2000+ sites
+Terabox, Mega, Pixeldrain, Mediafire
 """
     
     keyboard = InlineKeyboardMarkup(
@@ -376,6 +399,254 @@ async def cancel_command(client, message):
     else:
         msg = await message.reply_text("**⚠️ No Active Task To Cancel**", quote=True)
     
+    await message_deleter(message, msg)
+
+
+# =============================================================================
+# NEW COMMANDS
+# =============================================================================
+@leechbot.on_message(filters.command("queue") & filters.private)
+async def queue_command(client, message):
+    """Show the download queue."""
+    if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
+        return
+
+    items = Queue.list_items()
+    current = Queue.current()
+
+    text = "**📋 Download Queue**\n\n"
+
+    if current:
+        text += f"**🔄 Active:** `{current.get('name', 'Unknown')}`\n"
+        text += f"**📦 Links:** `{len(current.get('links', []))}`\n\n"
+    else:
+        text += "**🔄 Active:** `None`\n\n"
+
+    if items:
+        for i, item in enumerate(items, 1):
+            text += f"`{i}.` `{item.get('name', 'Unknown')}` — `{len(item.get('links', []))}` links\n"
+        text += f"\n**📊 Total Queued:** `{Queue.size()}`"
+    else:
+        text += "**📭 Queue is empty**"
+
+    stats_text = f"\n\n**📈 Session Stats:**\n"
+    stats_text += f"`•` Completed: `{BotStats.total_tasks}`\n"
+    stats_text += f"`•` Failed: `{BotStats.failed_tasks}`\n"
+    stats_text += f"`•` Downloaded: `{BotStats.total_downloaded}`\n"
+    stats_text += f"`•` Uploaded: `{BotStats.total_uploaded}`"
+
+    msg = await message.reply_text(text + stats_text, quote=True)
+    await message_deleter(message, msg)
+
+
+@leechbot.on_message(filters.command("format") & filters.private)
+async def format_command(client, message):
+    """Set YT-DLP download format/quality."""
+    if message.chat.id != OWNER:
+        return
+
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🎬 Best Quality", callback_data="fmt-bestvideo+bestaudio/best"),
+        ],
+        [
+            InlineKeyboardButton("📺 1080p", callback_data="fmt-bestvideo[height<=1080]+bestaudio/best[height<=1080]"),
+            InlineKeyboardButton("📺 720p", callback_data="fmt-bestvideo[height<=720]+bestaudio/best[height<=720]"),
+        ],
+        [
+            InlineKeyboardButton("📱 480p", callback_data="fmt-bestvideo[height<=480]+bestaudio/best[height<=480]"),
+            InlineKeyboardButton("📱 360p", callback_data="fmt-bestvideo[height<=360]+bestaudio/best[height<=360]"),
+        ],
+        [
+            InlineKeyboardButton("🎵 Audio Only", callback_data="fmt-bestaudio/best"),
+        ],
+        [
+            InlineKeyboardButton("❰ Back", callback_data="back"),
+        ],
+    ])
+
+    current_fmt = BOT.Setting.ytdl_format if hasattr(BOT.Setting, 'ytdl_format') else "bestvideo+bestaudio/best"
+
+    await message.reply_text(
+        f"**🎬 YT-DLP Format Selection**\n\n"
+        f"**Current:** `{current_fmt}`\n\n"
+        f"Choose the quality for video downloads:\n\n"
+        f"💡 **Tip:** Lower quality = faster download & smaller size",
+        reply_markup=keyboard,
+        quote=True
+    )
+
+
+@leechbot.on_message(filters.command("speed") & filters.private)
+async def speed_command(client, message):
+    """Set bandwidth limit for downloads."""
+    if message.chat.id != OWNER:
+        return
+
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("🚀 Unlimited", callback_data="spd-"),
+            InlineKeyboardButton("💨 50 MB/s", callback_data="spd-50M"),
+        ],
+        [
+            InlineKeyboardButton("⚡ 20 MB/s", callback_data="spd-20M"),
+            InlineKeyboardButton("🔌 10 MB/s", callback_data="spd-10M"),
+        ],
+        [
+            InlineKeyboardButton("🐢 5 MB/s", callback_data="spd-5M"),
+            InlineKeyboardButton("🐌 1 MB/s", callback_data="spd-1M"),
+        ],
+        [
+            InlineKeyboardButton("❰ Back", callback_data="back"),
+        ],
+    ])
+
+    current = config.BANDWIDTH_LIMIT or "Unlimited"
+
+    await message.reply_text(
+        f"**⚡ Bandwidth Limiter**\n\n"
+        f"**Current Limit:** `{current}`\n\n"
+        f"Set maximum download speed to avoid saturating your connection.\n"
+        f"This applies to aria2c and YT-DLP downloads.",
+        reply_markup=keyboard,
+        quote=True
+    )
+
+
+@leechbot.on_message(filters.command("broadcast") & filters.private)
+async def broadcast_command(client, message):
+    """Send the last uploaded file to multiple chats."""
+    if message.chat.id != OWNER:
+        return
+
+    if not BOT.State.task_going and not Transfer.sent_file:
+        msg = await message.reply_text(
+            "**⚠️ No files to broadcast.**\n\nUpload something first with `/tupload`.",
+            quote=True
+        )
+        await message_deleter(message, msg)
+        return
+
+    if len(message.command) < 2:
+        msg = await message.reply_text(
+            "**📢 Broadcast Usage:**\n\n"
+            "`/broadcast chat_id1, chat_id2, ...`\n\n"
+            "**Example:**\n"
+            "`/broadcast -1001234567890, -1009876543210`\n\n"
+            "💡 Send the last uploaded file to multiple chats.",
+            quote=True
+        )
+        await message_deleter(message, msg)
+        return
+
+    chat_ids = []
+    for cid in " ".join(message.command[1:]).split(","):
+        cid = cid.strip()
+        try:
+            chat_ids.append(int(cid))
+        except ValueError:
+            pass
+
+    if not chat_ids:
+        msg = await message.reply_text("**⚠️ No valid chat IDs provided.**", quote=True)
+        await message_deleter(message, msg)
+        return
+
+    last_file = Transfer.sent_file[-1] if Transfer.sent_file else None
+    if not last_file:
+        msg = await message.reply_text("**⚠️ No file to broadcast.**", quote=True)
+        await message_deleter(message, msg)
+        return
+
+    msg = await message.reply_text(f"**📢 Broadcasting to {len(chat_ids)} chats...**", quote=True)
+
+    success = 0
+    failed = 0
+    for chat_id in chat_ids:
+        try:
+            await last_file.copy(chat_id)
+            success += 1
+        except Exception as e:
+            logger.error(f"Broadcast to {chat_id} failed: {e}")
+            failed += 1
+        await sleep(1)  # Rate limit
+
+    await msg.edit_text(
+        f"**📢 Broadcast Complete**\n\n"
+        f"✅ Success: `{success}`\n"
+        f"❌ Failed: `{failed}`\n"
+        f"📊 Total: `{len(chat_ids)}`"
+    )
+
+
+@leechbot.on_message(filters.command("admin") & filters.private)
+async def admin_command(client, message):
+    """Admin panel for managing allowed users."""
+    if message.chat.id != OWNER:
+        return
+
+    if len(message.command) < 2:
+        users_list = "\n".join([f"`•` `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
+        msg = await message.reply_text(
+            f"**👥 Admin Panel**\n\n"
+            f"**Allowed Users:**\n{users_list}\n\n"
+            f"**Commands:**\n"
+            f"`/admin add <user_id>` — Allow a user\n"
+            f"`/admin remove <user_id>` — Deny a user\n"
+            f"`/admin list` — Show allowed users",
+            quote=True
+        )
+        await message_deleter(message, msg)
+        return
+
+    action = message.command[1].lower()
+
+    if action == "add" and len(message.command) >= 3:
+        try:
+            new_uid = int(message.command[2])
+            if new_uid not in config.ALLOWED_USERS:
+                config.ALLOWED_USERS.append(new_uid)
+                msg = await message.reply_text(f"**✅ User `{new_uid}` added to allowed list.**", quote=True)
+            else:
+                msg = await message.reply_text(f"**ℹ️ User `{new_uid}` is already allowed.**", quote=True)
+        except ValueError:
+            msg = await message.reply_text("**⚠️ Invalid user ID.**", quote=True)
+
+    elif action == "remove" and len(message.command) >= 3:
+        try:
+            rm_uid = int(message.command[2])
+            if rm_uid in config.ALLOWED_USERS:
+                config.ALLOWED_USERS.remove(rm_uid)
+                msg = await message.reply_text(f"**✅ User `{rm_uid}` removed from allowed list.**", quote=True)
+            else:
+                msg = await message.reply_text(f"**ℹ️ User `{rm_uid}` is not in the allowed list.**", quote=True)
+        except ValueError:
+            msg = await message.reply_text("**⚠️ Invalid user ID.**", quote=True)
+
+    elif action == "list":
+        users_list = "\n".join([f"`•` `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
+        msg = await message.reply_text(f"**👥 Allowed Users:**\n{users_list}", quote=True)
+
+    else:
+        msg = await message.reply_text("**⚠️ Usage:** `/admin add|remove|list [user_id]`", quote=True)
+
+    await message_deleter(message, msg)
+
+
+@leechbot.on_message(filters.command("cancel_all") & filters.private)
+async def cancel_all_command(client, message):
+    """Cancel current task and clear the queue."""
+    if message.chat.id != OWNER:
+        return
+
+    Queue.clear()
+
+    if BOT.State.task_going:
+        await cancelTask("User cancelled all tasks")
+        msg = await message.reply_text("**🚫 All tasks cancelled and queue cleared.**", quote=True)
+    else:
+        msg = await message.reply_text("**📭 Queue cleared. No active task to cancel.**", quote=True)
+
     await message_deleter(message, msg)
 
 
@@ -755,7 +1026,31 @@ When enabled, bot messages will be automatically deleted after the specified del
     # Cancel task
     elif data == "cancel":
         await cancelTask("User cancelled the task")
-    
+
+    # =========================================================================
+    # Format Selection Callbacks
+    # =========================================================================
+    elif data.startswith("fmt-"):
+        fmt = data[4:]
+        BOT.Setting.ytdl_format = fmt
+        config.BANDWIDTH_LIMIT = config.BANDWIDTH_LIMIT  # keep current
+        await callback_query.message.edit_text(
+            f"**✅ YT-DLP Format Updated**\n\n**Selected:** `{fmt}`"
+        )
+        await callback_query.answer("Format saved")
+
+    # =========================================================================
+    # Speed Limit Callbacks
+    # =========================================================================
+    elif data.startswith("spd-"):
+        speed_val = data[4:]
+        config.BANDWIDTH_LIMIT = speed_val
+        display = speed_val if speed_val else "Unlimited"
+        await callback_query.message.edit_text(
+            f"**✅ Bandwidth Limit Updated**\n\n**Limit:** `{display}`"
+        )
+        await callback_query.answer("Speed limit saved")
+
     # =========================================================================
     # System Info Callbacks
     # =========================================================================
