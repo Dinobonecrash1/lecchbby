@@ -6,26 +6,62 @@
 # GitHub    : https://github.com/Shineii86
 # Telegram  : https://telegram.me/Shineii86
 # =============================================================================
+# License   : MIT License
+# =============================================================================
 
 """
 Download manager module.
 
-Orchestrates downloads from various sources and manages the overall process.
+Orchestrates downloads from various sources, routes links to the correct
+downloader, handles retries, and manages the overall process.
 """
 
 import logging
-from natsort import natsorted
 from datetime import datetime
 from asyncio import sleep
-from leechbot.downloader.mega import megadl
-from leechbot.downloader.ytdl import YTDL_Status, get_YT_Name
-from leechbot.downloader.aria2 import aria2_Download, get_Aria2c_Name, Aria2c
-from leechbot.utility.helper import isYtdlComplete, keyboard, sysINFO
-from leechbot.downloader.telegram import TelegramDownload, media_Identifier
-from leechbot.utility.variables import BOT, Transfer, MSG, Messages, BotTimes
-from leechbot.downloader.gdrive import build_service, g_DownLoad, get_Gfolder_size, getFileMetadata, getIDFromURL
+
+from leechbot.utility.variables import (
+    BOT, Transfer, MSG, Messages, BotTimes, BotStats, TaskError,
+)
+from leechbot.utility.helper import (
+    is_google_drive, is_telegram, is_ytdl_link, is_mega,
+    is_terabox, is_torrent, is_pixeldrain, is_mediafire,
+    isYtdlComplete, keyboard, sysINFO, detect_link_type,
+)
+import config
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Retry Wrapper
+# =============================================================================
+async def _with_retry(coro_factory, link: str, max_retries: int = None):
+    """
+    Retry an async download function up to N times on failure.
+
+    Args:
+        coro_factory: callable that returns a coroutine
+        link: the URL being downloaded (for logging)
+        max_retries: override from config.AUTO_RETRY_COUNT if None
+    """
+    if max_retries is None:
+        max_retries = config.AUTO_RETRY_COUNT
+
+    last_error = None
+    for attempt in range(1, max_retries + 1):
+        try:
+            await coro_factory()
+            return  # Success
+        except Exception as e:
+            last_error = e
+            logger.warning(f"Download attempt {attempt}/{max_retries} failed for {link}: {e}")
+            if attempt < max_retries:
+                logger.info(f"Retrying in 3 seconds...")
+                await sleep(3)
+
+    logger.error(f"All {max_retries} attempts failed for {link}: {last_error}")
+    raise last_error
 
 
 # =============================================================================
@@ -33,72 +69,103 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 async def downloadManager(sources: list, is_ytdl: bool):
     """
-    Manage downloads from multiple sources.
-    
+    Manage downloads from multiple sources with retry support.
+
     Args:
         sources: list of URLs to download
-        is_ytdl: whether to use YT-DLP
+        is_ytdl: whether to use YT-DLP for all sources
     """
-    message = "\n**⏳ Please Wait...**\n`Merging YT-DLP Video...`"
+    from leechbot.utility.handler import cancelTask
+    from leechbot.downloader.aria2 import aria2_Download, Aria2c
+    from leechbot.downloader.ytdl import YTDL_Status
+    from leechbot.downloader.gdrive import build_service, g_DownLoad, getIDFromURL, getFileMetadata, get_Gfolder_size
+    from leechbot.downloader.telegram import TelegramDownload, media_Identifier
+    from leechbot.downloader.mega import megadl
+
+    merge_msg = "\n**⏳ Please Wait...**\n`Merging YT-DLP Video...`"
     BotTimes.task_start = datetime.now()
-    
+
     if is_ytdl:
-        # YT-DLP mode
-        for i, link in enumerate(sources):
-            await YTDL_Status(link, i + 1)
-        
-        try:
-            await MSG.status_msg.edit_text(
-                text=Messages.task_msg + Messages.status_head + message + sysINFO(),
-                reply_markup=keyboard()
-            )
-        except Exception as e:
-            logger.error(f"YTDL message error: {e}")
-        
-        while not isYtdlComplete():
-            await sleep(2)
-    
-    else:
-        # General download mode
+        # YT-DLP mode — all links go through yt-dlp
         for i, link in enumerate(sources):
             try:
-                if "drive.google.com" in link:
-                    await g_DownLoad(link, i + 1)
-                elif "t.me" in link:
-                    await TelegramDownload(link, i + 1)
-                elif "youtube.com" in link or "youtu.be" in link:
-                    await YTDL_Status(link, i + 1)
+                await _with_retry(
+                    lambda l=link, n=i+1: YTDL_Status(l, n),
+                    link
+                )
+            except Exception as error:
+                await cancelTask(f"YT-DLP Error: {error}")
+                BotStats.failed_tasks += 1
+                return
+
+        try:
+            await MSG.status_msg.edit_text(
+                text=Messages.task_msg + Messages.status_head + merge_msg + sysINFO(),
+                reply_markup=keyboard()
+            )
+        except Exception:
+            pass
+
+        while not isYtdlComplete():
+            await sleep(2)
+    else:
+        # General download mode — route each link
+        for i, link in enumerate(sources):
+            link_type = detect_link_type(link)
+            logger.info(f"Downloading link {i+1}/{len(sources)}: {link_type} — {link[:80]}")
+
+            try:
+                if is_google_drive(link):
+                    await _with_retry(lambda l=link, n=i+1: g_DownLoad(l, n), link)
+
+                elif is_telegram(link):
+                    await _with_retry(lambda l=link, n=i+1: TelegramDownload(l, n), link)
+
+                elif is_ytdl_link(link):
+                    await _with_retry(lambda l=link, n=i+1: YTDL_Status(l, n), link)
                     try:
                         await MSG.status_msg.edit_text(
-                            text=Messages.task_msg + Messages.status_head + message + sysINFO(),
+                            text=Messages.task_msg + Messages.status_head + merge_msg + sysINFO(),
                             reply_markup=keyboard()
                         )
-                    except Exception as e:
-                        logger.error(f"YTDL message error: {e}")
+                    except Exception:
+                        pass
                     while not isYtdlComplete():
                         await sleep(2)
-                elif "mega.nz" in link:
-                    await megadl(link, i + 1)
-                elif "terabox" in link or "1024tera" in link:
+
+                elif is_mega(link):
+                    await _with_retry(lambda l=link, n=i+1: megadl(l, n), link)
+
+                elif is_terabox(link):
                     from leechbot.downloader.terabox import terabox_download
-                    await terabox_download(link, i + 1)
+                    await _with_retry(lambda l=link, n=i+1: terabox_download(l, n), link)
+
+                elif is_pixeldrain(link):
+                    from leechbot.downloader.pixeldrain import pixeldrain_download
+                    await _with_retry(lambda l=link, n=i+1: pixeldrain_download(l, n), link)
+
+                elif is_mediafire(link):
+                    from leechbot.downloader.mediafire import mediafire_download
+                    await _with_retry(lambda l=link, n=i+1: mediafire_download(l, n), link)
+
                 else:
-                    # General HTTP/torrent
+                    # Default: aria2c (HTTP/FTP/torrent)
                     aria_msg = f"**⏳ Getting Info...**\n\n`{link}`"
                     try:
                         await MSG.status_msg.edit_text(
                             text=aria_msg + sysINFO(),
                             reply_markup=keyboard()
                         )
-                    except Exception as e:
-                        logger.error(f"Aria2 message error: {e}")
-                    
+                    except Exception:
+                        pass
+
                     Aria2c.link_info = False
-                    await aria2_Download(link, i + 1)
-            
+                    await _with_retry(lambda l=link, n=i+1: aria2_Download(l, n), link)
+
             except Exception as error:
                 await cancelTask(f"Download Error: {error}")
-                logger.error(f"Download error: {error}")
+                BotStats.failed_tasks += 1
+                logger.error(f"Download error for {link}: {error}")
                 return
 
 
@@ -106,34 +173,33 @@ async def downloadManager(sources: list, is_ytdl: bool):
 # Calculate Total Download Size
 # =============================================================================
 async def calDownSize(sources: list):
-    """
-    Calculate total download size from sources.
-    
-    Args:
-        sources: list of URLs
-    """
+    """Calculate total download size from all sources."""
+    from natsort import natsorted
+    from leechbot.downloader.gdrive import build_service, getIDFromURL, getFileMetadata, get_Gfolder_size
+    from leechbot.downloader.telegram import media_Identifier
+    from leechbot.utility.handler import cancelTask
+
     for link in natsorted(sources):
-        if "drive.google.com" in link:
+        if is_google_drive(link):
             await build_service()
             file_id = await getIDFromURL(link)
             try:
                 meta = getFileMetadata(file_id)
             except Exception as e:
-                if "File not found" in str(e):
+                err_msg = f"GDrive error: {e}"
+                if "not found" in str(e).lower():
                     err_msg = "File not found or no access"
-                elif "authorization" in str(e):
+                elif "authorization" in str(e).lower():
                     err_msg = "Google Drive authorization failed"
-                else:
-                    err_msg = f"GDrive error: {e}"
                 logger.error(err_msg)
                 await cancelTask(err_msg)
             else:
                 if meta.get("mimeType") == "application/vnd.google-apps.folder":
                     Transfer.total_down_size += get_Gfolder_size(file_id)
                 else:
-                    Transfer.total_down_size += int(meta["size"])
-        
-        elif "t.me" in link:
+                    Transfer.total_down_size += int(meta.get("size", 0))
+
+        elif is_telegram(link):
             media, _ = await media_Identifier(link)
             if media and hasattr(media, "file_size"):
                 Transfer.total_down_size += media.file_size
@@ -145,26 +211,30 @@ async def calDownSize(sources: list):
 # Get Download Name
 # =============================================================================
 async def get_d_name(link: str):
-    """
-    Get download name from link.
-    
-    Args:
-        link: source URL
-    """
+    """Resolve the human-readable download name from a link."""
+    from leechbot.downloader.gdrive import getIDFromURL, getFileMetadata
+    from leechbot.downloader.telegram import media_Identifier
+    from leechbot.downloader.ytdl import get_YT_Name
+    from leechbot.downloader.aria2 import get_Aria2c_Name
+
     if BOT.Options.custom_name:
         Messages.download_name = BOT.Options.custom_name
         return
-    
-    if "drive.google.com" in link:
+
+    if is_google_drive(link):
         file_id = await getIDFromURL(link)
         meta = getFileMetadata(file_id)
-        Messages.download_name = meta["name"]
-    elif "t.me" in link:
+        Messages.download_name = meta.get("name", "GDrive File")
+    elif is_telegram(link):
         media, _ = await media_Identifier(link)
-        Messages.download_name = media.file_name if hasattr(media, "file_name") else "Unknown"
-    elif "youtube.com" in link or "youtu.be" in link:
+        Messages.download_name = getattr(media, "file_name", None) or "Telegram File"
+    elif is_ytdl_link(link):
         Messages.download_name = await get_YT_Name(link)
-    elif "mega.nz" in link:
+    elif is_mega(link):
         Messages.download_name = "Mega Download"
+    elif is_pixeldrain(link):
+        Messages.download_name = "Pixeldrain File"
+    elif is_mediafire(link):
+        Messages.download_name = "Mediafire File"
     else:
         Messages.download_name = get_Aria2c_Name(link)

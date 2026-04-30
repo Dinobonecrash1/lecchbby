@@ -6,28 +6,44 @@
 # GitHub    : https://github.com/Shineii86
 # Telegram  : https://telegram.me/Shineii86
 # =============================================================================
+# License   : MIT License
+# =============================================================================
 
 """
-Helper functions for file operations, formatting, and UI updates.
+Helper functions for file operations, formatting, UI updates, and link handling.
 """
 
 import os
+import re
 import math
 import psutil
 import logging
 from time import time
-from PIL import Image
 from os import path as ospath
 from datetime import datetime
 from urllib.parse import urlparse
 from asyncio import get_event_loop, sleep
+
 from leechbot import leechbot
 from pyrogram.errors import BadRequest
-from moviepy.video.io.VideoFileClip import VideoFileClip
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
+
 from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Link Detection Patterns
+# =============================================================================
+LINK_PATTERNS = [
+    re.compile(r'https?://[^\s<>\"\']+', re.IGNORECASE),
+    re.compile(r'magnet:\?xt=urn:btih:[^\s<>\"\']+', re.IGNORECASE),
+]
+
+PIXELDRAIN_PATTERN = re.compile(r'https?://pixeldrain\.com/[^\s]+', re.IGNORECASE)
+MEDIAFIRE_PATTERN = re.compile(r'https?://(?:www\.)?mediafire\.com/[^\s]+', re.IGNORECASE)
+STREAMTAPE_PATTERN = re.compile(r'https?://(?:www\.)?(?:streamtape|stape)\.[^\s]+', re.IGNORECASE)
 
 
 # =============================================================================
@@ -36,81 +52,128 @@ logger = logging.getLogger(__name__)
 def isLink(_, __, update):
     """
     Validate if the message contains a valid download link.
-    
-    Args:
-        update: the message update object
-    
-    Returns:
-        bool: True if valid link found
+
+    Supports: HTTP/HTTPS URLs, magnet links, local paths.
     """
-    if update.text:
-        # Local paths
-        if "/content/" in str(update.text) or "/home" in str(update.text):
-            return True
-        # Magnet links
-        elif update.text.startswith("magnet:?xt=urn:btih:"):
-            return True
-        
-        parsed = urlparse(update.text)
-        
-        # HTTP/HTTPS URLs
-        if parsed.scheme in ("http", "https") and parsed.netloc:
-            return True
-    
+    if not update.text:
+        return False
+
+    text = update.text.strip()
+
+    # Local paths
+    if text.startswith("/") and ospath.exists(text.split("\n")[0].strip()):
+        return True
+
+    # Magnet links
+    if text.startswith("magnet:?xt=urn:btih:"):
+        return True
+
+    # HTTP/HTTPS URLs — check first line
+    first_line = text.split("\n")[0].strip()
+    parsed = urlparse(first_line)
+    if parsed.scheme in ("http", "https") and parsed.netloc:
+        return True
+
     return False
 
 
+# =============================================================================
+# Link Type Detection
+# =============================================================================
 def is_google_drive(link: str) -> bool:
-    """Check if link is Google Drive"""
     return "drive.google.com" in link
 
-
 def is_mega(link: str) -> bool:
-    """Check if link is Mega.nz"""
-    return "mega.nz" in link
-
+    return "mega.nz" in link or "mega.co.nz" in link
 
 def is_terabox(link: str) -> bool:
-    """Check if link is Terabox"""
-    return "terabox" in link or "1024tera" in link
-
+    return "terabox" in link or "1024tera" in link or "teraboxapp" in link
 
 def is_ytdl_link(link: str) -> bool:
-    """Check if link is YouTube/YT-DLP supported"""
-    return "youtube.com" in link or "youtu.be" in link
-
+    """Check if link is supported by yt-dlp (YouTube, social media, etc.)."""
+    ytdl_domains = [
+        "youtube.com", "youtu.be", "facebook.com", "fb.watch",
+        "instagram.com", "twitter.com", "x.com", "tiktok.com",
+        "vimeo.com", "dailymotion.com", "twitch.tv",
+    ]
+    return any(domain in link.lower() for domain in ytdl_domains)
 
 def is_telegram(link: str) -> bool:
-    """Check if link is Telegram"""
-    return "t.me" in link
-
+    return "t.me" in link or "telegram.me" in link
 
 def is_torrent(link: str) -> bool:
-    """Check if link is torrent/magnet"""
-    return "magnet" in link or ".torrent" in link
+    return "magnet:" in link or ".torrent" in link
+
+def is_pixeldrain(link: str) -> bool:
+    return "pixeldrain.com" in link
+
+def is_mediafire(link: str) -> bool:
+    return "mediafire.com" in link
+
+def is_streamtape(link: str) -> bool:
+    return "streamtape" in link or "stape." in link
+
+
+def detect_link_type(link: str) -> str:
+    """Return a human-readable label for the link type."""
+    if is_telegram(link):
+        return "💬 Telegram"
+    elif is_google_drive(link):
+        return "♻️ Google Drive"
+    elif is_torrent(link):
+        return "🧲 Torrent"
+    elif is_ytdl_link(link):
+        return "🏮 YT-DLP"
+    elif is_terabox(link):
+        return "🍑 Terabox"
+    elif is_mega(link):
+        return "💾 Mega"
+    elif is_pixeldrain(link):
+        return "📁 Pixeldrain"
+    elif is_mediafire(link):
+        return "📂 Mediafire"
+    elif is_streamtape(link):
+        return "🎬 Streamtape"
+    else:
+        return "🔗 Direct Link"
+
+
+# =============================================================================
+# Link Extraction from Text
+# =============================================================================
+def extract_links(text: str) -> list:
+    """
+    Extract all URLs and magnet links from arbitrary text.
+
+    Useful for forwarded messages that contain multiple links.
+    Returns a deduplicated list preserving order.
+    """
+    links = []
+    seen = set()
+
+    for pattern in LINK_PATTERNS:
+        for match in pattern.finditer(text):
+            url = match.group(0).strip().rstrip(")")
+            if url not in seen:
+                seen.add(url)
+                links.append(url)
+
+    return links
 
 
 # =============================================================================
 # Time Formatting
 # =============================================================================
-def getTime(seconds: int) -> str:
-    """
-    Convert seconds to human-readable format.
-    
-    Args:
-        seconds: time in seconds
-    
-    Returns:
-        str: formatted time string
-    """
-    seconds = int(seconds)
-    days = seconds // (24 * 3600)
-    seconds = seconds % (24 * 3600)
+def getTime(seconds: float) -> str:
+    """Convert seconds to human-readable duration string."""
+    seconds = max(0, int(seconds))
+    days = seconds // 86400
+    seconds %= 86400
     hours = seconds // 3600
     seconds %= 3600
     minutes = seconds // 60
     seconds %= 60
-    
+
     if days > 0:
         return f"{days}d {hours}h {minutes}m {seconds}s"
     elif hours > 0:
@@ -125,117 +188,73 @@ def getTime(seconds: int) -> str:
 # Size Formatting
 # =============================================================================
 def sizeUnit(size: float) -> str:
-    """
-    Convert bytes to human-readable size.
-    
-    Args:
-        size: size in bytes
-    
-    Returns:
-        str: formatted size string
-    """
-    if size > 1024 ** 5:
-        return f"{size / (1024 ** 5):.2f} PiB"
-    elif size > 1024 ** 4:
-        return f"{size / (1024 ** 4):.2f} TiB"
-    elif size > 1024 ** 3:
-        return f"{size / (1024 ** 3):.2f} GiB"
-    elif size > 1024 ** 2:
-        return f"{size / (1024 ** 2):.2f} MiB"
-    elif size > 1024:
-        return f"{size / 1024:.2f} KiB"
-    else:
-        return f"{size:.2f} B"
+    """Convert bytes to human-readable size string."""
+    if size <= 0:
+        return "0 B"
+    units = ["B", "KiB", "MiB", "GiB", "TiB", "PiB"]
+    i = 0
+    while size >= 1024 and i < len(units) - 1:
+        size /= 1024
+        i += 1
+    return f"{size:.2f} {units[i]}"
 
 
 # =============================================================================
 # File Type Detection
 # =============================================================================
 def fileType(file_path: str) -> str:
-    """
-    Detect file type based on extension.
-    
-    Args:
-        file_path: path to the file
-    
-    Returns:
-        str: file type (video, audio, photo, document)
-    """
+    """Detect file type based on extension. Returns: video, audio, photo, document."""
     extensions_dict = {
-        # Video formats
+        # Video
         ".mp4": "video", ".avi": "video", ".mkv": "video",
         ".m2ts": "video", ".mov": "video", ".ts": "video",
         ".m3u8": "video", ".webm": "video", ".mpg": "video",
         ".mpeg": "video", ".mpeg4": "video", ".vob": "video",
         ".m4v": "video", ".flv": "video", ".wmv": "video",
-        # Audio formats
+        # Audio
         ".mp3": "audio", ".wav": "audio", ".flac": "audio",
         ".aac": "audio", ".ogg": "audio", ".m4a": "audio",
         ".wma": "audio", ".opus": "audio",
-        # Image formats
+        # Image
         ".jpg": "photo", ".jpeg": "photo", ".png": "photo",
         ".bmp": "photo", ".gif": "photo", ".webp": "photo",
         ".tiff": "photo",
     }
-    
-    _, extension = ospath.splitext(file_path)
-    return extensions_dict.get(extension.lower(), "document")
+    _, ext = ospath.splitext(file_path)
+    return extensions_dict.get(ext.lower(), "document")
 
 
 # =============================================================================
 # Filename Handling
 # =============================================================================
-def shortFileName(path: str) -> str:
-    """
-    Truncate filename to fit Telegram limits.
-    
-    Args:
-        path: file or directory path
-    
-    Returns:
-        str: truncated path
-    """
-    max_len = 60
-    
+def shortFileName(path: str, max_len: int = 60) -> str:
+    """Truncate filename to fit Telegram limits while preserving extension."""
     if ospath.isfile(path):
         dir_path, filename = ospath.split(path)
         if len(filename) > max_len:
             basename, ext = ospath.splitext(filename)
             basename = basename[:max_len - len(ext)]
-            filename = basename + ext
-            path = ospath.join(dir_path, filename)
+            return ospath.join(dir_path, basename + ext)
         return path
     elif ospath.isdir(path):
         dir_path, dirname = ospath.split(path)
         if len(dirname) > max_len:
-            dirname = dirname[:max_len]
-            path = ospath.join(dir_path, dirname)
+            return ospath.join(dir_path, dirname[:max_len])
         return path
-    else:
-        return path[:max_len] if len(path) > max_len else path
+    return path[:max_len] if len(path) > max_len else path
 
 
 # =============================================================================
 # Get Total Size of Path
 # =============================================================================
 def getSize(path: str) -> int:
-    """
-    Get total size of file or directory.
-    
-    Args:
-        path: file or directory path
-    
-    Returns:
-        int: total size in bytes
-    """
+    """Get total size of file or directory in bytes."""
     if ospath.isfile(path):
         return ospath.getsize(path)
-    
     total_size = 0
     for dirpath, _, filenames in os.walk(path):
         for f in filenames:
-            fp = ospath.join(dirpath, f)
-            total_size += ospath.getsize(fp)
+            total_size += ospath.getsize(ospath.join(dirpath, f))
     return total_size
 
 
@@ -243,19 +262,10 @@ def getSize(path: str) -> int:
 # Video Extension Fix
 # =============================================================================
 def videoExtFix(file_path: str) -> str:
-    """
-    Fix video file extension for Telegram compatibility.
-    
-    Args:
-        file_path: path to video file
-    
-    Returns:
-        str: fixed file path
-    """
+    """Ensure video has .mp4 or .mkv extension for Telegram compatibility."""
     _, f_name = ospath.split(file_path)
     if f_name.endswith(".mp4") or f_name.endswith(".mkv"):
         return file_path
-    
     new_path = file_path + ".mp4"
     os.rename(file_path, new_path)
     return new_path
@@ -266,33 +276,34 @@ def videoExtFix(file_path: str) -> str:
 # =============================================================================
 def thumbMaintainer(file_path: str):
     """
-    Generate or retrieve thumbnail for video.
-    
-    Args:
-        file_path: path to video file
-    
+    Generate or retrieve thumbnail for a video file.
+
     Returns:
-        tuple: (thumbnail_path, duration)
+        tuple: (thumbnail_path, duration_seconds)
     """
+    try:
+        from moviepy.video.io.VideoFileClip import VideoFileClip
+    except ImportError:
+        logger.warning("moviepy not available for thumbnail generation")
+        if ospath.exists(Paths.THMB_PATH):
+            return Paths.THMB_PATH, 0
+        return Paths.HERO_IMAGE, 0
+
     if ospath.exists(Paths.VIDEO_FRAME):
         os.remove(Paths.VIDEO_FRAME)
-    
+
     try:
         fname, _ = ospath.splitext(ospath.basename(file_path))
-        ytdl_thmb = f"{Paths.WORK_PATH}/ytdl_thumbnails/{fname}.webp"
-        
+        ytdl_thmb = ospath.join(Paths.thumbnail_ytdl, f"{fname}.webp")
+
         with VideoFileClip(file_path) as video:
-            # Use custom thumbnail if set
             if ospath.exists(Paths.THMB_PATH):
                 return Paths.THMB_PATH, video.duration
-            # Use YT-DLP thumbnail if available
             elif ospath.exists(ytdl_thmb):
                 return convertIMG(ytdl_thmb), video.duration
-            # Generate frame from video
             else:
                 video.save_frame(Paths.VIDEO_FRAME, t=math.floor(video.duration / 2))
                 return Paths.VIDEO_FRAME, video.duration
-    
     except Exception as e:
         logger.error(f"Thumbnail generation error: {e}")
         if ospath.exists(Paths.THMB_PATH):
@@ -301,37 +312,27 @@ def thumbMaintainer(file_path: str):
 
 
 # =============================================================================
-# Set Thumbnail
+# Set Thumbnail from User Photo
 # =============================================================================
-async def setThumbnail(message):
-    """
-    Save user sent image as thumbnail.
-    
-    Args:
-        message: Telegram message with photo
-    
-    Returns:
-        bool: success status
-    """
+async def setThumbnail(message) -> bool:
+    """Save user-sent image as the custom thumbnail."""
     try:
         if ospath.exists(Paths.THMB_PATH):
             os.remove(Paths.THMB_PATH)
-        
+
         event_loop = get_event_loop()
-        download_task = event_loop.create_task(
+        await event_loop.create_task(
             message.download(file_name=Paths.THMB_PATH)
         )
-        await download_task
-        
+
         BOT.Setting.thumbnail = True
-        
+
         if BOT.State.task_going and MSG.status_msg:
             await MSG.status_msg.edit_media(
                 InputMediaPhoto(Paths.THMB_PATH),
                 reply_markup=keyboard()
             )
         return True
-    
     except Exception as e:
         BOT.Setting.thumbnail = False
         logger.error(f"Thumbnail download error: {e}")
@@ -342,16 +343,11 @@ async def setThumbnail(message):
 # YT-DLP Completion Check
 # =============================================================================
 def isYtdlComplete() -> bool:
-    """
-    Check if YT-DLP has finished downloading.
-    
-    Returns:
-        bool: True if no .part or .ytdl files found
-    """
+    """Check if all YT-DLP .part/.ytdl files are gone."""
     for _, _, filenames in os.walk(Paths.down_path):
         for f in filenames:
             _, ext = ospath.splitext(f)
-            if ext in [".part", ".ytdl"]:
+            if ext in (".part", ".ytdl"):
                 return False
     return True
 
@@ -360,104 +356,108 @@ def isYtdlComplete() -> bool:
 # Image Conversion
 # =============================================================================
 def convertIMG(image_path: str) -> str:
-    """
-    Convert image to JPEG format.
-    
-    Args:
-        image_path: path to image file
-    
-    Returns:
-        str: path to converted image
-    """
-    image = Image.open(image_path)
-    if image.mode != "RGB":
-        image = image.convert("RGB")
-    
-    output_path = ospath.splitext(image_path)[0] + ".jpg"
-    image.save(output_path, "JPEG")
-    os.remove(image_path)
-    return output_path
+    """Convert image to JPEG format."""
+    try:
+        from PIL import Image
+        image = Image.open(image_path)
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+        output_path = ospath.splitext(image_path)[0] + ".jpg"
+        image.save(output_path, "JPEG")
+        os.remove(image_path)
+        return output_path
+    except Exception as e:
+        logger.error(f"Image conversion error: {e}")
+        return image_path
 
 
 # =============================================================================
 # System Information (Basic)
 # =============================================================================
 def sysINFO() -> str:
-    """
-    Get system resource usage information.
-    
-    Returns:
-        str: formatted system info string
-    """
-    ram_usage = psutil.Process(os.getpid()).memory_info().rss
-    disk_usage = psutil.disk_usage("/")
-    cpu_usage = psutil.cpu_percent(interval=0.1)
-    
-    info = f"""
+    """Get compact system resource usage string."""
+    try:
+        ram_usage = psutil.Process(os.getpid()).memory_info().rss
+        disk_usage = psutil.disk_usage("/")
+        cpu_usage = psutil.cpu_percent(interval=0.1)
+
+        return f"""
 
 ⌬───── **System Info** ─────⌬
 
 ┏🖥️ **CPU:** `{cpu_usage}%`
 ┠💽 **RAM:** `{sizeUnit(ram_usage)}`
-┖💾 **Disk:** `{sizeUnit(disk_usage.free)}`"""
-    
-    return info
+┖💾 **Disk:** `{sizeUnit(disk_usage.free)}` free"""
+    except Exception:
+        return ""
 
 
 # =============================================================================
 # System Information (Detailed)
 # =============================================================================
 def sysINFO_full() -> str:
-    """
-    Get detailed system information.
-    
-    Returns:
-        str: formatted detailed system info string
-    """
-    import psutil
-    ram = psutil.virtual_memory()
-    disk = psutil.disk_usage("/")
-    cpu_percent = psutil.cpu_percent(interval=0.5, percpu=True)
-    net = psutil.net_io_counters()
-    
-    info = f"""
+    """Get detailed system information including network and per-core CPU."""
+    try:
+        ram = psutil.virtual_memory()
+        disk = psutil.disk_usage("/")
+        cpu_percent = psutil.cpu_percent(interval=0.5, percpu=True)
+        net = psutil.net_io_counters()
+
+        core_str = ", ".join(f"{c}%" for c in cpu_percent[:8])  # Limit to 8 cores display
+        if len(cpu_percent) > 8:
+            core_str += ", ..."
+
+        return f"""
 
 ⌬───── **System Info (Detailed)** ─────⌬
 
-┏🖥️ **CPU:** `{psutil.cpu_percent()}%` (cores: {', '.join(f'{c}%' for c in cpu_percent)})
+┏🖥️ **CPU:** `{psutil.cpu_percent()}%` (cores: {core_str})
 ┠💽 **RAM:** `{sizeUnit(ram.used)} / {sizeUnit(ram.total)}` ({ram.percent}%)
 ┠💾 **Disk:** `{sizeUnit(disk.used)} / {sizeUnit(disk.total)}` ({disk.percent}%)
 ┠🌐 **Net:** ↓`{sizeUnit(net.bytes_recv)}` ↑`{sizeUnit(net.bytes_sent)}`
 ┗⏱️ **Uptime:** `{getTime(int(time() - psutil.boot_time()))}`"""
-    return info
+    except Exception:
+        return sysINFO()
+
+
+# =============================================================================
+# Download/Upload Statistics Summary
+# =============================================================================
+def format_stats() -> str:
+    """Generate a text-based statistics summary."""
+    from leechbot.utility.variables import BotStats
+
+    uptime = getTime(int((datetime.now() - BotStats.start_time).total_seconds()))
+
+    return f"""**📊 Bot Statistics**
+
+┏📥 **Total Downloads:** `{BotStats.total_tasks}`
+┠📤 **Data Downloaded:** `{sizeUnit(BotStats.total_downloaded)}`
+┠📥 **Data Uploaded:** `{sizeUnit(BotStats.total_uploaded)}`
+┠❌ **Failed Tasks:** `{BotStats.failed_tasks}`
+┗⏱️ **Uptime:** `{uptime}`"""
+
+
+def mini_bar(percentage: float, length: int = 10) -> str:
+    """Generate a mini text progress bar."""
+    filled = int(percentage / 100 * length)
+    return "█" * filled + "░" * (length - filled)
 
 
 # =============================================================================
 # Multipart Archive Handling
 # =============================================================================
 def multipartArchive(path: str, archive_type: str, remove: bool):
-    """
-    Handle multipart archive files.
-    
-    Args:
-        path: path to archive
-        archive_type: type of archive (rar, 7z, zip)
-        remove: whether to remove parts after processing
-    
-    Returns:
-        tuple: (real_name, total_size)
-    """
+    """Handle multipart archive files. Returns (real_name, total_size)."""
     dirname, filename = ospath.split(path)
     name, _ = ospath.splitext(filename)
-    
     count, size, real_name = 1, 0, name
-    
+
     if archive_type == "rar":
         name_, _ = ospath.splitext(name)
         real_name = name_
         part_name = f"{name_}.part{count}.rar"
         part_path = ospath.join(dirname, part_name)
-        
         while ospath.exists(part_path):
             if remove:
                 os.remove(part_path)
@@ -465,11 +465,10 @@ def multipartArchive(path: str, archive_type: str, remove: bool):
             count += 1
             part_name = f"{name_}.part{count}.rar"
             part_path = ospath.join(dirname, part_name)
-    
+
     elif archive_type == "7z":
         part_name = f"{name}.{str(count).zfill(3)}"
         part_path = ospath.join(dirname, part_name)
-        
         while ospath.exists(part_path):
             if remove:
                 os.remove(part_path)
@@ -477,17 +476,15 @@ def multipartArchive(path: str, archive_type: str, remove: bool):
             count += 1
             part_name = f"{name}.{str(count).zfill(3)}"
             part_path = ospath.join(dirname, part_name)
-    
+
     elif archive_type == "zip":
         zip_path = ospath.join(dirname, f"{name}.zip")
         if ospath.exists(zip_path):
             if remove:
                 os.remove(zip_path)
             size += getSize(zip_path)
-        
         part_name = f"{name}.z{str(count).zfill(2)}"
         part_path = ospath.join(dirname, part_name)
-        
         while ospath.exists(part_path):
             if remove:
                 os.remove(part_path)
@@ -495,23 +492,17 @@ def multipartArchive(path: str, archive_type: str, remove: bool):
             count += 1
             part_name = f"{name}.z{str(count).zfill(2)}"
             part_path = ospath.join(dirname, part_name)
-        
         if real_name.endswith(".zip"):
             real_name, _ = ospath.splitext(real_name)
-    
+
     return real_name, size
 
 
 # =============================================================================
-# Time Check for UI Updates
+# Time Check for UI Updates (throttle to every 3 seconds)
 # =============================================================================
 def isTimeOver() -> bool:
-    """
-    Check if 3 seconds have passed since last update.
-    
-    Returns:
-        bool: True if time exceeded
-    """
+    """Return True if ≥3 seconds have elapsed since last call (rate-limits UI updates)."""
     elapsed = time() - BotTimes.current_time
     if elapsed >= 3:
         BotTimes.current_time = time()
@@ -523,60 +514,41 @@ def isTimeOver() -> bool:
 # Custom Name Application
 # =============================================================================
 def applyCustomName():
-    """
-    Apply custom name to downloaded files.
-    """
-    if BOT.Options.custom_name and BOT.Mode.type not in ["zip", "undzip"]:
+    """Rename downloaded files to the user-specified custom name."""
+    if BOT.Options.custom_name and BOT.Mode.type not in ("zip", "undzip"):
         files = os.listdir(Paths.down_path)
         for file_ in files:
-            current_name = ospath.join(Paths.down_path, file_)
-            new_name = ospath.join(Paths.down_path, BOT.Options.custom_name)
-            os.rename(current_name, new_name)
+            current = ospath.join(Paths.down_path, file_)
+            new = ospath.join(Paths.down_path, BOT.Options.custom_name)
+            try:
+                os.rename(current, new)
+            except OSError as e:
+                logger.error(f"Rename error: {e}")
 
 
 # =============================================================================
 # Speed and ETA Calculation
 # =============================================================================
 def speedETA(start_time: datetime, done: int, total: int):
-    """
-    Calculate download speed and ETA.
-    
-    Args:
-        start_time: download start time
-        done: bytes completed
-        total: total bytes
-    
-    Returns:
-        tuple: (speed, eta, percentage)
-    """
-    percentage = (done / total) * 100 if total > 0 else 0
-    percentage = min(percentage, 100)
-    
-    elapsed = (datetime.now() - start_time).seconds
-    
+    """Calculate speed, ETA, and percentage from start time and byte counts."""
+    percentage = min((done / total) * 100, 100) if total > 0 else 0
+    elapsed = max((datetime.now() - start_time).total_seconds(), 0.01)
+
     if done > 0 and elapsed > 0:
         raw_speed = done / elapsed
         speed = f"{sizeUnit(raw_speed)}/s"
         eta = (total - done) / raw_speed if raw_speed > 0 else 0
     else:
         speed, eta = "N/A", 0
-    
+
     return speed, eta, percentage
 
 
 # =============================================================================
-# Message Deleter (Auto-Delete Aware)
+# Auto-Delete Aware Message Deleter
 # =============================================================================
 async def message_deleter(user_msg, bot_msg):
-    """
-    Delete messages based on auto-delete settings.
-    
-    Args:
-        user_msg: user message (to be deleted)
-        bot_msg: bot message (to be deleted)
-    """
-    from leechbot.utility.variables import BOT
-    
+    """Delete messages after auto-delete delay if enabled."""
     if BOT.Setting.auto_delete:
         delay = BOT.Setting.auto_delete_delay
         await sleep(delay)
@@ -584,77 +556,45 @@ async def message_deleter(user_msg, bot_msg):
             await user_msg.delete()
             await bot_msg.delete()
         except Exception as e:
-            logger.error(f"Auto-delete error: {e}")
-    else:
-        # Manual deletion can be handled elsewhere if needed
-        pass
+            logger.debug(f"Auto-delete error (benign): {e}")
 
 
 # =============================================================================
-# Settings Menu (Updated with Auto-Delete)
+# Settings Menu
 # =============================================================================
 async def send_settings(client, message, msg_id: int, is_command: bool):
-    """
-    Send or edit settings menu.
-    
-    Args:
-        client: pyrogram client
-        message: Telegram message
-        msg_id: message id to edit
-        is_command: whether this is a new command
-    """
-    up_mode = "Document" if not BOT.Options.stream_upload else "Media"
-    
-    # Build keyboard
-    keyboard = InlineKeyboardMarkup(
+    """Send or edit the interactive settings menu."""
+    up_mode = "Media" if BOT.Options.stream_upload else "Document"
+
+    keyboard = InlineKeyboardMarkup([
         [
-            [
-                InlineKeyboardButton(
-                    f"📤 {up_mode}",
-                    callback_data="media" if up_mode == "Document" else "document"
-                ),
-                InlineKeyboardButton(
-                    f"🎬 Video",
-                    callback_data="video"
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    f"📝 Caption",
-                    callback_data="caption"
-                ),
-                InlineKeyboardButton(
-                    f"🖼️ Thumb",
-                    callback_data="thumb"
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    "➕ Suffix", callback_data="set-suffix"
-                ),
-                InlineKeyboardButton(
-                    "➕ Prefix", callback_data="set-prefix"
-                ),
-            ],
-            [
-                InlineKeyboardButton(
-                    f"⏳ Auto-Delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}",
-                    callback_data="autodelete"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "Close", callback_data="close"
-                )
-            ],
-        ]
-    )
-    
+            InlineKeyboardButton(f"📤 {up_mode}", callback_data="media" if up_mode == "Document" else "document"),
+            InlineKeyboardButton("🎬 Video", callback_data="video"),
+        ],
+        [
+            InlineKeyboardButton("📝 Caption", callback_data="caption"),
+            InlineKeyboardButton("🖼️ Thumb", callback_data="thumb"),
+        ],
+        [
+            InlineKeyboardButton("➕ Prefix", callback_data="set-prefix"),
+            InlineKeyboardButton("➕ Suffix", callback_data="set-suffix"),
+        ],
+        [
+            InlineKeyboardButton(
+                f"⏳ Auto-Delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}",
+                callback_data="autodelete"
+            ),
+        ],
+        [
+            InlineKeyboardButton("🔒 Close", callback_data="close"),
+        ],
+    ])
+
     pr = "✅" if BOT.Setting.prefix else "❎"
     su = "✅" if BOT.Setting.suffix else "❎"
     thmb = "✅" if BOT.Setting.thumbnail else "❎"
     auto_del = f"{BOT.Setting.auto_delete_delay}s" if BOT.Setting.auto_delete else "Off"
-    
+
     text = f"""**⚙️ Bot Settings**
 
 ┏📤 **Upload:** `{BOT.Setting.stream_upload}`
@@ -665,7 +605,7 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
 ┠➕ **Suffix:** {su}
 ┠🖼️ **Thumb:** {thmb}
 ┗⏳ **Auto-Delete:** `{auto_del}`"""
-    
+
     try:
         if is_command:
             await message.reply_text(text=text, reply_markup=keyboard)
@@ -685,32 +625,24 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
 # =============================================================================
 # Status Bar Update
 # =============================================================================
-async def status_bar(down_msg: str, speed: str, percentage: float, eta: str, done: str, left: str, engine: str):
-    """
-    Update download/upload status bar.
-    
-    Args:
-        down_msg: status header message
-        speed: current speed
-        percentage: completion percentage
-        eta: estimated time
-        done: bytes processed
-        left: bytes remaining
-        engine: download engine name
-    """
+async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
+                     done: str, left: str, engine: str):
+    """Update the live download/upload status bar message."""
     bar_length = 12
     filled = int(percentage / 100 * bar_length)
     bar = "█" * filled + "░" * (bar_length - filled)
-    
+
+    elapsed = getTime((datetime.now() - BotTimes.start_time).total_seconds())
+
     text = f"""
 ┏「{bar}」 **»** `{percentage:.1f}%`
 ┠⚡ **Speed:** `{speed}`
 ┠🔧 **Engine:** `{engine}`
 ┠⏳ **ETA:** `{eta}`
-┠⏱️ **Elapsed:** `{getTime((datetime.now() - BotTimes.start_time).seconds)}`
+┠⏱️ **Elapsed:** `{elapsed}`
 ┠✅ **Done:** `{done}`
 ┗📦 **Total:** `{left}`"""
-    
+
     try:
         if isTimeOver():
             await MSG.status_msg.edit_text(
@@ -718,49 +650,30 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str, don
                 disable_web_page_preview=True,
                 reply_markup=status_keyboard()
             )
-    except BadRequest as e:
-        logger.error(f"Status bar error: {e}")
+    except BadRequest:
+        pass
     except Exception as e:
-        logger.error(f"Status bar error: {e}")
+        logger.debug(f"Status bar update error: {e}")
 
 
 # =============================================================================
-# Cancel Keyboard (Legacy)
+# Keyboards
 # =============================================================================
 def keyboard():
-    """
-    Generate inline keyboard with cancel button.
-    
-    Returns:
-        InlineKeyboardMarkup: cancel button
-    """
-    return InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton("Cancel", callback_data="cancel")
-            ]
-        ]
-    )
+    """Cancel-only keyboard for simple operations."""
+    return InlineKeyboardMarkup([
+        [InlineKeyboardButton("❌ Cancel", callback_data="cancel")]
+    ])
 
 
-# =============================================================================
-# Status Keyboard with System Info Buttons
-# =============================================================================
 def status_keyboard():
-    """
-    Generate inline keyboard with Cancel, Refresh, and Stats buttons.
-    
-    Returns:
-        InlineKeyboardMarkup: enhanced status keyboard
-    """
-    return InlineKeyboardMarkup(
+    """Status keyboard with Refresh, Stats, and Cancel buttons."""
+    return InlineKeyboardMarkup([
         [
-            [
-                InlineKeyboardButton("🔄 Refresh", callback_data="sys_refresh"),
-                InlineKeyboardButton("📊 Stats", callback_data="sys_stats"),
-            ],
-            [
-                InlineKeyboardButton("❌ Cancel", callback_data="cancel")
-            ]
+            InlineKeyboardButton("🔄 Refresh", callback_data="sys_refresh"),
+            InlineKeyboardButton("📊 Stats", callback_data="sys_stats"),
+        ],
+        [
+            InlineKeyboardButton("❌ Cancel", callback_data="cancel")
         ]
-    )
+    ])
