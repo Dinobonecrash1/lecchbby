@@ -79,22 +79,6 @@ This is a **major rewrite** with focus on **configurability, new download source
 
 ---
 
-## 🔗 Supported Links
-
-| Source | Status | Notes |
-|--------|--------|-------|
-| Direct HTTP/HTTPS | ✅ Full | Resume supported via aria2c |
-| Google Drive | ✅ Full | Files, folders, shared drives |
-| Telegram | ✅ Full | Public/private channel messages |
-| YouTube / YT-DLP | ✅ Full | 2000+ sites with format selection |
-| Terabox | ✅ Full | Using third-party API |
-| Mega.nz | ✅ Full | Using megatools |
-| Pixeldrain | ✅ **NEW** | Single files and lists |
-| Mediafire | ✅ **NEW** | Auto-extracted direct links |
-| Torrent / Magnet | ⚙️ Optional | Enable via `ENABLE_TORRENTS=true` |
-
----
-
 ## ⚙️ Configuration
 
 All settings are configured via **environment variables** or a `.env` file:
@@ -125,17 +109,19 @@ TOKEN_PICKLE_PATH=
 ALLOWED_USERS=123456789,987654321
 ```
 
-## 🔗 **Supported Links**
+## 🔗 Supported Links
 
-| Source              | Status        | Notes                                                       |
-| ------------------- | ------------- | ----------------------------------------------------------- |
-| Direct HTTP/HTTPS   | ✅ Full       | Resume supported via aria2c                                 |
-| Google Drive        | ✅ Full       | Files, folders, shared drives (auto‑auth)                   |
-| Telegram            | ✅ Full       | Public / private channel messages (requires bot in channel) |
-| YouTube / YT‑DLP    | ✅ Full       | 2000+ sites (YouTube, Facebook, Instagram, Twitter, etc.)   |
-| Terabox             | ✅ Full       | Using third‑party API                                       |
-| Mega.nz             | 🔜 Planned    | Coming soon                                                 |
-| Torrent / Magnet    | ❌ Disabled   | Against Google Colab ToS                                    |
+| Source | Status | Notes |
+|--------|--------|-------|
+| Direct HTTP/HTTPS | ✅ Full | Resume supported via aria2c |
+| Google Drive | ✅ Full | Files, folders, shared drives |
+| Telegram | ✅ Full | Public/private channel messages |
+| YouTube / YT-DLP | ✅ Full | 2000+ sites with format selection |
+| Terabox | ✅ Full | Using third-party API |
+| Mega.nz | ✅ Full | Using megatools |
+| Pixeldrain | ✅ **NEW** | Single files and lists |
+| Mediafire | ✅ **NEW** | Auto-extracted direct links |
+| Torrent / Magnet | ⚙️ Optional | Enable via `ENABLE_TORRENTS=true` |
 
 ---
 
