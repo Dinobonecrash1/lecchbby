@@ -13,6 +13,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **📋 Bot Logs & Status cell** in `LeechBot.ipynb` — new cell between Tunnel and Update that checks if the bot process is alive (via `pgrep`) and tails the last 50 lines of `bot.log` for quick debugging
 
+### Changed
+- **GUIDE.md** — updated Web Dashboard section with GitHub Pages access option, Colab cell order instructions, and Bot Logs & Status cell reference
+
 ---
 
 ## [3.1.1] - 2026-05-09
