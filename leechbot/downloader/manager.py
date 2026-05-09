@@ -229,7 +229,7 @@ async def calDownSize(sources: list):
             await build_service()
             file_id = await getIDFromURL(link)
             try:
-                meta = getFileMetadata(file_id)
+                meta = await getFileMetadata(file_id)
             except Exception as e:
                 err_msg = f"GDrive error: {e}"
                 if "not found" in str(e).lower():
@@ -240,7 +240,7 @@ async def calDownSize(sources: list):
                 await cancelTask(err_msg)
             else:
                 if meta.get("mimeType") == "application/vnd.google-apps.folder":
-                    Transfer.total_down_size += get_Gfolder_size(file_id)
+                    Transfer.total_down_size += await get_Gfolder_size(file_id)
                 else:
                     Transfer.total_down_size += int(meta.get("size", 0))
 
@@ -268,7 +268,7 @@ async def get_d_name(link: str):
 
     if is_google_drive(link):
         file_id = await getIDFromURL(link)
-        meta = getFileMetadata(file_id)
+        meta = await getFileMetadata(file_id)
         Messages.download_name = meta.get("name", "GDrive File")
     elif is_telegram(link):
         media, _ = await media_Identifier(link)

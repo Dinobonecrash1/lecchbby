@@ -7,7 +7,16 @@ All notable changes to this project will be documented in this file.
 ## [3.1.14] - 2026-05-10
 
 ### Added
-- **Torrent/magnet aria2c fallback** — if libtorrent isn't installed, magnet and torrent links now fall back to aria2c instead of failing. User sees a warning but download proceeds. This means torrent support works out-of-the-box on every platform, just slower without DHT/peer exchange.
+- **Torrent/magnet aria2c fallback**
+
+### Fixed
+- **GDrive folder size wrong for large folders** — `get_Gfolder_size()` only fetched first page (100 files). Now paginates through all files, so folders with 1000+ files show correct total size and progress bar.
+- **GDrive blocks event loop** — all Google API calls were synchronous `execute()` calls that froze the entire bot during GDrive operations. Now wrapped in `asyncio.run_in_executor()` with real-time progress polling every 2 seconds.
+- **GDrive no build_service() safety** — `g_DownLoad()` assumed `Gdrive.service` was initialized. Now calls `build_service()` if missing, prevents `NoneType` crash.
+- **GDrive Google Apps crash** — Google Docs/Sheets/Slides in folders caused download errors. Now skipped with a log message (they can't be downloaded via API).
+- **GDrive recursion limit** — deeply nested folders could hit Python's 1000-level limit. Added `MAX_FOLDER_DEPTH = 50` guard.
+- **GDrive incomplete URL regex** — missed `drive.google.com/open?id=...` and `/uc?id=...` formats. Rewrote regex to cover all common GDrive URL patterns.
+- **GDrive `getFileMetadata`/`get_Gfolder_size` sync-async mismatch** — made async wrappers; updated `manager.py` calls to use `await`. — if libtorrent isn't installed, magnet and torrent links now fall back to aria2c instead of failing. User sees a warning but download proceeds. This means torrent support works out-of-the-box on every platform, just slower without DHT/peer exchange.
 
 ### Changed
 - **Colab notebook consolidated: 6 cells → 3** — merged Google Drive Setup + Health Check into Setup cell, merged Update into Deploy cell as ACTION dropdown ("Start Bot" / "Update & Restart" / "Stop Bot"). Cleaner flow: Setup → Deploy.
