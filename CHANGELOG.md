@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.0.4] - 2026-05-09
+
+### Fixed
+- **gallery-dl downloads now show a live progress bar** with speed, file count, total size, ETA, and elapsed time — matching the aria2c and yt-dlp status bar experience
+- Removed `-q` (quiet) flag from gallery-dl command to enable real-time stderr output parsing
+- Added async stderr reader task for non-blocking line-by-line output capture during gallery downloads
+- Gallery completion message now includes elapsed time
+
+### Changed
+- `gallery_download()` now uses `status_bar()` for consistent UI across all download engines
+- Progress monitoring loop reads stderr in real-time instead of only polling file count
+- Added `datetime` import for proper speed/elapsed time calculation
+- Added `getTime` and `status_bar` imports to gallery module
+
+---
+
 ## [3.0.3] - 2026-05-09
 
 ### Fixed

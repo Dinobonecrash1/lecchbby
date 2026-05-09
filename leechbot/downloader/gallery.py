@@ -22,11 +22,12 @@ import glob
 import logging
 import asyncio
 import subprocess
+from datetime import datetime
 from asyncio import sleep
 from os import makedirs, path as ospath
 
 from leechbot.utility.variables import Paths, Messages, MSG, BotTimes
-from leechbot.utility.helper import keyboard, sysINFO, sizeUnit, getSize
+from leechbot.utility.helper import keyboard, sysINFO, sizeUnit, getSize, getTime, status_bar
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,10 @@ async def gallery_download(url: str, num: int):
     """
     Download images/media from a gallery URL using gallery-dl.
 
+    Parses real-time stderr output to show a live progress bar with
+    speed, ETA, file count, and total size — matching the aria2/yt-dlp
+    status bar experience.
+
     Args:
         url: gallery URL
         num: link number for display
@@ -96,6 +101,8 @@ async def gallery_download(url: str, num: int):
         f"`{url[:80]}`\n"
     )
 
+    BotTimes.task_start = datetime.now()
+
     try:
         await MSG.status_msg.edit_text(
             text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
@@ -104,13 +111,12 @@ async def gallery_download(url: str, num: int):
     except Exception:
         pass
 
-    # Build gallery-dl command
+    # Build gallery-dl command (no -q: we need stderr output for progress tracking)
     cmd = [
         "gallery-dl",
         "--directory", gallery_dir,
         "--no-skip",          # Don't skip existing files
         "--no-mtime",         # Don't set file modification time
-        "-q",                 # Quiet mode (less output)
         url
     ]
 
@@ -122,43 +128,87 @@ async def gallery_download(url: str, num: int):
             stderr=asyncio.subprocess.PIPE,
         )
 
-        # Monitor progress
+        # Track progress by reading stderr in real-time
         file_count = 0
+        total_downloaded = 0
+        last_update = datetime.now()
+        stderr_lines = []
+
+        async def _read_stderr():
+            """Read stderr lines in real-time for progress tracking."""
+            nonlocal file_count, total_downloaded, last_update, stderr_lines
+            while True:
+                line = await process.stderr.readline()
+                if not line:
+                    break
+                decoded = line.decode("utf-8", errors="replace").strip()
+                if not decoded:
+                    continue
+                stderr_lines.append(decoded)
+                logger.debug(f"gallery-dl: {decoded}")
+
+        # Start stderr reader task
+        stderr_task = asyncio.create_task(_read_stderr())
+
+        # Progress monitoring loop
         while process.returncode is None:
             await sleep(2)
 
-            # Count downloaded files
-            current_count = len(_get_files(gallery_dir))
-            if current_count > file_count:
+            # Count downloaded files and calculate size
+            current_files = _get_files(gallery_dir)
+            current_count = len(current_files)
+            current_size = getSize(gallery_dir)
+
+            if current_count > file_count or current_size > total_downloaded:
                 file_count = current_count
-                total_size = sizeUnit(getSize(gallery_dir))
+                total_downloaded = current_size
+
+                # Calculate speed and ETA
+                elapsed = max(
+                    (datetime.now() - BotTimes.task_start).total_seconds(), 0.01
+                )
+                speed = total_downloaded / elapsed if total_downloaded > 0 else 0
+
+                # Get last downloaded filename for display
+                last_file = ospath.basename(current_files[-1]) if current_files else "..."
+                if len(last_file) > 35:
+                    last_file = last_file[:32] + "..."
 
                 try:
-                    await MSG.status_msg.edit_text(
-                        text=Messages.task_msg + Messages.status_head +
-                        f"\n📸 **Downloaded:** `{file_count} files` ({total_size})" + sysINFO(),
-                        reply_markup=keyboard()
+                    await status_bar(
+                        down_msg=Messages.status_head,
+                        speed=f"{sizeUnit(speed)}/s",
+                        percentage=0,  # Unknown total — indeterminate
+                        eta="—",
+                        done=f"{file_count} files ({sizeUnit(total_downloaded)})",
+                        left=f"📥 {last_file}",
+                        engine="gallery-dl 📸",
                     )
                 except Exception:
                     pass
 
-            await sleep(1)
+        # Wait for stderr reader to finish
+        await stderr_task
 
-        stdout, stderr = await process.communicate()
+        # Wait for process to fully complete
+        await process.wait()
 
         if process.returncode != 0:
-            error_msg = stderr.decode().strip()[:200] if stderr else "Unknown error"
+            error_msg = "\n".join(stderr_lines[-5:]) if stderr_lines else "Unknown error"
+            error_msg = error_msg[:300]
             logger.error(f"gallery-dl error: {error_msg}")
             raise Exception(f"gallery-dl failed (code {process.returncode}): {error_msg}")
 
         # Final count
         files = _get_files(gallery_dir)
         total_size = sizeUnit(getSize(gallery_dir))
+        elapsed = getTime(int((datetime.now() - BotTimes.task_start).total_seconds()))
 
         try:
             await MSG.status_msg.edit_text(
                 text=Messages.task_msg + Messages.status_head +
-                f"\n✅ **Complete:** `{len(files)} files` ({total_size})" + sysINFO(),
+                f"\n✅ **Complete:** `{len(files)} files` ({total_size})\n"
+                f"⏱️ **Time:** `{elapsed}`" + sysINFO(),
                 reply_markup=keyboard()
             )
         except Exception:
