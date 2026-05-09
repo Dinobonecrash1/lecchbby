@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - Added `import os` to `telegram.py` for file cleanup support
 - Updated `/start` welcome text and `/help` menu with `/glupload` command
 - All upload commands (`/tupload`, `/gdupload`, `/drupload`, `/ytupload`) now explicitly reset `gallery` flag to prevent mode leakage between tasks
+- Gallery mode skips zip/unzip/undzip type selection — goes straight to download since gallery-dl only fetches images, not archives
 
 ---
 

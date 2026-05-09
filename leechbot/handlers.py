@@ -17,7 +17,7 @@ import logging
 from pyrogram import filters
 
 from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, Paths
+from leechbot.utility.variables import BOT, Paths, MSG, BotTimes
 from leechbot.utility.helper import (
     isLink, setThumbnail, message_deleter, send_settings,
 )
@@ -89,6 +89,35 @@ async def handle_url(client, message):
                 break
 
         BOT.SOURCE = temp_source
+
+        # Gallery mode: skip type selection, go straight to download
+        if BOT.Mode.gallery:
+            from datetime import datetime
+            from asyncio import get_event_loop
+            from leechbot.utility.task_manager import taskScheduler
+
+            BOT.Mode.type = "normal"
+
+            MSG.status_msg = await app.send_message(
+                chat_id=OWNER,
+                text="**🚀 Initializing Gallery Download...**\n\nPlease Wait While I Prepare Your Download",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
+                ),
+            )
+
+            await message.delete()
+            BOT.State.task_going = True
+            BOT.State.started = False
+            BotTimes.start_time = datetime.now()
+
+            event_loop = get_event_loop()
+            BOT.TASK = event_loop.create_task(taskScheduler())
+            try:
+                await BOT.TASK
+            finally:
+                BOT.State.task_going = False
+            return
 
         keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("📄 Regular ✨", callback_data="normal")],
