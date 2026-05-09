@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 - **Hero images not sending** — WebP format treated as stickers by Telegram/Pyrogram `send_photo`. Converted to optimized JPG instead. Images still compressed (15.4MB → 2.2MB, 86% reduction) and display correctly as photos.
 - **Link previews in status messages** — added `disable_web_page_preview=True` to all `send_message` calls (task_manager, handlers, callbacks, handler) to prevent unwanted link previews cluttering bot messages.
 
+### Changed
+- **Cleaner status bar** — removed box-drawing clutter from progress messages. Status bar now uses compact inline layout instead of `┏┠┗` borders. System info condensed to single line.
+
 ### Optimized
 - **Hero images reduced 86% (15.4MB → 2.2MB)** — all 11 PNG hero images in `assets/images/` converted to optimized JPG. Oversized JPEGs masquerading as .png (up to 4035×2690) downscaled to 1280px width. Quality 92 with optimize flag.
 

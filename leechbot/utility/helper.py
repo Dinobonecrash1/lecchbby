@@ -472,11 +472,7 @@ def sysINFO() -> str:
 
         return f"""
 
-┏━━━━ **System Info** ━━━━┓
-`┣` 🖥️ **CPU:** `{cpu_usage}%`
-`┣` 💽 **RAM:** `{sizeUnit(ram_usage)}`
-`┗` 💾 **Disk:** `{sizeUnit(disk_usage.free)}` free
-┗━━━━━━━━━━━━━━━━━━━━━━━━━┛"""
+**🖥️** `{cpu_usage}%` **·** **💾** `{sizeUnit(ram_usage)} RAM` **·** **💽** `{sizeUnit(disk_usage.free)} free`"""
     except Exception:
         return ""
 
@@ -731,13 +727,12 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
     elapsed = getTime((datetime.now() - BotTimes.start_time).total_seconds())
 
     text = f"""
-┏「{bar}」 **»** `{percentage:.1f}%`
-┠⚡ **Speed:** `{speed}`
-┠🔧 **Engine:** `{engine}`
-┠⏳ **ETA:** `{eta}`
-┠⏱️ **Elapsed:** `{elapsed}`
-┠✅ **Done:** `{done}`
-┗📦 **Total:** `{left}`"""
+
+`{bar}` **{percentage:.1f}%**
+
+**⚡** `{speed}` **·** **📦** `{done}` / `{left}`
+**⏳** `{eta}` **·** **⏱️** `{elapsed}`
+**🔧** `{engine}`"""
 
     try:
         if isTimeOver():
