@@ -60,6 +60,7 @@ WELCOME_TEXT = """
 `/tupload` — Upload To Telegram
 `/gdupload` — Mirror To Google Drive
 `/ytupload` — Download With Yt‑Dlp
+`/glupload` — Download Image Galleries
 `/queue` — View Download Queue
 `/format` — Set YT-DLP Quality
 `/speed` — Set Bandwidth Limit
@@ -101,6 +102,7 @@ async def telegram_upload_command(client, message):
     """Handle the /tupload command — leech mode."""
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = False
+    BOT.Mode.gallery = False
 
     text = """
 **⚡ Send Download Link(s)** 🔗
@@ -131,6 +133,7 @@ async def gdrive_upload_command(client, message):
     """Handle the /gdupload command — mirror mode."""
     BOT.Mode.mode = "mirror"
     BOT.Mode.ytdl = False
+    BOT.Mode.gallery = False
 
     text = """
 **⚡ Send Download Link(s)** 🔗
@@ -160,6 +163,7 @@ async def directory_upload_command(client, message):
     """Handle the /drupload command — directory leech mode."""
     BOT.Mode.mode = "dir-leech"
     BOT.Mode.ytdl = False
+    BOT.Mode.gallery = False
 
     text = """
 **⚡ Send Folder Path** 📁
@@ -184,6 +188,7 @@ async def ytdl_upload_command(client, message):
     """Handle the /ytupload command — YT-DLP mode."""
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = True
+    BOT.Mode.gallery = False
 
     text = """
 **⚡ Send Yt-Dlp Link(s)** 🔗
@@ -198,6 +203,48 @@ https://youtu.be/xxxxx
 **💡 Supported Sites:**
 • Youtube, Facebook, Instagram
 • Twitter, Tiktok, And More...
+"""
+    src_request_msg = await task_starter(message, text)
+    BOT._src_request_msg = src_request_msg
+
+
+# =============================================================================
+# /glupload
+# =============================================================================
+@app.on_message(filters.command("glupload") & filters.private)
+async def gallery_upload_command(client, message):
+    """Handle the /glupload command — gallery-dl mode for image galleries."""
+    BOT.Mode.mode = "leech"
+    BOT.Mode.ytdl = False
+    BOT.Mode.gallery = True
+
+    text = """
+**📸 Send Gallery Link(s)** 🖼️
+
+📋 **Follow The Pattern Below:**
+
+<code>https://instagram.com/username
+https://twitter.com/username
+https://pinterest.com/user/board
+https://pixiv.net/users/123456
+[Custom Name]
+{Zip Password}</code>
+
+**🖼️ Supported Sites:**
+`•` Instagram (Posts, Profiles, Stories)
+`•` Twitter / X (Timelines, Likes, Bookmarks)
+`•` Pinterest (Boards, Pins)
+`•` Pixiv (Artworks, Users)
+`•` DeviantArt, ArtStation, Flickr
+`•` Reddit, Tumblr, Imgur
+`•` TikTok, Bluesky, Newgrounds
+`•` Danbooru, Gelbooru, Yande.re
+`•` And 100+ more gallery sites
+
+**💡 Tips:**
+• Multiple Links Supported
+• Use [] For Custom Folder Name
+• Use {} For Zip Password
 """
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
@@ -231,6 +278,7 @@ async def help_command(client, message):
 /gdupload — Mirror To Google Drive
 /drupload — Upload Local Directory
 /ytupload — Download With Yt-Dlp
+/glupload — Download Image Galleries
 
 **📋 Queue & Control:**
 /queue — View Download Queue

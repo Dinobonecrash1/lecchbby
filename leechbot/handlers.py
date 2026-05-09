@@ -163,7 +163,7 @@ async def handle_document(client, message):
 # Text Input Handler (Auto-Delete Delay)
 # =============================================================================
 @app.on_message(filters.text & filters.private & ~filters.command([
-    "start", "tupload", "gdupload", "drupload", "ytupload",
+    "start", "tupload", "gdupload", "drupload", "ytupload", "glupload",
     "settings", "help", "setname", "zipaswd", "unzipaswd",
     "stats", "cancel", "cancel_all", "queue", "format",
     "speed", "broadcast", "admin", "cookies", "setcookies",

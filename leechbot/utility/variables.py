@@ -71,6 +71,7 @@ class BOT:
         mode: str = "leech"      # leech | mirror | dir-leech
         type: str = "normal"     # normal | zip | unzip | undzip
         ytdl: bool = False
+        gallery: bool = False    # gallery-dl mode for image galleries
 
     class State:
         """Bot state tracking flags."""

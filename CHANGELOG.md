@@ -13,9 +13,16 @@ All notable changes to this project will be documented in this file.
 - Missing `Transfer.up_bytes` tracking in batch photo mode — upload progress now accurately reflects batch uploads
 - `upload_photos_batch` was not exported from `leechbot.uploader.__init__` — added to `__all__`
 
+### Added
+- `/glupload` command — dedicated gallery-dl download mode for image galleries from Instagram, Twitter, Pinterest, Pixiv, DeviantArt, ArtStation, Flickr, Reddit, Tumblr, TikTok, Bluesky, and 100+ sites
+- `BOT.Mode.gallery` flag to track gallery-dl mode state across the task pipeline
+- Gallery mode label in task status display (shows "Gallery" instead of generic "Leech")
+
 ### Changed
 - `upload_photos_batch()` now accepts `remove` parameter to match `upload_file()` cleanup behavior
 - Added `import os` to `telegram.py` for file cleanup support
+- Updated `/start` welcome text and `/help` menu with `/glupload` command
+- All upload commands (`/tupload`, `/gdupload`, `/drupload`, `/ytupload`) now explicitly reset `gallery` flag to prevent mode leakage between tasks
 
 ---
 

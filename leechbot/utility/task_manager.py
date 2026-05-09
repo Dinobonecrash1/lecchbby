@@ -71,11 +71,13 @@ async def taskScheduler():
     is_unzip = BOT.Mode.type == "unzip"
     is_zip = BOT.Mode.type == "zip"
     is_dir = BOT.Mode.mode == "dir-leech"
-    
+    is_gallery = BOT.Mode.gallery
+
     # Reset messages
     Messages.download_name = ""
     Messages.task_msg = "**🎯 Task Mode:** "
-    Messages.dump_task = Messages.task_msg + f"`{BOT.Mode.type.capitalize()} {BOT.Mode.mode.capitalize()} as {BOT.Setting.stream_upload}`\n\n**🔗 Sources:**"
+    mode_label = "Gallery" if is_gallery else BOT.Mode.mode.capitalize()
+    Messages.dump_task = Messages.task_msg + f"`{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}`\n\n**🔗 Sources:**"
     
     Transfer.sent_file = []
     Transfer.sent_file_names = []
@@ -155,7 +157,7 @@ async def taskScheduler():
     # Send task log
     MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task)
     Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
-    Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {BOT.Mode.mode.capitalize()} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
+    Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
     
     # Update status message
     await MSG.status_msg.delete()
