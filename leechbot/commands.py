@@ -249,6 +249,7 @@ async def help_command(client, message):
 /admin — Manage Allowed Users
 /broadcast — Send File To Multiple Chats
 /stats — System Statistics
+/update — Check For Updates
 /help — Show This Help Message
 
 **🍪 YT-DLP Auth (auto PO tokens + cookie fallback):**
@@ -718,6 +719,54 @@ async def clearcookies_command(client, message):
         msg = await message.reply_text("**ℹ️ No cookies file to delete.**", quote=True)
 
     await message_deleter(message, msg)
+
+
+# =============================================================================
+# /update — Check for updates and auto-update
+# =============================================================================
+@app.on_message(filters.command("update") & filters.private)
+async def update_command(client, message):
+    """Check for updates and optionally update the bot."""
+    from leechbot.updater import check_for_updates, perform_update, get_local_version, get_local_commit, get_changelog_since
+
+    if message.chat.id != OWNER:
+        return
+
+    msg = await message.reply_text("**🔄 Checking for updates...**", quote=True)
+
+    info = check_for_updates()
+    version = get_local_version()
+    local = info["local"]
+
+    if not info["available"]:
+        await msg.edit_text(
+            f"**✅ Already up to date!**\n\n"
+            f"**Version:** `{version}`\n"
+            f"**Commit:** `{local}`"
+        )
+        await message_deleter(message, msg)
+        return
+
+    # Show available update
+    changelog = get_changelog_since(local)
+    changelog_text = f"\n\n**📋 Changes:**\n```\n{changelog[:1500]}\n```" if changelog else ""
+
+    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✅ Update Now", callback_data="do_update"),
+            InlineKeyboardButton("❌ Cancel", callback_data="close"),
+        ]
+    ])
+
+    await msg.edit_text(
+        f"**🔄 Update Available!**\n\n"
+        f"**Current:** `{local}`\n"
+        f"**Latest:** `{info['remote']}`\n"
+        f"**Behind:** `{info['behind']} commits`"
+        f"{changelog_text}",
+        reply_markup=keyboard,
+    )
 
 
 # =============================================================================

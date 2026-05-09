@@ -167,7 +167,7 @@ async def handle_document(client, message):
     "settings", "help", "setname", "zipaswd", "unzipaswd",
     "stats", "cancel", "cancel_all", "queue", "format",
     "speed", "broadcast", "admin", "cookies", "setcookies",
-    "clearcookies",
+    "clearcookies", "update",
 ]))
 async def handle_text_input(client, message):
     """Handle text inputs for setting auto-delete delay."""

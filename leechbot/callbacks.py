@@ -306,6 +306,32 @@ __Underline__""",
         await send_settings(client, callback_query.message, callback_query.message.id, False)
 
     # =========================================================================
+    # Auto Update
+    # =========================================================================
+    elif data == "do_update":
+        from leechbot.updater import perform_update
+
+        await callback_query.message.edit_text("**🔄 Updating... Please wait.**")
+
+        result = perform_update()
+
+        if result["success"]:
+            await callback_query.message.edit_text(
+                f"**✅ Update Complete!**\n\n"
+                f"**New commit:** `{result['new_commit']}`\n\n"
+                f"⚠️ **Restart required.** The bot will restart automatically.\n\n"
+                f"{result['message'][:1000]}"
+            )
+            # Restart the bot
+            import sys
+            logger.info("Restarting after update...")
+            os.execv(sys.executable, [sys.executable, "-m", "leechbot"])
+        else:
+            await callback_query.message.edit_text(
+                f"**❌ Update Failed**\n\n`{result['message'][:500]}`"
+            )
+
+    # =========================================================================
     # Close / Back
     # =========================================================================
     elif data == "close":
