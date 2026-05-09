@@ -28,10 +28,12 @@ Usage:
 
 import os
 import logging
+import asyncio
 from pyrogram import Client
 from pyrogram.errors import (
     PhoneCodeInvalid, PhoneCodeExpired,
     PhoneNumberInvalid, SessionPasswordNeeded,
+    AuthKeyUnregistered, FloodWait,
 )
 
 import config
@@ -144,11 +146,26 @@ async def verify_code(code: str) -> str:
     client = get_user_client()
 
     try:
-        await client.sign_in(
-            phone_number=_auth_state["phone"],
-            phone_code_hash=_auth_state["phone_code_hash"],
-            phone_code=code,
-        )
+        # Ensure client is connected (connection may have dropped between steps)
+        if not client.is_connected:
+            await client.connect()
+
+        # Wrap sign_in with timeout to prevent freezing
+        try:
+            await asyncio.wait_for(
+                client.sign_in(
+                    phone_number=_auth_state["phone"],
+                    phone_code_hash=_auth_state["phone_code_hash"],
+                    phone_code=code,
+                ),
+                timeout=30,
+            )
+        except asyncio.TimeoutError:
+            _auth_state = {"active": False, "phone": None, "phone_code_hash": None, "step": None}
+            return "❌ **Timed out.** Telegram didn't respond. Send `/userbot` to try again."
+
+        # Small delay to let Telegram finalize the auth
+        await asyncio.sleep(1)
 
         me = await client.get_me()
         _user_authorized = True
@@ -170,6 +187,11 @@ async def verify_code(code: str) -> str:
     except SessionPasswordNeeded:
         _auth_state["step"] = "2fa"
         return "🔐 **2FA enabled.** Enter your cloud password:"
+    except FloodWait as e:
+        return f"❌ **Flood wait.** Try again in `{e.value}` seconds."
+    except AuthKeyUnregistered:
+        _auth_state = {"active": False, "phone": None, "phone_code_hash": None, "step": None}
+        return "❌ **Session invalid.** Send `/userbot` to start over."
     except Exception as e:
         _auth_state = {"active": False, "phone": None, "phone_code_hash": None, "step": None}
         return f"❌ **Error:** `{e}`"
@@ -193,6 +215,9 @@ async def verify_2fa(password: str) -> str:
     client = get_user_client()
 
     try:
+        if not client.is_connected:
+            await client.connect()
+
         await client.check_password(password)
 
         me = await client.get_me()
