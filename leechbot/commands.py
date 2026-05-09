@@ -15,6 +15,7 @@ Bot command handlers — all /command message handlers.
 
 import logging
 from pyrogram import filters
+from leechbot.utility.compat import InlineButton  # noqa: E402
 from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, Queue, BotStats
 from leechbot.utility.task_manager import task_starter
@@ -84,7 +85,7 @@ async def start_command(client, message):
             InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
             InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
         ],
-        [InlineKeyboardButton("🤖 Bot Settings ⚙️", callback_data="settings_menu", style="primary")],
+        [InlineButton("🤖 Bot Settings ⚙️", callback_data="settings_menu", style="primary")],
     ])
 
     await message.reply_text(WELCOME_TEXT, reply_markup=keyboard, disable_web_page_preview=True)
@@ -471,7 +472,7 @@ async def format_command(client, message):
         return
 
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("🎬 Best Quality", callback_data="fmt-bestvideo+bestaudio/best", style="success")],
+        [InlineButton("🎬 Best Quality", callback_data="fmt-bestvideo+bestaudio/best", style="success")],
         [
             InlineKeyboardButton("📺 1080p", callback_data="fmt-bestvideo[height<=1080]+bestaudio/best[height<=1080]"),
             InlineKeyboardButton("📺 720p", callback_data="fmt-bestvideo[height<=720]+bestaudio/best[height<=720]"),
@@ -481,7 +482,7 @@ async def format_command(client, message):
             InlineKeyboardButton("📱 360p", callback_data="fmt-bestvideo[height<=360]+bestaudio/best[height<=360]"),
         ],
         [InlineKeyboardButton("🎵 Audio Only", callback_data="fmt-bestaudio/best")],
-        [InlineKeyboardButton("❰ Back", callback_data="back", style="primary")],
+        [InlineButton("❰ Back", callback_data="back", style="primary")],
     ])
 
     current_fmt = getattr(BOT.Setting, "ytdl_format", "bestvideo+bestaudio/best")
@@ -508,7 +509,7 @@ async def speed_command(client, message):
 
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("🚀 Unlimited", callback_data="spd-", style="success"),
+            InlineButton("🚀 Unlimited", callback_data="spd-", style="success"),
             InlineKeyboardButton("💨 50 MB/s", callback_data="spd-50M"),
         ],
         [
@@ -519,7 +520,7 @@ async def speed_command(client, message):
             InlineKeyboardButton("🐢 5 MB/s", callback_data="spd-5M"),
             InlineKeyboardButton("🐌 1 MB/s", callback_data="spd-1M"),
         ],
-        [InlineKeyboardButton("❰ Back", callback_data="back", style="primary")],
+        [InlineButton("❰ Back", callback_data="back", style="primary")],
     ])
 
     current = config.BANDWIDTH_LIMIT or "Unlimited"
@@ -828,8 +829,8 @@ async def update_command(client, message):
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("✅ Update Now", callback_data="do_update", style="success"),
-            InlineKeyboardButton("❌ Cancel", callback_data="close", style="danger"),
+            InlineButton("✅ Update Now", callback_data="do_update", style="success"),
+            InlineButton("❌ Cancel", callback_data="close", style="danger"),
         ]
     ])
 

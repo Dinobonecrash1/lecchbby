@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.0.8] - 2026-05-09
+
+### Fixed
+- **Critical: `style=` on InlineKeyboardButton crashes Pyrogram 2.0.106** — Pyrogram 2.0.106 predates Bot API 9.4 and does NOT accept the `style` keyword argument; every styled button would raise `TypeError: unexpected keyword argument 'style'`
+- Created `leechbot/utility/compat.py` — compatibility layer that detects `style` support at runtime and gracefully degrades
+  - `InlineButton()` — drop-in replacement for `InlineKeyboardButton` that conditionally passes `style=` only when supported
+  - `safe_set_bot_commands()` — wraps `set_bot_commands()` with fallback for older Pyrogram versions
+- Replaced all 24 `InlineKeyboardButton(..., style=...)` calls across 4 files with `InlineButton(...)` from compat module
+- Added missing `from leechbot.utility.compat import InlineButton` import to `callbacks.py`
+- `__main__.py` now uses `safe_set_bot_commands()` instead of direct `app.set_bot_commands()`
+
+### Changed
+- Bot now works on ANY Pyrogram version — buttons are colored only on versions that support Bot API 9.4+
+- On older versions, buttons work normally without colors (no crash, no error)
+
+---
+
 ## [3.0.7] - 2026-05-09
 
 ### Added

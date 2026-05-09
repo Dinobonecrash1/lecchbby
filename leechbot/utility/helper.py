@@ -27,6 +27,7 @@ from asyncio import get_event_loop, sleep
 from leechbot import app
 from pyrogram.errors import BadRequest
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
+from leechbot.utility.compat import InlineButton  # noqa: E402
 
 from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths
 
@@ -600,14 +601,14 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
             ),
         ],
         [
-            InlineKeyboardButton(
+            InlineButton(
                 f"⏳ Auto-Delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}",
                 callback_data="autodelete",
                 style="success" if BOT.Setting.auto_delete else "danger",
             ),
         ],
         [
-            InlineKeyboardButton("🔒 Close", callback_data="close", style="danger"),
+            InlineButton("🔒 Close", callback_data="close", style="danger"),
         ],
     ])
 
@@ -684,7 +685,7 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
 def keyboard():
     """Cancel-only keyboard for simple operations."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("❌ Cancel", callback_data="cancel", style="danger")]
+        [InlineButton("❌ Cancel", callback_data="cancel", style="danger")]
     ])
 
 
@@ -692,10 +693,10 @@ def status_keyboard():
     """Status keyboard with Refresh, Stats, and Cancel buttons."""
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("🔄 Refresh", callback_data="sys_refresh", style="primary"),
+            InlineButton("🔄 Refresh", callback_data="sys_refresh", style="primary"),
             InlineKeyboardButton("📊 Stats", callback_data="sys_stats"),
         ],
         [
-            InlineKeyboardButton("❌ Cancel", callback_data="cancel", style="danger")
+            InlineButton("❌ Cancel", callback_data="cancel", style="danger")
         ]
     ])
