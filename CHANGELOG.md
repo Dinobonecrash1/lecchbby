@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **`SyntaxError: no binding for nonlocal` in Deploy cell** — `nonlocal` doesn't work at cell/module level in Colab's IPython kernel. Changed to `global` for `restart_count` and `bot_proc` variables used by the `restart_bot()` inner function.
+- **Credentials lost on every Setup re-run** — `shutil.rmtree("/content/leechbot")` deleted `credentials.json` with the repo. Now backs up credentials to `/content/.leechbot_creds.json` before clone and restores them after, so you never have to re-enter credentials on update.
 
 ---
 
