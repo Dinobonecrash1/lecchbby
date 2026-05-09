@@ -61,7 +61,7 @@ _setup_event_loop()
 # =============================================================================
 # Pyrogram Client Creation
 # =============================================================================
-leechbot = Client(
+app = Client(
     name="leechbot_session",
     api_id=API_ID,
     api_hash=API_HASH,

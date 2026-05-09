@@ -14,11 +14,12 @@ Task scheduler and orchestrator for download/upload workflows.
 import pytz
 import shutil
 import logging
+import asyncio
 from time import time
 from datetime import datetime
 from asyncio import sleep
-from os import makedirs, path as ospath, system
-from leechbot import OWNER, leechbot, DUMP_ID
+from os import makedirs, path as ospath
+from leechbot import OWNER, app, DUMP_ID
 from leechbot.downloader.manager import calDownSize, get_d_name, downloadManager
 from leechbot.utility.helper import getSize, applyCustomName, keyboard, sysINFO, is_google_drive, is_telegram, is_ytdl_link, is_mega, is_terabox, is_torrent
 from leechbot.utility.handler import Leech, Unzip_Handler, Zip_Handler, SendLogs, cancelTask
@@ -41,7 +42,7 @@ async def task_starter(message, text: str):
     Returns:
         message: request message object
     """
-    global BOT
+    from leechbot.utility.variables import BOT
     
     await message.delete()
     BOT.State.started = True
@@ -63,7 +64,7 @@ async def taskScheduler():
     """
     Main task scheduler that orchestrates the entire download/upload workflow.
     """
-    global BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError
+    from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError
     
     # Determine task type
     is_dualzip = BOT.Mode.type == "undzip"
@@ -142,19 +143,24 @@ async def taskScheduler():
     
     # Download hero image
     try:
-        system(f"aria2c -d {Paths.WORK_PATH} -o Hero.jpg {Aria2c.pic_dwn_url}")
+        proc = await asyncio.create_subprocess_exec(
+            "aria2c", "-d", str(Paths.WORK_PATH), "-o", "Hero.jpg", Aria2c.pic_dwn_url,
+            stdout=asyncio.subprocess.DEVNULL,
+            stderr=asyncio.subprocess.DEVNULL,
+        )
+        await asyncio.wait_for(proc.wait(), timeout=30)
     except Exception:
         Paths.HERO_IMAGE = Paths.DEFAULT_HERO
     
     # Send task log
-    MSG.sent_msg = await leechbot.send_message(chat_id=DUMP_ID, text=Messages.dump_task)
+    MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task)
     Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
     Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {BOT.Mode.mode.capitalize()} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
     
     # Update status message
     await MSG.status_msg.delete()
     img = Paths.THMB_PATH if ospath.exists(Paths.THMB_PATH) else Paths.HERO_IMAGE
-    MSG.status_msg = await leechbot.send_photo(
+    MSG.status_msg = await app.send_photo(
         chat_id=OWNER,
         photo=img,
         caption=Messages.task_msg + Messages.status_head + "\n📝 Initializing..." + sysINFO(),
@@ -200,6 +206,7 @@ async def Do_Leech(source, is_dir: bool, is_ytdl: bool, is_zip: bool, is_unzip: 
         is_unzip: unzip input flag
         is_dualzip: unzip then zip flag
     """
+    from leechbot.utility.variables import Paths, Messages, Transfer, BOT
     if is_dir:
         for s in source:
             if not ospath.exists(s):
@@ -263,6 +270,7 @@ async def Do_Mirror(source, is_ytdl: bool, is_zip: bool, is_unzip: bool, is_dual
         is_unzip: unzip input flag
         is_dualzip: unzip then zip flag
     """
+    from leechbot.utility.variables import Paths, Messages, Transfer
     if not ospath.exists(Paths.MOUNTED_DRIVE):
         await cancelTask("Google Drive is not mounted")
         return

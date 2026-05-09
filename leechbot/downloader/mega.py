@@ -33,8 +33,6 @@ async def megadl(link: str, num: int):
         link: Mega.nz share link
         num: link number for display
     """
-    global BotTimes, Messages
-    
     BotTimes.task_start = datetime.now()
     
     try:

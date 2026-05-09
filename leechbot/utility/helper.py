@@ -24,7 +24,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 from asyncio import get_event_loop, sleep
 
-from leechbot import leechbot
+from leechbot import app
 from pyrogram.errors import BadRequest
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 
@@ -282,8 +282,12 @@ def thumbMaintainer(file_path: str):
         tuple: (thumbnail_path, duration_seconds)
     """
     try:
-        from moviepy.video.io.VideoFileClip import VideoFileClip
+        from moviepy import VideoFileClip
     except ImportError:
+        try:
+            from moviepy.video.io.VideoFileClip import VideoFileClip
+        except ImportError:
+            from moviepy.editor import VideoFileClip
         logger.warning("moviepy not available for thumbnail generation")
         if ospath.exists(Paths.THMB_PATH):
             return Paths.THMB_PATH, 0
@@ -610,7 +614,7 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
         if is_command:
             await message.reply_text(text=text, reply_markup=keyboard)
         else:
-            await leechbot.edit_message_text(
+            await app.edit_message_text(
                 chat_id=message.chat.id,
                 message_id=msg_id,
                 text=text,

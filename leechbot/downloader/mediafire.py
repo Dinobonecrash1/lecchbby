@@ -22,7 +22,7 @@ import aiohttp
 from datetime import datetime
 from os import path as ospath
 
-from leechbot.utility.variables import BotTimes, Messages, Paths, Aria2c
+from leechbot.utility.variables import BotTimes, Messages, Paths
 from leechbot.utility.helper import sizeUnit, getTime, speedETA, status_bar
 
 logger = logging.getLogger(__name__)

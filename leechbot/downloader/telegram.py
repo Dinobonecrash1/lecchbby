@@ -19,7 +19,7 @@ import logging
 from datetime import datetime
 from os import path as ospath
 
-from leechbot import leechbot
+from leechbot import app
 from leechbot.utility.variables import Transfer, Paths, Messages, BotTimes
 from leechbot.utility.helper import speedETA, getTime, sizeUnit, status_bar
 
@@ -53,7 +53,7 @@ async def media_Identifier(link: str):
             # Public channel: t.me/USERNAME/MSG_ID
             chat_id = parts[4]
 
-        message = await leechbot.get_messages(chat_id, message_id)
+        message = await app.get_messages(chat_id, message_id)
     except Exception as e:
         logger.error(f"Telegram message fetch error: {e}")
         return None, None

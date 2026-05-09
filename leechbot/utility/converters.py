@@ -21,7 +21,13 @@ from asyncio import sleep
 from threading import Thread
 from datetime import datetime
 from os import makedirs, path as ospath
-from moviepy.editor import VideoFileClip as VideoClip
+try:
+    from moviepy import VideoFileClip as VideoClip
+except ImportError:
+    try:
+        from moviepy.video.io.VideoFileClip import VideoFileClip as VideoClip
+    except ImportError:
+        from moviepy.editor import VideoFileClip as VideoClip
 from leechbot.utility.variables import BOT, MSG, BotTimes, Paths, Messages
 from leechbot.utility.helper import getSize, fileType, keyboard, multipartArchive, sizeUnit, speedETA, status_bar, getTime, sysINFO
 
@@ -41,7 +47,6 @@ async def videoConverter(file: str) -> str:
     Returns:
         str: path to converted file
     """
-    global BOT, MSG, BotTimes
     
     def convert_to_mp4(input_file: str, out_file: str):
         """Fallback conversion using moviepy"""
@@ -181,7 +186,7 @@ async def archive(path: str, is_split: bool, remove: bool):
         is_split: whether to split large archives
         remove: whether to remove original
     """
-    global BOT, Messages
+    from leechbot.utility.variables import BOT, Messages
     
     dir_p, p_name = ospath.split(path)
     recursive = "-r" if ospath.isdir(path) else ""
@@ -244,7 +249,7 @@ async def extract(zip_filepath: str, remove: bool):
         zip_filepath: path to archive
         remove: whether to remove archive after extraction
     """
-    global BOT, Paths, Messages
+    from leechbot.utility.variables import BOT, Paths, Messages
     
     _, filename = ospath.split(zip_filepath)
     Messages.status_head = f"**📂 Extracting**\n\n`{filename}`\n"
@@ -316,7 +321,7 @@ async def splitArchive(file_path: str, max_size: int):
         file_path: path to archive
         max_size: maximum chunk size
     """
-    global Paths, BOT, MSG, Messages
+    from leechbot.utility.variables import Paths, MSG, Messages
     
     _, filename = ospath.split(file_path)
     new_path = f"{Paths.temp_zpath}/{filename}"
@@ -368,7 +373,7 @@ async def splitVideo(file_path: str, max_size: int, remove: bool):
         max_size: maximum segment size in MB
         remove: whether to remove original
     """
-    global Paths, BOT, MSG, Messages
+    from leechbot.utility.variables import Paths, MSG, Messages
     
     _, filename = ospath.split(file_path)
     just_name, extension = ospath.splitext(filename)

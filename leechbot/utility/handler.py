@@ -17,7 +17,7 @@ import logging
 import pathlib
 from asyncio import sleep
 from time import time
-from leechbot import OWNER, leechbot
+from leechbot import OWNER, app
 from natsort import natsorted
 from datetime import datetime
 from os import makedirs, path as ospath
@@ -41,7 +41,7 @@ async def Leech(folder_path: str, remove: bool):
         folder_path: path to folder containing files
         remove: whether to remove files after upload
     """
-    global BOT, BotTimes, Messages, Paths, Transfer
+    from leechbot.utility.variables import BOT, BotTimes, Messages, Paths, Transfer
     
     # Get all files in folder
     files = [str(p) for p in pathlib.Path(folder_path).glob("**/*") if p.is_file()]
@@ -169,7 +169,7 @@ async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
         is_split: whether to split large archives
         remove: whether to remove original files
     """
-    global BOT, Messages, MSG, Transfer
+    from leechbot.utility.variables import BOT, Messages, MSG, Transfer
     
     Messages.status_head = f"**🗜️ Zipping**\n\n`{Messages.download_name}`\n"
     
@@ -207,7 +207,7 @@ async def Unzip_Handler(down_path: str, remove: bool):
         down_path: path containing archives
         remove: whether to remove archives after extraction
     """
-    global MSG, Messages
+    from leechbot.utility.variables import MSG, Messages
     
     Messages.status_head = f"\n**📂 Extracting**\n\n`{Messages.download_name}`\n"
     
@@ -249,6 +249,7 @@ async def cancelTask(reason: str):
     Args:
         reason: cancellation reason
     """
+    from leechbot.utility.variables import BOT, BotTimes, Messages, Paths, MSG
     text = f"""**🚫 Task Cancelled**
 
 ┏🔗 **Source:** [Here]({Messages.src_link})
@@ -267,7 +268,7 @@ async def cancelTask(reason: str):
         finally:
             BOT.State.task_going = False
             await MSG.status_msg.delete()
-            await leechbot.send_message(
+            await app.send_message(
                 chat_id=OWNER,
                 text=text,
                 reply_markup=InlineKeyboardMarkup(
@@ -291,7 +292,7 @@ async def SendLogs(is_leech: bool):
     Args:
         is_leech: whether this was a leech task
     """
-    global Transfer, Messages
+    from leechbot.utility.variables import BOT, BotTimes, Messages, MSG, Transfer
     
     final_text = f"**📋 File List:** `{len(Transfer.sent_file)}`\n\n**📜 Logs:**\n"
     

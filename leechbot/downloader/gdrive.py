@@ -59,8 +59,6 @@ async def g_DownLoad(link: str, num: int):
         link: Google Drive share link
         num: link number for display
     """
-    global down_msg
-    
     down_msg = f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n**🏷️ Name:** `{Messages.download_name}`\n"
     file_id = await getIDFromURL(link)
     meta = getFileMetadata(file_id)

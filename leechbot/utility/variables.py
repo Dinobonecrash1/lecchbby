@@ -126,6 +126,10 @@ class DownloadQueue:
         self._queue.clear()
         self._current = None
 
+    def size(self) -> int:
+        """Return the number of items in the queue."""
+        return len(self._queue)
+
     def list_items(self) -> list:
         """Return a list summary of queued items."""
         items = []

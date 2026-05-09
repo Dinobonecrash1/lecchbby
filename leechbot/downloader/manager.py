@@ -21,11 +21,11 @@ from datetime import datetime
 from asyncio import sleep
 
 from leechbot.utility.variables import (
-    BOT, Transfer, MSG, Messages, BotTimes, BotStats, TaskError,
+    BOT, Transfer, MSG, Messages, BotTimes, BotStats,
 )
 from leechbot.utility.helper import (
     is_google_drive, is_telegram, is_ytdl_link, is_mega,
-    is_terabox, is_torrent, is_pixeldrain, is_mediafire,
+    is_terabox, is_pixeldrain, is_mediafire,
     isYtdlComplete, keyboard, sysINFO, detect_link_type,
 )
 import config
