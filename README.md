@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.11-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.14-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -23,7 +23,7 @@
 ## 📑 **Table of Contents**
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
-- [✨ What's New?](#-whats-new-in-v311)
+- [✨ What's New?](#-whats-new-in-v3114)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
 - [👤 UserBot — Private Channels](#-userbot--private-channels)
@@ -38,19 +38,24 @@
 
 ---
 
-## ✨ What's New in v3.1.9
+## ✨ What's New in v3.1.14
 
-### 🐳 Multi-Platform Deployment
-- **Docker** — `Dockerfile` + `docker-compose.yml`, all deps included
-- **Railway** — one-click deploy button
-- **Fly.io** — `fly.toml` config
-- **Render** — `render.yaml` Blueprint
-- **Heroku** — `Procfile`
-- **8 deployment methods** documented: Colab, Docker, Railway, Fly.io, Render, VPS, Oracle Cloud, Heroku
+### 🔧 Critical Bug Fixes
+- **14 bugs fixed** across all downloaders and uploaders in a full codebase audit
+- **aria2c no longer blocks the event loop** — replaced `subprocess.Popen` with `asyncio.create_subprocess_exec`
+- **Mega.nz fully async** — non-blocking downloads, folder support, regex progress parser, install check
+- **TeraBox hardened** — proper timeouts, correct content-type probing, clean error messages
+- **Upload speed/ETA correct past 1 hour** — `.seconds` → `.total_seconds()`
+- **FloodWait no longer stack overflows** — max 10 retries with depth tracking
+- **Broken package imports fixed** — `is_gofile_link`, `is_bunkr_link`, `is_catbox_link` now resolve correctly
+- **No more blocking imports** — aria2c tracker lists lazy-loaded on first download, not at `import` time
+- **Request timeouts everywhere** — GoFile (30s), Bunkr (60s), Catbox (300s), Pixeldrain (30s), Mediafire (60s)
 
-### 🧹 Notebook Cleanup
-- **Dashboard tunnel removed** — ngrok/cloudflared tunnel setup removed from notebook. Colab users interact 100% via Telegram. VPS users still get the web dashboard on `:8080`.
-- **JS keep-alive fix** — daemon thread + `clear_output` for reliable Colab idle prevention
+### 🐳 Dockerfile Improvements
+- **`python3-libtorrent`** included — torrent/magnet works out of the box
+- **`tini` as PID 1** — `docker stop` sends SIGTERM for clean shutdown
+- Megatools install hardened (apt-first, source-build fallback)
+- Healthcheck with `--start-period=15s`
 
 ### 🧲 libtorrent Magnet/Torrent Downloader
 - **New downloader** using python-libtorrent for magnet links and .torrent files
@@ -146,7 +151,7 @@
 | Telegram (public + private) | Pyrogram | ✅ With UserBot support |
 | Instagram, Twitter, Pinterest | gallery-dl | ✅ 100+ gallery sites |
 | Pixiv, DeviantArt, ArtStation | gallery-dl | ✅ Art galleries |
-| Mega.nz | megatools | ✅ |
+| Mega.nz | megatools | ✅ Files + folders, async |
 | Terabox | API | ✅ |
 | Pixeldrain | API | ✅ Single files + lists |
 | Mediafire | Scraping | ✅ Auto-extracted direct links |
@@ -303,13 +308,16 @@ heroku ps:scale worker=1
 
 ```bash
 # Ubuntu/Debian
-sudo apt install -y ffmpeg aria2 p7zip-full unrar unzip
+sudo apt install -y ffmpeg aria2 p7zip-full unrar unzip python3-libtorrent megatools
 
 # macOS
-brew install ffmpeg aria2 p7zip
+brew install ffmpeg aria2 p7zip megatools
+
+# Conda (libtorrent)
+conda install -c conda-forge libtorrent
 ```
 
-> 💡 Docker users: all dependencies are included in the image — no manual install needed.
+> 💡 Docker users: all dependencies (including libtorrent and megatools) are included in the image — no manual install needed.
 
 📖 [Full setup guide](GUIDE.md#-installation)
 

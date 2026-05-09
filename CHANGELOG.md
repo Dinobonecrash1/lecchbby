@@ -6,6 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ## [3.1.14] - 2026-05-10
 
+### Changed
+- **All documentation updated** to reflect v3.1.12–3.1.14 changes:
+  - `README.md`: version badge → 3.1.14, What's New rewrite, system deps (libtorrent, megatools), Mega.nz async status
+  - `ARCHITECTURE.md`: threading model updated (async subprocess, not blocking), FloodWait retry depth, error handling examples
+  - `AGENTS.md`: FloodWait max retry guidance
+  - `CONTRIBUTING.md`: Docker status → ✅ Done, FloodWait retry guidance
+  - `GUIDE.md`: system deps include python3-libtorrent and megatools on all platforms
+  - `.github/copilot-instructions.md`: FloodWait retry guidance
+  - `config.py`: VERSION → 3.1.14
+
 ### Fixed
 - **`__init__.py` broken imports** — `is_gofile`, `is_bunkr`, `is_catbox` imported but functions are actually named `is_gofile_link`, `is_bunkr_link`, `is_catbox_link`. Any code importing from the package would crash with `ImportError`.
 - **aria2c blocks event loop** — `subprocess.Popen` froze the entire bot during downloads. Replaced with `asyncio.create_subprocess_exec`.

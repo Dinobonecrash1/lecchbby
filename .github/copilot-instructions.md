@@ -21,7 +21,7 @@ LeechBot is a Pyrogram 2.0.106-based Telegram bot for downloading files from 200
 - `@app.on_callback_query()` for button callbacks
 - Async everywhere — this is an asyncio application
 - `logger = logging.getLogger(__name__)` at module top
-- FloodWait: `await sleep(e.value)` then retry
+- FloodWait: `await sleep(e.value + 1)` then retry (max 10)
 
 ## Constraints
 - Pyrogram 2.0.106: no `style` on buttons, no `progress` on `reply_media_group()`

@@ -117,7 +117,7 @@ Every new `.py` file must have the standard header:
 
 - Wrap risky operations in try/except
 - Log errors with `logger.error()`
-- FloodWait: `await sleep(e.value)` + retry
+- FloodWait: `await sleep(e.value + 1)` + retry (max 10 times)
 - Don't silently swallow exceptions
 
 ---
@@ -140,7 +140,7 @@ Every new `.py` file must have the standard header:
 | CI/CD | ❌ None | GitHub Actions would be great |
 | Type hints | ⚠️ Partial | Some files have them, many don't |
 | i18n | ❌ None | English only |
-| Docker | ❌ None | Planned but not started |
+| Docker | ✅ Done | `Dockerfile` + `docker-compose.yml` with all deps |
 | Web dashboard | ✅ Basic | Could add more controls |
 
 ---

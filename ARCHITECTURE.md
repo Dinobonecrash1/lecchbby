@@ -301,8 +301,8 @@ Browser ←→ WebSocket ←→ server.py ←→ variables.py (BOT, Transfer, et
 try:
     await some_operation()
 except FloodWait as e:
-    await sleep(e.value)
-    # retry
+    await sleep(e.value + 1)  # +1s safety margin
+    # retry (max 10 times to prevent stack overflow)
 except Exception as e:
     logger.error(f"Operation failed: {e}")
 ```
@@ -317,7 +317,15 @@ async def _with_retry(coro_factory, link, max_retries=3):
         except Exception as e:
             if attempt == max_retries - 1:
                 raise
-            await sleep(2 ** attempt)
+            await sleep(3)
+```
+
+### Layer 2b: FloodWait Retry (uploader)
+
+```python
+# upload_file() handles Telegram FloodWait with bounded retry depth
+# Max 10 retries — prevents stack overflow from recursive calls
+await upload_file(file_path, real_name, _retry_depth=retry + 1)
 ```
 
 ### Layer 3: Debug Reporting (`debug.py`)
@@ -372,15 +380,15 @@ Main Thread (asyncio event loop)
   ├─ Pyrogram handlers (async) ← all bot logic
   ├─ aiohttp web server (async) ← dashboard API
   ├─ Background broadcast task (async) ← WS push every 3s
-  └─ Subprocess calls (sync, in executor)
-      ├─ aria2c (external downloader)
-      ├─ yt-dlp (external downloader)
-      ├─ gallery-dl (external downloader)
-      ├─ megatools (external downloader)
+  └─ Subprocess calls (async, via asyncio.create_subprocess_exec)
+      ├─ aria2c (HTTP/FTP/torrent)
+      ├─ yt-dlp (YouTube, 2000+ sites)
+      ├─ gallery-dl (photo galleries)
+      ├─ megatools (Mega.nz)
       └─ ffmpeg (video conversion)
 ```
 
-Everything runs in a single asyncio event loop. External tools (aria2c, yt-dlp, ffmpeg) are invoked via `subprocess.run()` which blocks the event loop briefly — this is acceptable since downloads are sequential per task.
+Everything runs in a single asyncio event loop. External tools (aria2c, yt-dlp, megatools, ffmpeg) are invoked via `asyncio.create_subprocess_exec()` which does NOT block the event loop — stdout/stderr are read line-by-line with `await` so progress updates flow in real-time.
 
 ---
 

@@ -40,19 +40,19 @@ Before you start, make sure you have:
 ### System Dependencies (Ubuntu/Debian)
 
 ```bash
-sudo apt update && sudo apt install -y ffmpeg aria2 p7zip-full unzip python3 python3-pip
+sudo apt update && sudo apt install -y ffmpeg aria2 p7zip-full unrar unzip python3-libtorrent megatools python3 python3-pip
 ```
 
 ### System Dependencies (Arch)
 
 ```bash
-sudo pacman -S ffmpeg aria2 p7zip unzip python python-pip
+sudo pacman -S ffmpeg aria2 p7zip unrar python python-pip libtorrent-rasterbar megatools
 ```
 
 ### System Dependencies (macOS)
 
 ```bash
-brew install ffmpeg aria2 p7zip python
+brew install ffmpeg aria2 p7zip megatools python
 ```
 
 ---

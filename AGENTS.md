@@ -138,7 +138,7 @@ Every `.py` file starts with:
 
 ### Error Handling
 - `try/except Exception as e: logger.error(...)` pattern
-- FloodWait handled with `await sleep(e.value)` + retry
+- FloodWait handled with `await sleep(e.value + 1)` + retry (max 10 times to prevent stack overflow)
 - Errors reported to DUMP channel via `debug.py`
 
 ---
