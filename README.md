@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.0.8-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.0-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -41,18 +41,16 @@
 
 ## ✨ What's New in v3.X.X
 
-### 🔧 v3.0.8 — Progress Bars, Error Handling & UI Overhaul
+### 🌐 v3.1.0 — Web Dashboard
 
-- 📊 **Gallery-dl progress bar** — real-time speed, ETA, file count, and total size during gallery downloads
-- 📊 **Batch photo upload progress** — live progress bar during media group uploads (was missing entirely)
-- 🤖 **Auto-register commands** — 23 bot commands registered with Telegram on startup (no @BotFather needed)
-- 🎨 **Upgraded message styles** — consistent box-drawing panels (`┏┣┗`) across all bot messages
-- 🔧 **Callback refactor** — monolithic 400-line handler split into 12 focused async functions
-- ✅ **All callbacks answer** — no more stuck loading spinner on button press
-- 🛡️ **Robust error handling** — `cancelTask()` and `SendLogs()` wrap each operation in individual try/except
-- 🐛 **GDrive fix** — `down_msg` NameError in `gDownloadFile()` (was out-of-scope local variable)
-- 🐛 **Gallery-dl fix** — removed `-q` flag, added async stderr reader for real-time output parsing
-- 🐛 **cancelTask fix** — `getTime(.seconds)` → `int(.total_seconds())` (was wrong for tasks >1 hour)
+- **Web Dashboard** — real-time browser dashboard for monitoring and controlling the bot
+- **Live stats** — CPU, RAM, disk, speed, uptime, download/upload totals
+- **Queue management** — view pending downloads, clear queue from browser
+- **Active task monitoring** — real-time progress bar with speed, ETA, elapsed time
+- **Settings viewer** — view current bot settings from the dashboard
+- **WebSocket** — real-time updates pushed to browser every 3 seconds
+- **Token auth** — secure access via `WEB_TOKEN` environment variable
+- **Runs on Colab** — dashboard accessible via Colab's public URL or ngrok tunnel
 
 > 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md)
 
@@ -187,6 +185,9 @@ leechbot/
 │   └── ytdl.py          # YT-DLP (YouTube, 2000+ sites)
 ├── uploader/
 │   └── telegram.py      # Telegram upload with progress (including batch photo)
+├── web/
+│   ├── server.py        # Web dashboard server (REST API + WebSocket)
+│   └── __init__.py
 └── utility/
     ├── converters.py    # Video conversion, archive/extract
     ├── handler.py       # Task handlers (Leech, Zip, Unzip, SendLogs, cancelTask)

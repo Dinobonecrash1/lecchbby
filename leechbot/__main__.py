@@ -21,6 +21,7 @@ then starts the bot. Handlers are organized in:
   - leechbot.handlers  — message handlers (URL, photo, text, reply)
 """
 
+import os
 import asyncio
 import logging
 
@@ -162,6 +163,19 @@ async def startup():
     logger.info("Developer: Shinei Nouzen")
     logger.info("GitHub: https://github.com/Shineii86/LeechBot")
     logger.info("Debug: Error reporting → DUMP_ID channel")
+
+    # Start web dashboard server
+    try:
+        from leechbot.web.server import start_web_server
+        import secrets
+        web_port = int(os.environ.get("WEB_PORT", "8080"))
+        web_token = os.environ.get("WEB_TOKEN", secrets.token_urlsafe(32))
+        await start_web_server(port=web_port, token=web_token)
+        logger.info("🌐 Dashboard: http://0.0.0.0:%d/dashboard", web_port)
+        logger.info("🔑 Dashboard token: %s", web_token)
+    except Exception as e:
+        logger.warning("⚠️ Web dashboard failed to start: %s", e)
+
     logger.info("=" * 60)
 
     # Keep the bot running

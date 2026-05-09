@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.0] - 2026-05-09
+
+### Added
+- **Web Dashboard** — real-time browser dashboard for monitoring and controlling the bot
+  - `leechbot/web/server.py` — aiohttp-based REST API + WebSocket server
+  - `public/index.html` — complete dashboard rewrite with live stats, queue, settings, system monitoring
+  - Login screen with token auth (stored in localStorage)
+  - Real-time WebSocket updates every 3 seconds
+  - REST API endpoints: `/api/status`, `/api/queue`, `/api/stats`, `/api/settings`, `/api/cancel`, `/api/queue/clear`
+  - Health check endpoint: `/api/health` (no auth required)
+  - CORS middleware for cross-origin dashboard access
+  - Auto-broadcast background task pushes state to all connected WebSocket clients
+- **Dashboard features:**
+  - Status cards: active/idle, downloads, uploads, task count
+  - Active task card: progress bar, speed, ETA, elapsed, current file
+  - Queue tab: view pending items, clear queue button
+  - Settings tab: view current bot settings
+  - System tab: CPU, RAM, disk usage bars
+  - Recent files list
+- **`WEB_PORT` env var** — configure dashboard port (default: 8080)
+- **`WEB_TOKEN` env var** — set auth token (auto-generated if not set)
+- Dashboard auto-starts alongside the bot
+
+### Changed
+- `__main__.py` — starts web server after bot connects, logs dashboard URL and token
+- `public/index.html` — complete rewrite from Colab setup page to functional dashboard
+- `README.md` — updated version badge, What's New, project structure
+- `config.py` — version bump to 3.1.0
+
+---
+
 ## [3.0.8] - 2026-05-09
 
 ### Removed
