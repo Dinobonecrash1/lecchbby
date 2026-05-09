@@ -10,16 +10,68 @@
 """
 Mega.nz downloader module.
 
-Handles downloads from Mega.nz using megatools.
+Handles downloads from Mega.nz using megatools CLI.
 """
 
-import subprocess
+import os
+import re
+import asyncio
 import logging
 from datetime import datetime
-from leechbot.utility.helper import status_bar
-from leechbot.utility.variables import BotTimes, Messages, Paths
+
+from leechbot.utility.helper import sizeUnit, status_bar
+from leechbot.utility.variables import BotTimes, Messages, Paths, Transfer
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Check megatools availability
+# =============================================================================
+def _check_megadl():
+    """Raise a clear error if megatools is not installed."""
+    import shutil
+    if shutil.which("megadl") is None:
+        raise ImportError(
+            "megatools is not installed. Install it via:\n"
+            "  • Debian/Ubuntu: sudo apt install megatools\n"
+            "  • Arch:          sudo pacman -S megatools\n"
+            "  • macOS:         brew install megatools"
+        )
+
+
+# =============================================================================
+# Parse megadl progress output
+# =============================================================================
+_PROGRESS_RE = re.compile(
+    r"([\d.]+)\s*%\s+"           # percentage
+    r"([\d.]+\s*[KMG]?i?B)\s+"  # downloaded size
+    r"([\d.]+\s*[KMG]?i?B)\s+"  # total size
+    r"([\d.]+\s*[KMG]?i?B/s)"   # speed
+)
+
+FILENAME_RE = re.compile(r"^(.+?):\s+")
+
+def _parse_progress(line: str):
+    """Parse megadl output line into (name, percent, downloaded, total, speed) or None."""
+    line = line.strip()
+    if not line:
+        return None
+
+    m = _PROGRESS_RE.search(line)
+    if not m:
+        return None
+
+    name_match = _FILENAME_RE.match(line)
+    name = name_match.group(1).strip() if name_match else "Mega Download"
+
+    return {
+        "name": name,
+        "percent": round(float(m.group(1))),
+        "downloaded": m.group(2),
+        "total": m.group(3),
+        "speed": m.group(4),
+    }
 
 
 # =============================================================================
@@ -27,86 +79,101 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 async def megadl(link: str, num: int):
     """
-    Download file from Mega.nz.
+    Download file from Mega.nz via megatools CLI.
 
     Args:
         link: Mega.nz share link
         num: link number for display
     """
+    _check_megadl()
     BotTimes.task_start = datetime.now()
 
+    save_path = str(Paths.down_path)
+
+    # Build megadl command
+    command = [
+        "megadl",
+        "--no-ask-password",
+        "--path", save_path,
+        link,
+    ]
+
+    logger.info(f"Starting Mega download: {link[:80]}")
+
+    # Launch as async subprocess — does NOT block the event loop
+    process = await asyncio.create_subprocess_exec(
+        *command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.STDOUT,
+    )
+
+    downloaded_files = []
+    last_update = 0.0
+
     try:
-        # Build megadl command
-        command = [
-            "megadl",
-            "--no-ask-password",
-            "--path", Paths.down_path,
-            link
-        ]
-
-        # Execute download
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            bufsize=0
-        )
-
-        # Read output
         while True:
-            output = process.stdout.readline()
-            if output == b"" and process.poll() is not None:
+            raw = await asyncio.wait_for(process.stdout.readline(), timeout=600)
+            if not raw:
                 break
 
-            if output:
-                await extract_info(output.strip().decode("utf-8"), num)
+            line = raw.decode("utf-8", errors="replace").strip()
+            if not line:
+                continue
 
-    except Exception as e:
-        logger.error(f"Mega download error: {e}")
+            info = _parse_progress(line)
+            if info:
+                Messages.download_name = info["name"]
+                Messages.status_head = (
+                    f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n"
+                    f"**🏷️ Name:** `{info['name']}`\n"
+                )
 
+                now = asyncio.get_event_loop().time()
+                if now - last_update >= 2:  # throttle UI updates
+                    await status_bar(
+                        Messages.status_head,
+                        info["speed"],
+                        info["percent"],
+                        "Calculating...",
+                        info["downloaded"],
+                        info["total"],
+                        "Mega 💾",
+                    )
+                    last_update = now
 
-# =============================================================================
-# Progress Extraction
-# =============================================================================
-async def extract_info(line: str, num: int):
-    """
-    Extract download progress from megadl output.
+            # Collect file paths from output
+            if "downloaded successfully" in line.lower() or "saved to" in line.lower():
+                logger.info(f"Mega: {line}")
 
-    Args:
-        line: output line
-        num: link number
-    """
-    try:
-        parts = line.split(": ")
-        subparts = parts[1].split() if len(parts) > 1 else []
+        await process.wait()
 
-        file_name = "N/A"
-        progress = "N/A"
-        downloaded_size = "N/A"
-        total_size = "N/A"
-        speed = "N/A"
+    except asyncio.TimeoutError:
+        process.kill()
+        raise TimeoutError("Mega download timed out (no output for 10 minutes)")
 
-        if len(subparts) > 10:
-            file_name = parts[0]
-            Messages.download_name = file_name
-            progress = subparts[0][:-1]
-            if progress != "N/A":
-                progress = round(float(progress))
-            downloaded_size = f"{subparts[2]} {subparts[3]}"
-            total_size = f"{subparts[7]} {subparts[8]}"
-            speed = f"{subparts[9][1:]} {subparts[10][:-1]}"
+    if process.returncode != 0:
+        raise RuntimeError(f"megadl exited with code {process.returncode}")
 
-        Messages.status_head = f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n**🏷️ Name:** `{file_name}`\n"
+    # Find downloaded files in save_path
+    for f in os.listdir(save_path):
+        full = os.path.join(save_path, f)
+        if os.path.isfile(full):
+            mtime = os.path.getmtime(full)
+            if mtime >= BotTimes.task_start.timestamp():
+                downloaded_files.append(full)
 
-        await status_bar(
-            Messages.status_head,
-            speed,
-            progress,
-            "Calculating...",
-            downloaded_size,
-            total_size,
-            "Mega 💾"
-        )
+    if not downloaded_files:
+        # Fallback: list all files
+        downloaded_files = [
+            os.path.join(save_path, f)
+            for f in os.listdir(save_path)
+            if os.path.isfile(os.path.join(save_path, f))
+        ]
 
-    except Exception as e:
-        logger.error(f"Mega progress error: {e}")
+    if downloaded_files:
+        Transfer.download_path = save_path
+        logger.info(f"Mega download complete: {len(downloaded_files)} file(s)")
+    else:
+        logger.warning("Mega: no downloaded files found in save path")
+
+    return downloaded_files

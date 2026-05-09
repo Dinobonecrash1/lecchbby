@@ -4,7 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [3.1.12] - 2026-05-10
+## [3.1.13] - 2026-05-10
+
+### Fixed
+- **Mega.nz downloader blocks event loop** — `mega.py` used synchronous `subprocess.Popen` which froze the entire bot during Mega downloads. Replaced with `asyncio.create_subprocess_exec` for non-blocking async execution.
+- **Mega.nz fragile progress parsing** — hardcoded index positions in megadl output broke on different file names or sizes. Replaced with regex-based parser (`_PROGRESS_RE`) that handles any output format.
+- **Mega.nz no install check** — bot crashed with unhelpful `FileNotFoundError` if megatools wasn't installed. Added `_check_megadl()` with clear install instructions (apt/pacman/brew).
+- **Mega.nz download timeout** — no timeout meant a stalled download would hang forever. Added 10-minute idle timeout on stdout reads.
+- **Mega.nz no file tracking** — didn't return downloaded file paths, so the manager couldn't track what was saved. Now scans save directory for newly created files.
+- **TeraBox `global Aria2c` misuse** — `global` on a module-level import object does nothing but is misleading. Removed; `Aria2c.link_info` is accessed via the imported module reference.
+- **TeraBox content-type check flawed** — checked Content-Type of the redirect response (which is always the API's response, not the file). Now probes the actual download URL to verify it returns a binary file, not an HTML page.
+- **TeraBox no request timeout** — API calls had no timeout, so a hung server would block the bot indefinitely. Added 30-second `aiohttp.ClientTimeout`.
+- **TeraBox error handling** — API errors, missing links, and HTTP failures now raise clear `RuntimeError` messages instead of silently failing or showing raw tracebacks.
 
 ### Changed
 - **Dockerfile overhaul** — improved reliability, smaller image, proper signal handling:
