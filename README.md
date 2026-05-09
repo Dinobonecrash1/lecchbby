@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.7-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.8-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -38,7 +38,11 @@
 
 ---
 
-## ✨ What's New in v3.1.7
+## ✨ What's New in v3.1.8
+
+### 🧹 Notebook Cleanup
+- **Dashboard tunnel removed** — ngrok/cloudflared tunnel setup removed from notebook. Colab users interact 100% via Telegram. VPS users still get the web dashboard on `:8080`.
+- **JS keep-alive fix** — daemon thread + `clear_output` for reliable Colab idle prevention
 
 ### 🧲 libtorrent Magnet/Torrent Downloader
 - **New downloader** using python-libtorrent for magnet links and .torrent files
@@ -50,9 +54,8 @@
 ### 🔧 Colab Notebook Fix — Runtime No Longer Disconnects
 - **Root cause:** monolithic Deploy cell + browser-side idle detection killed sessions
 - **Restructured notebook:** Setup cell (fast) → Deploy cell (bot + keep-alive in one)
-- **3-strategy JS keep-alive:** clicks indicators, simulates DOM activity, focus/blur cycle (every 30s)
+- **3-strategy JS keep-alive:** daemon thread + `clear_output` for reliable idle prevention
 - **Auto-restart watchdog:** bot crashes → automatic restart (up to 5 attempts)
-- **Dashboard tunnel removed:** Colab users interact 100% via Telegram
 
 ### 👤 UserBot — Private Channel Access
 - **Download from private channels/groups** without adding the bot as a member
