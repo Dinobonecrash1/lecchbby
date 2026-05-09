@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.0.2-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.0.3-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -72,6 +72,14 @@ This is a **major rewrite** with focus on **configurability, new download source
 - 📋 **New commands** — `/cookies`, `/setcookies`, `/clearcookies` for YouTube auth management
 - 🐛 **Format fix** — Removed `mweb` client restriction for full format availability
 - 📓 **Notebook redesign** — 5-cell layout with Health Check and Update cells
+
+### 🔧 v3.0.3 — Gallery Command & Batch Photo Fix
+
+- 📸 **`/glupload` command** — Dedicated gallery-dl download mode with site-specific instructions, skips zip/unzip selection since galleries are images only
+- 🐛 **Critical fix** — `reply_media_group()` parameter `media_group` corrected to `media` (Pyrogram API)
+- 🐛 **Batch photo retry fix** — FloodWait retries now actually work (was using `for` loop with no effect)
+- 🐛 **Batch photo cleanup** — Uploaded photos are now properly deleted when `remove=True`
+- 📊 **Progress tracking** — `Transfer.up_bytes` now tracked in batch photo mode
 
 ---
 
@@ -265,6 +273,7 @@ python -m leechbot
 | `/gdupload` | Mirror files/folders to Google Drive |
 | `/drupload` | Upload a local directory |
 | `/ytupload` | Download using YT-DLP |
+| `/glupload` | Download image galleries via gallery-dl |
 
 ### 📋 Queue & Control
 | Command | Description |
