@@ -8,8 +8,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Bot completely unresponsive** — `__main__.py` never imported `leechbot.commands`, `leechbot.callbacks`, `leechbot.handlers`. Without these imports, no `@app.on_message()` or `@app.on_callback_query()` decorators registered. Bot started but responded to nothing.
-- **Colab notebook libtorrent install order** — notebook tried `conda install` first, but Google Colab does not have conda installed, causing `/bin/sh: 1: conda not found` error and setup failure. Reordered to try `apt-get install python3-libtorrent` first (works on Colab), then conda as fallback.
-- **Colab runtime disconnects on Deploy cell** — the Deploy cell (cell 3) used a bloated JS keep-alive approach with character-by-character encoding that was too heavy, causing Colab's idle detection to trigger and disconnect the runtime. Simplified the JS keep-alive to a clean compact function and reduced monitor loop overhead.
+- **Colab runtime disconnects on Deploy cell** — old notebook used `get_ipython().system('python3 -m leechbot')` which blocks the event loop, preventing JS keep-alive from firing. Colab's idle detection triggers and disconnects. Replaced with `subprocess.Popen` (non-blocking) + JS keep-alive daemon thread + `clear_output` monitor loop. Old notebook had no keep-alive at all.
+- **Colab notebook libtorrent install** — added `python3-libtorrent` via apt with conda fallback to setup flow.
 - **`info()` NameError in torrent fallback** — `manager.py` called `info()` (a notebook-only UI function) when libtorrent falls back to aria2c, causing `NameError` crash at runtime. Replaced with `logger.warning()`.
 - **Wrong Colab install instruction in `_check_libtorrent()`** — `torrent.py` error message still told Colab users `!conda install -y -c conda-forge libtorrent` (conda doesn't exist on Colab). Fixed to `!apt-get install -y python3-libtorrent`.
 - **Wrong Colab install instruction in FAQ** — `.github/discussions/faq.md` had same conda instruction for Colab. Fixed to apt-get.
@@ -28,7 +28,7 @@ All notable changes to this project will be documented in this file.
 - **`MyLogger.debug` inconsistent with `warning`/`error`** — `debug` was instance method while others were `@staticmethod`. Made all `@staticmethod`.
 
 ### Changed
-- **Notebook Deploy cell streamlined** — removed redundant imports, consolidated UI helpers, reduced total cell size by ~60% while preserving all functionality.
+- **Notebook restructured to 3-cell layout** — restored old style with Drive Auth cell + monolithic Deployer cell, but with non-blocking subprocess + JS keep-alive + auto-restart. Old style used `get_ipython().system()` which blocked the event loop and caused disconnects.
 
 ---
 
