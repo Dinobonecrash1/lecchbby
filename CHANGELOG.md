@@ -10,10 +10,11 @@ All notable changes to this project will be documented in this file.
 - **Critical:** YouTube downloads fail with "Sign in to confirm you're not a bot" error — added PO Token plugin (`bgutil-ytdlp-pot-provider`) for automatic token generation, no user action required
 - **Critical:** Updated `yt-dlp` minimum version to `2025.5.22` for PO Token Provider Framework support
 - `YouTubeDL()`, `get_YT_Name()`, and `list_formats()` now all use cookie options when configured
-- Set `mweb` as default YouTube player client (recommended for PO token support)
+- Removed explicit `mweb` client restriction — yt-dlp auto-selects best client with full format support
 
 ### Added
 - **PO Token auto-generation** via `bgutil-ytdlp-pot-provider` plugin — fully automated, no manual setup
+- **📸 Photo Upload Mode** setting — choose between Group (batch of 10) or Single (one by one) via `/settings` menu
 - **YT-DLP Cookie Authentication** — fallback methods to pass cookies to yt-dlp:
   - `YTDL_COOKIES_FILE` env var — path to a Netscape-format cookies.txt file
   - `YTDL_BROWSER_COOKIES` env var — extract cookies directly from a browser (chrome, firefox, edge, brave, opera, safari, vivaldi)

@@ -68,18 +68,39 @@ async def Leech(folder_path: str, remove: bool):
         else:
             other_files.append(file_path)
     
-    # Upload all photos in batches of 10
+    # Upload photos based on mode setting
     if photo_files:
-        # Update status message
-        try:
-            MSG.status_msg = await MSG.status_msg.edit_text(
-                text=Messages.task_msg + "\n**📸 Uploading photos in batches...**" + sysINFO(),
-                reply_markup=keyboard()
-            )
-        except Exception as e:
-            logger.error(f"Status update error: {e}")
-        
-        await upload_photos_batch(photo_files)
+        if BOT.Setting.photo_mode == "Group":
+            # Group mode: batch upload in groups of 10 (Telegram limit)
+            try:
+                MSG.status_msg = await MSG.status_msg.edit_text(
+                    text=Messages.task_msg + "\n**📸 Uploading photos in batches...**" + sysINFO(),
+                    reply_markup=keyboard()
+                )
+            except Exception as e:
+                logger.error(f"Status update error: {e}")
+
+            await upload_photos_batch(photo_files)
+        else:
+            # Single mode: upload each photo individually
+            for idx, photo_path in enumerate(photo_files, 1):
+                photo_name = ospath.basename(photo_path)
+                BotTimes.current_time = time()
+                Messages.status_head = f"**📸 Uploading photo** `{idx}/{len(photo_files)}`\n\n`{photo_name}`\n"
+
+                try:
+                    MSG.status_msg = await MSG.status_msg.edit_text(
+                        text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
+                        reply_markup=keyboard()
+                    )
+                except Exception as e:
+                    logger.error(f"Status update error: {e}")
+
+                await upload_file(photo_path, photo_name)
+                Transfer.up_bytes.append(os.stat(photo_path).st_size)
+
+                if remove and ospath.exists(photo_path):
+                    os.remove(photo_path)
     
     # Process remaining files normally
     for file_path in other_files:

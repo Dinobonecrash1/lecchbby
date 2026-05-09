@@ -48,6 +48,7 @@ class BOT:
         prefix: str = ""
         suffix: str = ""
         thumbnail: bool = False
+        photo_mode: str = "Group"  # "Group" (batch of 10) or "Single" (one by one)
         auto_delete: bool = False
         auto_delete_delay: int = 30
 

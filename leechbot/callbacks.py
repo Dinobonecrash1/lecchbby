@@ -271,6 +271,41 @@ __Underline__""",
         BOT.State.setting_autodelete_delay = True
 
     # =========================================================================
+    # Photo Mode (Group vs Single)
+    # =========================================================================
+    elif data == "photo_mode":
+        from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+        current = BOT.Setting.photo_mode
+        keyboard = InlineKeyboardMarkup([
+            [
+                InlineKeyboardButton(
+                    f"{'✅ ' if current == 'Group' else ''}📦 Group (batch of 10)",
+                    callback_data="photo-group",
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    f"{'✅ ' if current == 'Single' else ''}📷 Single (one by one)",
+                    callback_data="photo-single",
+                ),
+            ],
+            [InlineKeyboardButton("❰ Back", callback_data="back")],
+        ])
+        await callback_query.message.edit_text(
+            f"**📸 Photo Upload Mode**\n\n"
+            f"**Current:** `{current}`\n\n"
+            f"📦 **Group** — Send photos in batches of 10 (faster, cleaner)\n"
+            f"📷 **Single** — Send each photo individually\n\n"
+            f"💡 Group mode uses Telegram's media groups (max 10 per batch).",
+            reply_markup=keyboard,
+        )
+
+    elif data in ["photo-group", "photo-single"]:
+        BOT.Setting.photo_mode = "Group" if data == "photo-group" else "Single"
+        await send_settings(client, callback_query.message, callback_query.message.id, False)
+
+    # =========================================================================
     # Close / Back
     # =========================================================================
     elif data == "close":

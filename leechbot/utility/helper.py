@@ -588,6 +588,12 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
         ],
         [
             InlineKeyboardButton(
+                f"📸 Photos: {BOT.Setting.photo_mode}",
+                callback_data="photo_mode"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
                 f"⏳ Auto-Delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}",
                 callback_data="autodelete"
             ),
@@ -611,6 +617,7 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
 ┠➕ **Prefix:** {pr}
 ┠➕ **Suffix:** {su}
 ┠🖼️ **Thumb:** {thmb}
+┠📸 **Photos:** `{BOT.Setting.photo_mode}`
 ┗⏳ **Auto-Delete:** `{auto_del}`"""
 
     try:
