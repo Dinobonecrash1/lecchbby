@@ -26,7 +26,6 @@ import config
 
 logger = logging.getLogger(__name__)
 
-
 # =============================================================================
 # Welcome Text
 # =============================================================================
@@ -34,26 +33,22 @@ WELCOME_TEXT = """**🤖 Leech Bot** — Advanced Telegram File Transloader
 
 ◈ **💪 Powerful • 🚀 Fast • 🔰 Secure**
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 **📥 Download From Anywhere**
-`┣` Direct Links, Google Drive, Telegram
-`┣` YouTube, Facebook, Instagram & 2000+ sites
-`┗` Terabox, Mega, Pixeldrain, Mediafire
+→ Direct Links, Google Drive, Telegram
+→ YouTube, Facebook, Instagram & 2000+ sites
+→ Terabox, Mega, Pixeldrain, Mediafire
 
 **📤 Upload To Premium Destination**
-`┣` Telegram (Unlimited Storage)
-`┣` Google Drive (Mirror Mode)
-`┗` Local Directory Leech
+→ Telegram (Unlimited Storage)
+→ Google Drive (Mirror Mode)
+→ Local Directory Leech
 
 **🛠️ Advance Tools**
-`┣` Video Converter (GPU Accelerated)
-`┣` Archive Extractor (Zip, Rar, 7z)
-`┣` Smart Splitting For Large Files
-`┣` Custom Thumbnails & Captions
-`┗` Download Queue & Bandwidth Control
-
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+→ Video Converter (GPU Accelerated)
+→ Archive Extractor (Zip, Rar, 7z)
+→ Smart Splitting For Large Files
+→ Custom Thumbnails & Captions
+→ Download Queue & Bandwidth Control
 
 **📋 Quick Commands**
 `/tupload` — Upload To Telegram
@@ -66,7 +61,6 @@ WELCOME_TEXT = """**🤖 Leech Bot** — Advanced Telegram File Transloader
 `/settings` — Configure Bot Preferences
 
 **🧑‍💻 Developer:** [Shinei Nouzen](https://t.me/Shineii86)"""
-
 
 # =============================================================================
 # /start
@@ -89,7 +83,6 @@ async def start_command(client, message):
 
     await message.reply_text(WELCOME_TEXT, reply_markup=keyboard, disable_web_page_preview=True)
 
-
 # =============================================================================
 # /tupload
 # =============================================================================
@@ -102,8 +95,6 @@ async def telegram_upload_command(client, message):
 
     text = """**⚡ Send Download Link(s)** 🔗
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 📋 **Follow The Pattern Below:**
 
 <code>https://example.com/file1.mp4
@@ -112,16 +103,13 @@ https://example.com/file2.mp4
 {Zip Password}
 (Unzip Password)</code>
 
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 **💡 Tips:**
-`┣` Multiple Links Supported
-`┣` Use `[ ]` For Custom Filename
-`┣` Use `{ }` For Zip Password
-`┗` Use `( )` For Extract Password"""
+→ Multiple Links Supported
+→ Use `[ ]` For Custom Filename
+→ Use `{ }` For Zip Password
+→ Use `( )` For Extract Password"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
-
 
 # =============================================================================
 # /gdupload
@@ -135,8 +123,6 @@ async def gdrive_upload_command(client, message):
 
     text = """**♻️ Send Download Link(s)** 🔗
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 📋 **Follow The Pattern Below:**
 
 <code>https://example.com/file1.mp4
@@ -145,15 +131,12 @@ https://example.com/file2.mp4
 {Zip Password}
 (Unzip Password)</code>
 
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 **💡 Tips:**
-`┣` Multiple Links Supported
-`┣` Files Will Be Mirrored To Your GDrive
-`┗` Make Sure GDrive Is Mounted"""
+→ Multiple Links Supported
+→ Files Will Be Mirrored To Your GDrive
+→ Make Sure GDrive Is Mounted"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
-
 
 # =============================================================================
 # /drupload
@@ -167,20 +150,15 @@ async def directory_upload_command(client, message):
 
     text = """**📁 Send Folder Path**
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 📋 **Example:**
 
 <code>/home/user/Downloads/myfolder</code>
 
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 **💡 Note:**
-`┣` Provide Absolute Path To The Folder
-`┗` Ensure The Bot Has Read Permissions"""
+→ Provide Absolute Path To The Folder
+→ Ensure The Bot Has Read Permissions"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
-
 
 # =============================================================================
 # /ytupload
@@ -194,8 +172,6 @@ async def ytdl_upload_command(client, message):
 
     text = """**🏮 Send YT-DLP Link(s)** 🔗
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 📋 **Follow The Pattern Below:**
 
 <code>https://youtube.com/watch?v=xxxxx
@@ -203,15 +179,12 @@ https://youtu.be/xxxxx
 [Custom Name.mp4]
 {Zip Password}</code>
 
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 **💡 Supported Sites:**
-`┣` YouTube, Facebook, Instagram
-`┣` Twitter, TikTok, Vimeo, Dailymotion
-`┗` And 2000+ more sites"""
+→ YouTube, Facebook, Instagram
+→ Twitter, TikTok, Vimeo, Dailymotion
+→ And 2000+ more sites"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
-
 
 # =============================================================================
 # /glupload
@@ -225,8 +198,6 @@ async def gallery_upload_command(client, message):
 
     text = """**📸 Send Gallery Link(s)** 🖼️
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 📋 **Follow The Pattern Below:**
 
 <code>https://instagram.com/username
@@ -236,22 +207,19 @@ https://pixiv.net/users/123456
 [Custom Name]
 {Zip Password}</code>
 
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 **🖼️ Supported Sites:**
-`┣` Instagram, Twitter / X, Pinterest
-`┣` Pixiv, DeviantArt, ArtStation, Flickr
-`┣` Reddit, Tumblr, Imgur, TikTok
-`┣` Bluesky, Newgrounds, Danbooru
-`┗` And 100+ more gallery sites
+→ Instagram, Twitter / X, Pinterest
+→ Pixiv, DeviantArt, ArtStation, Flickr
+→ Reddit, Tumblr, Imgur, TikTok
+→ Bluesky, Newgrounds, Danbooru
+→ And 100+ more gallery sites
 
 **💡 Tips:**
-`┣` Multiple Links Supported
-`┣` Use `[ ]` For Custom Folder Name
-`┗` Use `{ }` For Zip Password"""
+→ Multiple Links Supported
+→ Use `[ ]` For Custom Folder Name
+→ Use `{ }` For Zip Password"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
-
 
 # =============================================================================
 # /settings
@@ -263,7 +231,6 @@ async def settings_command(client, message):
         await message.delete()
         await send_settings(client, message, message.id, True)
 
-
 # =============================================================================
 # /help
 # =============================================================================
@@ -274,42 +241,38 @@ async def help_command(client, message):
 
     help_text = """**📖 LeechBot Help Menu**
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 **📥 Download Commands**
-`┣` `/start` — Start the bot
-`┣` `/tupload` — Upload to Telegram
-`┣` `/gdupload` — Mirror to Google Drive
-`┣` `/drupload` — Upload local directory
-`┣` `/ytupload` — Download with YT-DLP
-`┗` `/glupload` — Download image galleries
+→ `/start` — Start the bot
+→ `/tupload` — Upload to Telegram
+→ `/gdupload` — Mirror to Google Drive
+→ `/drupload` — Upload local directory
+→ `/ytupload` — Download with YT-DLP
+→ `/glupload` — Download image galleries
 
 **📋 Queue & Control**
-`┣` `/queue` — View download queue
-`┣` `/cancel` — Cancel current task
-`┗` `/cancel_all` — Cancel & clear queue
+→ `/queue` — View download queue
+→ `/cancel` — Cancel current task
+→ `/cancel_all` — Cancel & clear queue
 
 **⚙️ Settings**
-`┣` `/settings` — Bot settings menu
-`┣` `/setname` — Set custom filename
-`┣` `/zipaswd` — Set zip password
-`┣` `/unzipaswd` — Set unzip password
-`┣` `/format` — Set YT-DLP quality
-`┗` `/speed` — Set bandwidth limit
+→ `/settings` — Bot settings menu
+→ `/setname` — Set custom filename
+→ `/zipaswd` — Set zip password
+→ `/unzipaswd` — Set unzip password
+→ `/format` — Set YT-DLP quality
+→ `/speed` — Set bandwidth limit
 
 **🛠️ Admin**
-`┣` `/admin` — Manage allowed users
-`┣` `/broadcast` — Send file to multiple chats
-`┣` `/stats` — System statistics
-`┣` `/update` — Check for updates
-`┗` `/help` — Show this help message
+→ `/admin` — Manage allowed users
+→ `/broadcast` — Send file to multiple chats
+→ `/stats` — System statistics
+→ `/update` — Check for updates
+→ `/help` — Show this help message
 
 **🍪 YT-DLP Auth**
-`┣` `/cookies` — Check auth status & setup guide
-`┣` `/setcookies` — Upload cookies.txt as fallback
-`┗` `/clearcookies` — Delete stored cookies
-
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+→ `/cookies` — Check auth status & setup guide
+→ `/setcookies` — Upload cookies.txt as fallback
+→ `/clearcookies` — Delete stored cookies
 
 **🖼️ Thumbnail:** Send any image to set as thumbnail
 
@@ -330,7 +293,6 @@ Terabox, Mega, Pixeldrain, Mediafire"""
     msg = await message.reply_text(help_text, reply_markup=keyboard)
     await message_deleter(message, msg)
 
-
 # =============================================================================
 # /setname
 # =============================================================================
@@ -340,9 +302,9 @@ async def setname_command(client, message):
     if len(message.command) < 2:
         msg = await message.reply_text(
             "**⚠️ Usage**\n\n"
-            "┏━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+            "\n"
             "`/setname <filename.extension>`\n"
-            "┗━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "\n\n"
             "**📝 Example:** `/setname myvideo.mp4`",
             quote=True,
         )
@@ -354,7 +316,6 @@ async def setname_command(client, message):
         )
     await message_deleter(message, msg)
 
-
 # =============================================================================
 # /zipaswd
 # =============================================================================
@@ -364,9 +325,9 @@ async def zipaswd_command(client, message):
     if len(message.command) != 2:
         msg = await message.reply_text(
             "**⚠️ Usage**\n\n"
-            "┏━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+            "\n"
             "`/zipaswd <password>`\n"
-            "┗━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "\n\n"
             "**📝 Example:** `/zipaswd mypassword123`",
             quote=True,
         )
@@ -374,7 +335,6 @@ async def zipaswd_command(client, message):
         BOT.Options.zip_pswd = message.command[1]
         msg = await message.reply_text("**🔐 Zip Password Set Successfully** ✓", quote=True)
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /unzipaswd
@@ -385,9 +345,9 @@ async def unzipaswd_command(client, message):
     if len(message.command) != 2:
         msg = await message.reply_text(
             "**⚠️ Usage**\n\n"
-            "┏━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+            "\n"
             "`/unzipaswd <password>`\n"
-            "┗━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "\n\n"
             "**📝 Example:** `/unzipaswd mypassword123`",
             quote=True,
         )
@@ -395,7 +355,6 @@ async def unzipaswd_command(client, message):
         BOT.Options.unzip_pswd = message.command[1]
         msg = await message.reply_text("**🔓 Unzip Password Set Successfully** ✓", quote=True)
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /stats
@@ -406,7 +365,6 @@ async def stats_command(client, message):
     stats_text = f"**📊 Bot Statistics**{sysINFO()}"
     msg = await message.reply_text(stats_text, quote=True)
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /cancel
@@ -420,7 +378,6 @@ async def cancel_command(client, message):
     else:
         msg = await message.reply_text("**ℹ️ No Active Task To Cancel**", quote=True)
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /queue
@@ -436,8 +393,8 @@ async def queue_command(client, message):
 
     text = "**📋 Download Queue**\n\n"
     if current:
-        text += f"┏🔄 **Active:** `{current.get('name', 'Unknown')}`\n"
-        text += f"┗📦 **Links:** `{len(current.get('links', []))}`\n\n"
+        text += f"→ 🔄 **Active:** `{current.get('name', 'Unknown')}`\n"
+        text += f"→ 📦 **Links:** `{len(current.get('links', []))}`\n\n"
     else:
         text += "**🔄 Active:** `None`\n\n"
 
@@ -448,16 +405,14 @@ async def queue_command(client, message):
     else:
         text += "**📭 Queue is empty**"
 
-    stats_text = "\n\n┏━━━━ **Session Stats** ━━━━┓\n"
-    stats_text += f"`┣` Completed: `{BotStats.total_tasks}`\n"
-    stats_text += f"`┣` Failed: `{BotStats.failed_tasks}`\n"
-    stats_text += f"`┣` Downloaded: `{BotStats.total_downloaded}`\n"
-    stats_text += f"`┗` Uploaded: `{BotStats.total_uploaded}`\n"
-    stats_text += "┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
+    stats_text = "\n\n**📊 Session Stats**\n"
+    stats_text += f"→ Completed: `{BotStats.total_tasks}`\n"
+    stats_text += f"→ Failed: `{BotStats.failed_tasks}`\n"
+    stats_text += f"→ Downloaded: `{BotStats.total_downloaded}`\n"
+    stats_text += f"→ Uploaded: `{BotStats.total_uploaded}`"
 
     msg = await message.reply_text(text + stats_text, quote=True)
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /format
@@ -493,7 +448,6 @@ async def format_command(client, message):
         reply_markup=keyboard,
         quote=True,
     )
-
 
 # =============================================================================
 # /speed
@@ -532,7 +486,6 @@ async def speed_command(client, message):
         quote=True,
     )
 
-
 # =============================================================================
 # /broadcast
 # =============================================================================
@@ -556,9 +509,9 @@ async def broadcast_command(client, message):
     if len(message.command) < 2:
         msg = await message.reply_text(
             "**📢 Broadcast Usage**\n\n"
-            "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+            "\n"
             "`/broadcast chat_id1, chat_id2, ...`\n"
-            "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "\n\n"
             "**📝 Example:**\n"
             "`/broadcast -1001234567890, -1009876543210`\n\n"
             "💡 Send the last uploaded file to multiple chats.",
@@ -601,11 +554,10 @@ async def broadcast_command(client, message):
 
     await msg.edit_text(
         f"**📢 Broadcast Complete**\n\n"
-        f"┏✅ **Success:** `{success}`\n"
-        f"┣❌ **Failed:** `{failed}`\n"
-        f"┗📊 **Total:** `{len(chat_ids)}`"
+        f"→ ✅ **Success:** `{success}`\n"
+        f"→ ❌ **Failed:** `{failed}`\n"
+        f"→ 📊 **Total:** `{len(chat_ids)}`"
     )
-
 
 # =============================================================================
 # /admin
@@ -617,15 +569,15 @@ async def admin_command(client, message):
         return
 
     if len(message.command) < 2:
-        users_list = "\n".join([f"`┣` `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
+        users_list = "\n".join([f"→ `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
         msg = await message.reply_text(
             f"**👥 Admin Panel**\n\n"
             f"**Allowed Users:**\n{users_list}\n\n"
-            f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+            f"\n"
             f"`/admin add <user_id>` — Allow a user\n"
             f"`/admin remove <user_id>` — Deny a user\n"
             f"`/admin list` — Show allowed users\n"
-            f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛",
+            f"",
             quote=True,
         )
         await message_deleter(message, msg)
@@ -656,14 +608,13 @@ async def admin_command(client, message):
             msg = await message.reply_text("**⚠️ Invalid user ID**", quote=True)
 
     elif action == "list":
-        users_list = "\n".join([f"`┣` `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
+        users_list = "\n".join([f"→ `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
         msg = await message.reply_text(f"**👥 Allowed Users:**\n{users_list}", quote=True)
 
     else:
         msg = await message.reply_text("**⚠️ Usage:** `/admin add|remove|list [user_id]`", quote=True)
 
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /cookies — Show YT-DLP authentication status
@@ -714,15 +665,11 @@ async def cookies_command(client, message):
 
     text = f"""**🍪 YT-DLP Authentication Status**
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 {status}
 
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 **How It Works:**
-`┣` **PO Token Plugin** (auto) — generates tokens in background
-`┗` **Cookies** (manual fallback) — only needed if PO tokens fail
+→ **PO Token Plugin** (auto) — generates tokens in background
+→ **Cookies** (manual fallback) — only needed if PO tokens fail
 
 **If YouTube Still Fails:**
 Upload a `cookies.txt` file here as a backup:
@@ -734,7 +681,6 @@ Upload a `cookies.txt` file here as a backup:
 
     msg = await message.reply_text(text, quote=True, disable_web_page_preview=True)
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /setcookies — Upload cookies.txt via Telegram
@@ -749,8 +695,6 @@ async def setcookies_command(client, message):
 
 Send me your `cookies.txt` file **as a document** (not as text).
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 **Chrome / Edge / Brave:**
 `1.` Install [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
 `2.` Go to `youtube.com` (make sure you're logged in)
@@ -762,13 +706,10 @@ Send me your `cookies.txt` file **as a document** (not as text).
 `2.` Go to `youtube.com` (logged in)
 `3.` Click extension → **Export** → upload here
 
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-
 ⚠️ **Security:** Cookies contain your session tokens. The bot stores them locally and never shares them. Delete with `/clearcookies` if needed."""
 
     msg = await message.reply_text(text, quote=True, disable_web_page_preview=True)
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /clearcookies — Delete uploaded cookies file
@@ -793,7 +734,6 @@ async def clearcookies_command(client, message):
         msg = await message.reply_text("**ℹ️ No cookies file to delete.**", quote=True)
 
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /update — Check for updates and auto-update
@@ -842,7 +782,6 @@ async def update_command(client, message):
         reply_markup=keyboard,
     )
 
-
 # =============================================================================
 # /cancel_all
 # =============================================================================
@@ -861,7 +800,6 @@ async def cancel_all_command(client, message):
         msg = await message.reply_text("**📭 Queue cleared. No active task to cancel.**", quote=True)
 
     await message_deleter(message, msg)
-
 
 # =============================================================================
 # /userbot — Login with user account for private channel access
@@ -909,7 +847,6 @@ async def userbot_command(client, message):
     # Set flag so next text message is treated as phone number
     BOT.State.userbot_waiting = "phone"
 
-
 @app.on_message(filters.command("userbot_logout") & filters.private)
 async def userbot_logout_command(client, message):
     """Disconnect UserBot session."""
@@ -919,7 +856,6 @@ async def userbot_logout_command(client, message):
     from leechbot.userbot import disconnect_user
     await disconnect_user()
     await message.reply_text("🔓 **UserBot session disconnected** and removed.", quote=True)
-
 
 @app.on_message(filters.command("userbot_status") & filters.private)
 async def userbot_status_command(client, message):

@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - **Cleaner status bar** — removed box-drawing clutter from progress messages. Status bar now uses compact inline layout instead of `┏┠┗` borders. System info condensed to single line.
+- **Removed all box-drawing formatting** — replaced `┏┠┗┣━┓┛` borders with clean `→` bullet points across all messages: help menu, command prompts, settings, queue stats, broadcast results, completion logs, converter progress, admin panel, cookies status.
 
 ### Optimized
 - **Hero images reduced 86% (15.4MB → 2.2MB)** — all 11 PNG hero images in `assets/images/` converted to optimized JPG. Oversized JPEGs masquerading as .png (up to 4035×2690) downscaled to 1280px width. Quality 92 with optimize flag.

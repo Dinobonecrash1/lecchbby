@@ -30,7 +30,6 @@ import config
 
 logger = logging.getLogger(__name__)
 
-
 # =============================================================================
 # Main Dispatcher
 # =============================================================================
@@ -214,7 +213,6 @@ async def handle_callback(client, callback_query):
         except Exception:
             pass
 
-
 # =============================================================================
 # Upload Type Selection
 # =============================================================================
@@ -257,7 +255,6 @@ async def _handle_upload_type(client, callback_query, data: str):
     finally:
         BOT.State.task_going = False
 
-
 # =============================================================================
 # Video Settings
 # =============================================================================
@@ -288,14 +285,13 @@ async def _handle_video_settings(client, callback_query):
     await callback_query.message.edit_text(
         f"""**⚙️ Video Settings**
 
-┏🔄 **Convert:** `{BOT.Setting.convert_video}`
-┣✂️ **Split:** `{BOT.Setting.split_video}`
-┣🎬 **Format:** `{BOT.Options.video_out}`
-┗🔴 **Quality:** `{BOT.Setting.convert_quality}`""",
+→ 🔄 **Convert:** `{BOT.Setting.convert_video}`
+→ ✂️ **Split:** `{BOT.Setting.split_video}`
+→ 🎬 **Format:** `{BOT.Options.video_out}`
+→ 🔴 **Quality:** `{BOT.Setting.convert_quality}`""",
         reply_markup=keyboard,
     )
     await callback_query.answer()
-
 
 # =============================================================================
 # Caption Settings
@@ -329,7 +325,6 @@ __Underline__""",
     )
     await callback_query.answer()
 
-
 # =============================================================================
 # Thumbnail Settings
 # =============================================================================
@@ -349,7 +344,6 @@ async def _handle_thumb_settings(client, callback_query):
     )
     await callback_query.answer()
 
-
 async def _handle_delete_thumb(client, callback_query):
     """Delete the stored thumbnail."""
     if BOT.Setting.thumbnail and os.path.exists(Paths.THMB_PATH):
@@ -360,7 +354,6 @@ async def _handle_delete_thumb(client, callback_query):
     BOT.Setting.thumbnail = False
     await send_settings(client, callback_query.message, callback_query.message.id, False)
     await callback_query.answer("Thumbnail deleted ✓")
-
 
 # =============================================================================
 # Auto-Delete Menu
@@ -387,7 +380,6 @@ async def _handle_autodelete_menu(client, callback_query):
         reply_markup=keyboard,
     )
     await callback_query.answer()
-
 
 # =============================================================================
 # Photo Mode Menu
@@ -417,7 +409,6 @@ async def _handle_photo_mode_menu(client, callback_query):
         reply_markup=keyboard,
     )
     await callback_query.answer()
-
 
 # =============================================================================
 # YTDL Confirmation
@@ -454,7 +445,6 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
     finally:
         BOT.State.task_going = False
 
-
 # =============================================================================
 # Do Update
 # =============================================================================
@@ -490,7 +480,6 @@ async def _handle_do_update(client, callback_query):
             f"**❌ Update Failed**\n\n`{result['message'][:500]}`"
         )
 
-
 # =============================================================================
 # System Info Refresh
 # =============================================================================
@@ -502,7 +491,6 @@ def _strip_sysinfo(text: str) -> str:
         if len(parts) >= 2:
             return parts[0].rstrip()
     return text
-
 
 async def _handle_sys_refresh(client, callback_query):
     """Refresh system info display."""
@@ -518,7 +506,6 @@ async def _handle_sys_refresh(client, callback_query):
     except Exception as e:
         logger.debug("Sys refresh error: %s", e)
         await callback_query.answer("No changes", show_alert=False)
-
 
 async def _handle_sys_stats(client, callback_query):
     """Show detailed system stats."""

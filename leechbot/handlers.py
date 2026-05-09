@@ -133,14 +133,10 @@ async def handle_url(client, message):
         mode_text = BOT.Mode.mode.capitalize()
         options_text = f"""**🎯 Select Upload Type For {mode_text}**
 
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-
 📄 **Regular** — Normal file upload
 🗜️ **Compress** — Zip file upload
 📂 **Extract** — Extract archive before upload
-🔄 **Unzip+Zip** — Extract then compress
-
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"""
+🔄 **Unzip+Zip** — Extract then compress"""
 
         await message.reply_text(text=options_text, reply_markup=keyboard, quote=True)
 

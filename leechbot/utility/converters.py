@@ -33,7 +33,6 @@ from leechbot.utility.helper import getSize, fileType, keyboard, multipartArchiv
 
 logger = logging.getLogger(__name__)
 
-
 # =============================================================================
 # Video Conversion
 # =============================================================================
@@ -61,11 +60,11 @@ async def videoConverter(file: str) -> str:
     async def msg_updater(count: int, attempt: str, engine: str, core: str):
         """Update conversion progress"""
         bar = "░" * count + "█" + "░" * (11 - count)
-        messg = f"\n┏「{bar}」"
-        messg += f"\n┠⏳ **Status:** `Running`"
-        messg += f"\n┠🔄 **Attempt:** `{attempt}`"
-        messg += f"\n┠🔧 **Engine:** `{engine}`"
-        messg += f"\n┠💪 **Handler:** `{core}`"
+        messg = f"\n`{bar}`"
+        messg += f"\n→ ⏳ **Status:** `Running`"
+        messg += f"\n→ 🔄 **Attempt:** `{attempt}`"
+        messg += f"\n→ 🔧 **Engine:** `{engine}`"
+        messg += f"\n→ 💪 **Handler:** `{core}`"
         messg += f"\n┖⏱️ **Elapsed:** `{getTime((datetime.now() - BotTimes.start_time).seconds)}`"
 
         try:
@@ -134,7 +133,6 @@ async def videoConverter(file: str) -> str:
         logger.error("Video conversion failed")
         return file
 
-
 # =============================================================================
 # File Size Checker
 # =============================================================================
@@ -172,7 +170,6 @@ async def sizeChecker(file_path: str, remove: bool) -> bool:
         return True
 
     return False
-
 
 # =============================================================================
 # Archive Creation
@@ -239,7 +236,6 @@ async def archive(path: str, is_split: bool, remove: bool):
                 pass
         else:
             shutil.rmtree(path, ignore_errors=True)
-
 
 # =============================================================================
 # Archive Extraction
@@ -312,7 +308,6 @@ async def extract(zip_filepath: str, remove: bool):
 
     Messages.download_name = real_name
 
-
 # =============================================================================
 # Archive Splitting
 # =============================================================================
@@ -362,7 +357,6 @@ async def splitArchive(file_path: str, max_size: int):
 
             chunk = f.read(max_size)
             i += 1
-
 
 # =============================================================================
 # Video Splitting

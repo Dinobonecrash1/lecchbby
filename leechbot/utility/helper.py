@@ -32,7 +32,6 @@ from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths
 
 logger = logging.getLogger(__name__)
 
-
 # =============================================================================
 # Link Detection Patterns
 # =============================================================================
@@ -46,7 +45,6 @@ MEDIAFIRE_PATTERN = re.compile(r'https?://(?:www\.)?mediafire\.com/[^\s]+', re.I
 STREAMTAPE_PATTERN = re.compile(r'https?://(?:www\.)?(?:streamtape|stape)\.[^\s]+', re.IGNORECASE)
 M3U8_PATTERN = re.compile(r'https?://[^\s<>\"\']+\.m3u8[^\s<>\"\']*', re.IGNORECASE)
 MPD_PATTERN = re.compile(r'https?://[^\s<>\"\']+\.mpd[^\s<>\"\']*', re.IGNORECASE)
-
 
 # =============================================================================
 # Link Validation
@@ -77,7 +75,6 @@ def isLink(_, client, update):
         return True
 
     return False
-
 
 # =============================================================================
 # Link Type Detection
@@ -177,7 +174,6 @@ def is_gallery(link: str) -> bool:
     from leechbot.downloader.gallery import is_gallery_link
     return is_gallery_link(link)
 
-
 def detect_link_type(link: str) -> str:
     """Return a human-readable label for the link type."""
     if is_telegram(link):
@@ -213,7 +209,6 @@ def detect_link_type(link: str) -> str:
     else:
         return "🌐 Web Link"
 
-
 # =============================================================================
 # Link Extraction from Text
 # =============================================================================
@@ -235,7 +230,6 @@ def extract_links(text: str) -> list:
                 links.append(url)
 
     return links
-
 
 # =============================================================================
 # Time Formatting
@@ -259,7 +253,6 @@ def getTime(seconds: float) -> str:
     else:
         return f"{seconds}s"
 
-
 # =============================================================================
 # Size Formatting
 # =============================================================================
@@ -273,7 +266,6 @@ def sizeUnit(size: float) -> str:
         size /= 1024
         i += 1
     return f"{size:.2f} {units[i]}"
-
 
 # =============================================================================
 # File Type Detection
@@ -299,7 +291,6 @@ def fileType(file_path: str) -> str:
     _, ext = ospath.splitext(file_path)
     return extensions_dict.get(ext.lower(), "document")
 
-
 # =============================================================================
 # Filename Handling
 # =============================================================================
@@ -319,7 +310,6 @@ def shortFileName(path: str, max_len: int = 60) -> str:
         return path
     return path[:max_len] if len(path) > max_len else path
 
-
 # =============================================================================
 # Get Total Size of Path
 # =============================================================================
@@ -332,7 +322,6 @@ def getSize(path: str) -> int:
         for f in filenames:
             total_size += ospath.getsize(ospath.join(dirpath, f))
     return total_size
-
 
 # =============================================================================
 # Video Extension Fix
@@ -348,7 +337,6 @@ def videoExtFix(file_path: str) -> str:
     except OSError:
         return file_path
     return new_path
-
 
 # =============================================================================
 # Thumbnail Generation
@@ -399,7 +387,6 @@ def thumbMaintainer(file_path: str):
             return Paths.THMB_PATH, 0
         return Paths.HERO_IMAGE, 0
 
-
 # =============================================================================
 # Set Thumbnail from User Photo
 # =============================================================================
@@ -427,7 +414,6 @@ async def setThumbnail(message) -> bool:
         logger.error(f"Thumbnail download error: {e}")
         return False
 
-
 # =============================================================================
 # YT-DLP Completion Check
 # =============================================================================
@@ -439,7 +425,6 @@ def isYtdlComplete() -> bool:
             if ext in (".part", ".ytdl"):
                 return False
     return True
-
 
 # =============================================================================
 # Image Conversion
@@ -459,7 +444,6 @@ def convertIMG(image_path: str) -> str:
         logger.error(f"Image conversion error: {e}")
         return image_path
 
-
 # =============================================================================
 # System Information (Basic)
 # =============================================================================
@@ -475,7 +459,6 @@ def sysINFO() -> str:
 **🖥️** `{cpu_usage}%` **·** **💾** `{sizeUnit(ram_usage)} RAM` **·** **💽** `{sizeUnit(disk_usage.free)} free`"""
     except Exception:
         return ""
-
 
 # =============================================================================
 # System Information (Detailed)
@@ -494,16 +477,14 @@ def sysINFO_full() -> str:
 
         return f"""
 
-┏━━━━ **System Info (Detailed)** ━━━━┓
-`┣` 🖥️ **CPU:** `{psutil.cpu_percent()}%` (cores: {core_str})
-`┣` 💽 **RAM:** `{sizeUnit(ram.used)} / {sizeUnit(ram.total)}` ({ram.percent}%)
-`┣` 💾 **Disk:** `{sizeUnit(disk.used)} / {sizeUnit(disk.total)}` ({disk.percent}%)
-`┣` 🌐 **Net:** ↓`{sizeUnit(net.bytes_recv)}` ↑`{sizeUnit(net.bytes_sent)}`
-`┗` ⏱️ **Uptime:** `{getTime(int(time() - psutil.boot_time()))}`
-┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"""
+**📊 System Info (Detailed)**
+→ 🖥️ **CPU:** `{psutil.cpu_percent()}%` (cores: {core_str})
+→ 💽 **RAM:** `{sizeUnit(ram.used)} / {sizeUnit(ram.total)}` ({ram.percent}%)
+→ 💾 **Disk:** `{sizeUnit(disk.used)} / {sizeUnit(disk.total)}` ({disk.percent}%)
+→ 🌐 **Net:** ↓`{sizeUnit(net.bytes_recv)}` ↑`{sizeUnit(net.bytes_sent)}`
+→ ⏱️ **Uptime:** `{getTime(int(time() - psutil.boot_time()))}`"""
     except Exception:
         return sysINFO()
-
 
 # =============================================================================
 # Download/Upload Statistics Summary
@@ -516,18 +497,16 @@ def format_stats() -> str:
 
     return f"""**📊 Bot Statistics**
 
-┏📥 **Total Downloads:** `{BotStats.total_tasks}`
-┠📤 **Data Downloaded:** `{sizeUnit(BotStats.total_downloaded)}`
-┠📥 **Data Uploaded:** `{sizeUnit(BotStats.total_uploaded)}`
-┠❌ **Failed Tasks:** `{BotStats.failed_tasks}`
-┗⏱️ **Uptime:** `{uptime}`"""
-
+→ 📥 **Total Downloads:** `{BotStats.total_tasks}`
+→ 📤 **Data Downloaded:** `{sizeUnit(BotStats.total_downloaded)}`
+→ 📥 **Data Uploaded:** `{sizeUnit(BotStats.total_uploaded)}`
+→ ❌ **Failed Tasks:** `{BotStats.failed_tasks}`
+→ ⏱️ **Uptime:** `{uptime}`"""
 
 def mini_bar(percentage: float, length: int = 10) -> str:
     """Generate a mini text progress bar."""
     filled = int(percentage / 100 * length)
     return "█" * filled + "░" * (length - filled)
-
 
 # =============================================================================
 # Multipart Archive Handling
@@ -582,7 +561,6 @@ def multipartArchive(path: str, archive_type: str, remove: bool):
 
     return real_name, size
 
-
 # =============================================================================
 # Time Check for UI Updates (throttle to every 3 seconds)
 # =============================================================================
@@ -593,7 +571,6 @@ def isTimeOver() -> bool:
         BotTimes.current_time = time()
         return True
     return False
-
 
 # =============================================================================
 # Custom Name Application
@@ -609,7 +586,6 @@ def applyCustomName():
                 os.rename(current, new)
             except OSError as e:
                 logger.error(f"Rename error: {e}")
-
 
 # =============================================================================
 # Speed and ETA Calculation
@@ -628,7 +604,6 @@ def speedETA(start_time: datetime, done: int, total: int):
 
     return speed, eta, percentage
 
-
 # =============================================================================
 # Auto-Delete Aware Message Deleter
 # =============================================================================
@@ -642,7 +617,6 @@ async def message_deleter(user_msg, bot_msg):
             await bot_msg.delete()
         except Exception as e:
             logger.debug(f"Auto-delete error (benign): {e}")
-
 
 # =============================================================================
 # Settings Menu
@@ -688,15 +662,15 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
 
     text = f"""**⚙️ Bot Settings**
 
-┏📤 **Upload:** `{BOT.Setting.stream_upload}`
-┠✂️ **Split:** `{BOT.Setting.split_video}`
-┠🔄 **Convert:** `{BOT.Setting.convert_video}`
-┠📝 **Caption:** `{BOT.Setting.caption}`
-┠➕ **Prefix:** {pr}
-┠➕ **Suffix:** {su}
-┠🖼️ **Thumb:** {thmb}
-┠📸 **Photos:** `{BOT.Setting.photo_mode}`
-┗⏳ **Auto-Delete:** `{auto_del}`"""
+→ 📤 **Upload:** `{BOT.Setting.stream_upload}`
+→ ✂️ **Split:** `{BOT.Setting.split_video}`
+→ 🔄 **Convert:** `{BOT.Setting.convert_video}`
+→ 📝 **Caption:** `{BOT.Setting.caption}`
+→ ➕ **Prefix:** {pr}
+→ ➕ **Suffix:** {su}
+→ 🖼️ **Thumb:** {thmb}
+→ 📸 **Photos:** `{BOT.Setting.photo_mode}`
+→ ⏳ **Auto-Delete:** `{auto_del}`"""
 
     try:
         if is_command:
@@ -712,7 +686,6 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
         logger.error(f"Settings menu error: {e}")
     except Exception as e:
         logger.error(f"Settings menu error: {e}")
-
 
 # =============================================================================
 # Status Bar Update
@@ -746,7 +719,6 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
     except Exception as e:
         logger.debug(f"Status bar update error: {e}")
 
-
 # =============================================================================
 # Keyboards
 # =============================================================================
@@ -755,7 +727,6 @@ def keyboard():
     return InlineKeyboardMarkup([
         [InlineKeyboardButton("❌ Cancel", callback_data="cancel")]
     ])
-
 
 def status_keyboard():
     """Status keyboard with Refresh, Stats, and Cancel buttons."""
