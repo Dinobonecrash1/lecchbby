@@ -18,6 +18,9 @@ All notable changes to this project will be documented in this file.
 - **GDrive incomplete URL regex** — missed `drive.google.com/open?id=...` and `/uc?id=...` formats. Rewrote regex to cover all common GDrive URL patterns.
 - **GDrive `getFileMetadata`/`get_Gfolder_size` sync-async mismatch** — made async wrappers; updated `manager.py` calls to use `await`. — if libtorrent isn't installed, magnet and torrent links now fall back to aria2c instead of failing. User sees a warning but download proceeds. This means torrent support works out-of-the-box on every platform, just slower without DHT/peer exchange.
 
+### Added
+- **`ROADMAP.md`** — future plans: rclone integration, unit tests, i18n, resume uploads, mobile dashboard. Also lists what's NOT planned (direct OneDrive/Dropbox APIs, file manager UI).
+
 ### Changed
 - **Colab notebook consolidated: 6 cells → 3** — merged Google Drive Setup + Health Check into Setup cell, merged Update into Deploy cell as ACTION dropdown ("Start Bot" / "Update & Restart" / "Stop Bot"). Cleaner flow: Setup → Deploy.
 

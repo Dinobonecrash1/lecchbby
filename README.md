@@ -23,6 +23,7 @@
 ## 📑 **Table of Contents**
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
+- [🗺️ Roadmap](ROADMAP.md) — what's planned
 - [✨ What's New?](#-whats-new-in-v3114)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
