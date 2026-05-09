@@ -102,7 +102,7 @@ async def handle_url(client, message):
                 chat_id=OWNER,
                 text="**🚀 Initializing Gallery Download...**\n\nPlease Wait While I Prepare Your Download",
                 reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
+                    [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel", style="danger")]]
                 ),
             )
 
@@ -120,7 +120,7 @@ async def handle_url(client, message):
             return
 
         keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("📄 Regular ✨", callback_data="normal")],
+            [InlineKeyboardButton("📄 Regular ✨", callback_data="normal", style="success")],
             [
                 InlineKeyboardButton("🗜️ Compress", callback_data="zip"),
                 InlineKeyboardButton("Extract 📂", callback_data="unzip"),

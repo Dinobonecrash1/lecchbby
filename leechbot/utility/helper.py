@@ -602,11 +602,12 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
         [
             InlineKeyboardButton(
                 f"⏳ Auto-Delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}",
-                callback_data="autodelete"
+                callback_data="autodelete",
+                style="success" if BOT.Setting.auto_delete else "danger",
             ),
         ],
         [
-            InlineKeyboardButton("🔒 Close", callback_data="close"),
+            InlineKeyboardButton("🔒 Close", callback_data="close", style="danger"),
         ],
     ])
 
@@ -683,7 +684,7 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
 def keyboard():
     """Cancel-only keyboard for simple operations."""
     return InlineKeyboardMarkup([
-        [InlineKeyboardButton("❌ Cancel", callback_data="cancel")]
+        [InlineKeyboardButton("❌ Cancel", callback_data="cancel", style="danger")]
     ])
 
 
@@ -691,10 +692,10 @@ def status_keyboard():
     """Status keyboard with Refresh, Stats, and Cancel buttons."""
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("🔄 Refresh", callback_data="sys_refresh"),
+            InlineKeyboardButton("🔄 Refresh", callback_data="sys_refresh", style="primary"),
             InlineKeyboardButton("📊 Stats", callback_data="sys_stats"),
         ],
         [
-            InlineKeyboardButton("❌ Cancel", callback_data="cancel")
+            InlineKeyboardButton("❌ Cancel", callback_data="cancel", style="danger")
         ]
     ])

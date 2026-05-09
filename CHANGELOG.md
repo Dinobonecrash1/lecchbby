@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.0.6] - 2026-05-09
+
+### Added
+- **Colored buttons across the entire bot** using Telegram Bot API 9.4 `style` parameter on `InlineKeyboardButton`
+  - 🔴 `danger` (red) — Cancel, Delete, Close, destructive actions
+  - 🟢 `success` (green) — Confirm, Complete, positive/active states
+  - 🔵 `primary` (blue) — Navigation, Back, Settings, main actions
+  - ⚪ default — Secondary options, informational toggles
+- Applied to all button instances across 5 files:
+  - `callbacks.py` — upload type, video/caption/thumb/autodelete/photo menus, update confirm/cancel, format/speed back buttons
+  - `commands.py` — /start settings button, /format best quality, /speed unlimited, /update confirm/cancel
+  - `handlers.py` — upload type selection (Regular=success), gallery cancel button
+  - `helper.py` — status cancel (danger), refresh (primary), settings close (danger), auto-delete toggle (success/danger)
+  - `utility/handler.py` — cancel notification keyboard (URL buttons unchanged)
+
+### Changed
+- Auto-delete toggle button dynamically switches between `success` (ON) and `danger` (OFF)
+- Photo mode buttons show `success` style on the currently active option
+- Settings menu close button uses `danger` style for visual clarity
+- Status bar cancel button uses `danger` style consistently across all download engines
+
+---
+
 ## [3.0.5] - 2026-05-09
 
 ### Fixed
