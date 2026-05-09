@@ -7,10 +7,8 @@ All notable changes to this project will be documented in this file.
 ## [3.1.4] - 2026-05-10
 
 ### Fixed
-- **Colab runtime keeps disconnecting** — merged Deploy + Dashboard Tunnel + Bot Logs into a single cell. One cell runs the entire stack (deploy → bot → tunnel → monitor → keep-alive loop). Colab stays connected because the cell never exits.
-
-### Changed
-- **Simplified notebook to 5 cells** — Google Drive → Deploy (all-in-one) → Update → Health Check. No more separate tunnel/logs cells to run manually.
+- **Colab runtime keeps disconnecting** — Python `sleep` loop wasn't enough; Colab's idle detection runs in the browser, not the runtime. Added JavaScript `setInterval` that simulates user interaction every 60 seconds (clicks connect indicator, triggers DOM activity). Also added periodic heartbeat that tails the last log line.
+- **Merged Deploy + Tunnel + Logs into single cell** to eliminate gaps between cells.
 
 ---
 
