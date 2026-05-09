@@ -79,6 +79,7 @@
 | ⏳ **Auto-Delete** | Configurable auto-delete for bot messages |
 | 🎬 **YouTube PO Tokens** | Auto-generated via plugin — no manual cookie setup |
 | 📸 **Photo Galleries** | Instagram, Twitter, Pinterest, Pixiv, DeviantArt via gallery-dl |
+| 🌐 **Web Dashboard** | ⚡ `BETA` Real-time browser dashboard — monitor queue, stats, settings, active tasks via WebSocket |
 
 ---
 
@@ -114,6 +115,10 @@ TOKEN_PICKLE_PATH=
 
 # Multi-user (comma-separated user IDs)
 ALLOWED_USERS=123456789,987654321
+
+# Web Dashboard (BETA)
+WEB_PORT=8080
+WEB_TOKEN=your_secret_token
 ```
 
 ## 🔗 Supported Links
@@ -290,6 +295,31 @@ When sending links, append:
 - `{zip_password}` → Password for ZIP creation
 - `(unzip_password)` → Password for archive extraction
 
+### 🌐 Web Dashboard `BETA`
+
+The bot starts a web dashboard automatically on port `8080`.
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/dashboard` | GET | Browser dashboard UI |
+| `/api/status` | GET | Full bot state (JSON) |
+| `/api/queue` | GET | Queue details |
+| `/api/stats` | GET | Statistics + system resources |
+| `/api/settings` | GET | Current bot settings |
+| `/api/cancel` | POST | Cancel active task |
+| `/api/queue/clear` | POST | Clear download queue |
+| `/ws` | WebSocket | Real-time updates |
+
+```bash
+# Access via browser
+http://your-server:8080/dashboard
+
+# API call example
+curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
+```
+
+📖 [Full dashboard guide](GUIDE.md#-web-dashboard)
+
 ---
 
 ## 🆚 **Changelog – Old vs New**
@@ -308,6 +338,7 @@ When sending links, append:
 | **Progress Updates**   | Basic text                           | Real‑time speed, ETA, percentage, system stats for ALL engines |
 | **Commands**           | Manual via @BotFather                | Auto-registered on startup (23 commands)             |
 | **Error Handling**     | Single try/except                    | Individual try/except per operation, robust cancellation |
+| **Web Dashboard**      | None                                 | Real-time browser dashboard with queue, stats, settings (BETA) |
 | **License**            | GPL‑3.0                              | MIT (more permissive)                                |
 
 ---
