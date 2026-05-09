@@ -16,8 +16,8 @@ Message handlers for replies, URLs, photos, and text input.
 import logging
 from pyrogram import filters
 
-from leechbot import app
-from leechbot.utility.variables import BOT
+from leechbot import app, OWNER
+from leechbot.utility.variables import BOT, Paths
 from leechbot.utility.helper import (
     isLink, setThumbnail, message_deleter, send_settings,
 )
@@ -134,13 +134,40 @@ async def handle_photo(client, message):
 
 
 # =============================================================================
+# Document Handler (Cookies.txt upload)
+# =============================================================================
+@app.on_message(filters.document & filters.private)
+async def handle_document(client, message):
+    """Handle document uploads — auto-detect cookies.txt for yt-dlp."""
+    if message.chat.id != OWNER:
+        return
+
+    file_name = message.document.file_name or ""
+    if file_name.lower() == "cookies.txt":
+        msg = await message.reply_text("**🍪 Downloading cookies file...**")
+        try:
+            await message.download(file_name=Paths.COOKIE_FILE)
+            await msg.edit_text(
+                "**✅ Cookies file saved!**\n\n"
+                "YouTube downloads should now work.\n"
+                "Use `/cookies` to verify status."
+            )
+            logger.info("Cookies file uploaded and saved to %s", Paths.COOKIE_FILE)
+        except Exception as e:
+            await msg.edit_text(f"**❌ Failed to save cookies:** `{e}`")
+            logger.error("Cookie file save error: %s", e)
+        await message_deleter(message, msg)
+
+
+# =============================================================================
 # Text Input Handler (Auto-Delete Delay)
 # =============================================================================
 @app.on_message(filters.text & filters.private & ~filters.command([
     "start", "tupload", "gdupload", "drupload", "ytupload",
     "settings", "help", "setname", "zipaswd", "unzipaswd",
     "stats", "cancel", "cancel_all", "queue", "format",
-    "speed", "broadcast", "admin",
+    "speed", "broadcast", "admin", "cookies", "setcookies",
+    "clearcookies",
 ]))
 async def handle_text_input(client, message):
     """Handle text inputs for setting auto-delete delay."""

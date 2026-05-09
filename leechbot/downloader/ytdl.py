@@ -22,6 +22,7 @@ from asyncio import sleep
 from threading import Thread
 from os import makedirs, path as ospath
 
+import config
 from leechbot.utility.variables import YTDL, MSG, Messages, Paths, BOT
 from leechbot.utility.helper import getTime, keyboard, sizeUnit, status_bar, sysINFO
 
@@ -49,6 +50,40 @@ def get_format_string(preset: str = None) -> str:
 
     # If it's a known preset name, use it; otherwise treat as raw format string
     return FORMAT_PRESETS.get(preset.lower(), preset)
+
+
+def _get_cookie_opts() -> dict:
+    """
+    Return yt-dlp options dict for cookie authentication.
+
+    Resolution order:
+      1. YTDL_COOKIES_FILE env var — explicit path to cookies.txt
+      2. Default save path (Paths.COOKIE_FILE) — uploaded via /setcookies
+      3. YTDL_BROWSER_COOKIES env var — extract from installed browser
+
+    Returns:
+        dict: yt-dlp options with cookie settings, or empty dict if unconfigured.
+    """
+    cookies_file = getattr(config, "YTDL_COOKIES_FILE", "")
+    browser_cookies = getattr(config, "YTDL_BROWSER_COOKIES", "")
+    default_path = getattr(Paths, "COOKIE_FILE", "")
+
+    # Priority 1: explicit env var
+    if cookies_file and ospath.isfile(cookies_file):
+        logger.info("Using cookies file (env): %s", cookies_file)
+        return {"cookiefile": cookies_file}
+
+    # Priority 2: uploaded via /setcookies command
+    if default_path and ospath.isfile(default_path):
+        logger.info("Using cookies file (uploaded): %s", default_path)
+        return {"cookiefile": default_path}
+
+    # Priority 3: browser extraction (requires browser on same machine)
+    if browser_cookies:
+        logger.info("Extracting cookies from browser: %s", browser_cookies)
+        return {"cookiesfrombrowser": (browser_cookies,)}
+
+    return {}
 
 
 # =============================================================================
@@ -162,7 +197,10 @@ def YouTubeDL(url: str):
         "progress_hooks": [_progress_hook],
         "writesubtitles": True,
         "subtitleslangs": ["en", "en-US", "en-GB"],
-        "extractor_args": {"subtitlesformat": "srt"},
+        "extractor_args": {
+            "subtitlesformat": "srt",
+            "youtube": {"player_client": ["mweb"]},
+        },
         "logger": MyLogger(),
         "user_agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -173,6 +211,9 @@ def YouTubeDL(url: str):
             "thumbnail": f"{Paths.thumbnail_ytdl}/%(id)s.%(ext)s",
         },
     }
+
+    # Merge cookie authentication options (fixes YouTube bot detection)
+    ydl_opts.update(_get_cookie_opts())
 
     # Audio-only options
     if is_audio_only:
@@ -221,7 +262,9 @@ def YouTubeDL(url: str):
 async def get_YT_Name(link: str) -> str:
     """Get video title from link without downloading."""
     try:
-        with yt_dlp.YoutubeDL({"logger": MyLogger(), "quiet": True}) as ydl:
+        opts = {"logger": MyLogger(), "quiet": True}
+        opts.update(_get_cookie_opts())
+        with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(link, download=False)
             return info.get("title", "Unknown")
     except Exception as e:
@@ -240,7 +283,9 @@ async def list_formats(link: str) -> str:
         str: formatted list of available formats
     """
     try:
-        with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True}) as ydl:
+        opts = {"quiet": True, "no_warnings": True}
+        opts.update(_get_cookie_opts())
+        with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(link, download=False)
             formats = info.get("formats", [])
 

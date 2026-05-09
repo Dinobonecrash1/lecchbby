@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.0.2] - 2026-05-09
+
+### Fixed
+- **Critical:** YouTube downloads fail with "Sign in to confirm you're not a bot" error — added PO Token plugin (`bgutil-ytdlp-pot-provider`) for automatic token generation, no user action required
+- **Critical:** Updated `yt-dlp` minimum version to `2025.5.22` for PO Token Provider Framework support
+- `YouTubeDL()`, `get_YT_Name()`, and `list_formats()` now all use cookie options when configured
+- Set `mweb` as default YouTube player client (recommended for PO token support)
+
+### Added
+- **PO Token auto-generation** via `bgutil-ytdlp-pot-provider` plugin — fully automated, no manual setup
+- **YT-DLP Cookie Authentication** — fallback methods to pass cookies to yt-dlp:
+  - `YTDL_COOKIES_FILE` env var — path to a Netscape-format cookies.txt file
+  - `YTDL_BROWSER_COOKIES` env var — extract cookies directly from a browser (chrome, firefox, edge, brave, opera, safari, vivaldi)
+- `/cookies` command — shows PO token + cookie authentication status
+- `/setcookies` command — step-by-step browser export instructions for cookie fallback
+- `/clearcookies` command — delete stored cookies file
+- **Document handler** — auto-detects `cookies.txt` uploads and saves them for yt-dlp
+- Cookie options documented in `.env.example` with inline comments
+- Cookie file path exposed in `Paths.ytdl_cookies` and `Paths.COOKIE_FILE` for cross-module access
+- Default cookie save path: `<SESSIONS_PATH>/cookies.txt`
+
+### Changed
+- Updated `/help` command with PO token + cookie configuration section
+- Updated VERSION to 3.0.2
+
+---
+
 ## [3.0.1] - 2026-05-09
 
 ### Fixed

@@ -252,6 +252,12 @@ class Paths:
     # Token file
     access_token: str = config.TOKEN_PICKLE_PATH
 
+    # YT-DLP cookie file
+    ytdl_cookies: str = config.YTDL_COOKIES_FILE
+
+    # Default cookie file path (uploaded via /setcookies)
+    COOKIE_FILE: str = str(config.SESSIONS_PATH / "cookies.txt")
+
 
 # =============================================================================
 # Message Templates
