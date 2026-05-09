@@ -16,6 +16,7 @@ Everything you need to set up, configure, and use LeechBot from scratch.
 - [Supported Sites](#-supported-sites)
 - [Google Drive Setup](#-google-drive-setup)
 - [YouTube Authentication](#-youtube-authentication)
+- [Demos](#-demos)
 - [Troubleshooting](#-troubleshooting)
 
 ---
@@ -159,49 +160,28 @@ DUMP_ID=-1001234567890
 
 ```env
 # --- Paths ---
-# Base directory for all bot files (downloads, temp, thumbnails)
-# Default: /tmp/leechbot (auto-created)
 LEECHBOT_BASE_DIR=/tmp/leechbot
 
 # --- Download Settings ---
-# How many files to download at once (default: 3)
 MAX_CONCURRENT_DOWNLOADS=3
-
-# How many times to retry a failed download (default: 3)
 AUTO_RETRY_COUNT=3
-
-# Upload mode: "media" (streaming, plays in Telegram) or "document" (raw file)
 DEFAULT_UPLOAD_MODE=media
-
-# Enable torrent/magnet link support (default: false)
-# ⚠️ May violate ToS on some hosting providers
 ENABLE_TORRENTS=false
-
-# Speed limit for downloads (empty = unlimited)
-# Examples: "10M" (10 MB/s), "500K" (500 KB/s)
 BANDWIDTH_LIMIT=
 
 # --- Multi-User Support ---
-# Comma-separated Telegram user IDs (OWNER_ID is always allowed)
-# Example: ALLOWED_USERS=123456789,987654321
 ALLOWED_USERS=
 
-# --- YouTube Cookies (optional, for bot detection issues) ---
-# Option 1: Path to cookies.txt file
+# --- YouTube Cookies (optional) ---
 # YTDL_COOKIES_FILE=/path/to/cookies.txt
-
-# Option 2: Extract from browser directly
-# Supported: chrome, firefox, edge, brave, opera, safari
 # YTDL_BROWSER_COOKIES=chrome
 
 # --- Google Drive (optional) ---
-# Set to "true" to enable Google Drive mirror
 GDRIVE_ENABLED=false
-
-# Path to Google Drive token file
-# Default: <BASE_DIR>/token.pickle
 TOKEN_PICKLE_PATH=
 ```
+
+> 💡 **Full reference:** See [.env.example](.env.example) for all options with inline comments.
 
 ---
 
@@ -265,11 +245,7 @@ Then:
 sudo systemctl daemon-reload
 sudo systemctl enable leechbot
 sudo systemctl start leechbot
-
-# Check status
 sudo systemctl status leechbot
-
-# View logs
 sudo journalctl -u leechbot -f
 ```
 
@@ -501,6 +477,746 @@ Supported browsers: `chrome`, `firefox`, `edge`, `brave`, `opera`, `safari`, `vi
 ### Check Status
 
 Send `/cookies` to see which authentication method is active.
+
+---
+
+## 🎬 Demos
+
+Real-world examples showing exactly what you send and what the bot does.
+
+### Demo 1: Download a Single File
+
+The simplest use case — download a file and upload it to Telegram.
+
+```
+You:   /tupload
+
+Bot:   ⚡ Send Download Link(s) 🔗
+       📋 Follow The Pattern Below:
+       https://example.com/file1.mp4
+       https://example.com/file2.mp4
+       [Custom Name.mp4]
+       {Zip Password}
+       (Unzip Password)
+       💡 Tips:
+       • Multiple Links Supported
+       • Use [] For Custom Filename
+       • Use {} For Zip Password
+       • Use () For Extract Password
+
+You:   https://example.com/big-video.mp4
+
+Bot:   🎯 Select Upload Type For Leech
+       📄 Regular - Normal File Upload
+       🗜️ Compress - Zip File Upload
+       📂 Extract - Extract Archive Before Upload
+       🔄 Unzip+Zip - Extract Then Compress
+
+You:   [📄 Regular ✨]
+
+Bot:   🚀 Initializing Task...
+       Please Wait While I Prepare Your Download
+
+       📥 Downloading
+       ████████░░░░ 67% | 45.2 MB/s | ETA: 00:12 | 156 MB / 234 MB
+       Engine: aria2c 🚀
+
+       ... (download completes) ...
+
+       📤 Uploading
+       ████████████ 100% | 52.1 MB/s | Done: 234 MB
+       Engine: Telegram 📤
+
+       ✅ Task Complete
+       📛 Name: big-video.mp4
+       📦 Size: 234 MB
+       📋 Files: 1
+       ⏱️ Time: 00:45
+```
+
+### Demo 2: Download Multiple Files with Custom Name
+
+Send multiple links at once. Use `[Custom Name]` to rename the file.
+
+```
+You:   /tupload
+
+Bot:   ⚡ Send Download Link(s) 🔗
+       ...
+
+You:   https://site.com/episode01.mp4
+       https://site.com/episode02.mp4
+       https://site.com/episode03.mp4
+       [My Anime S01]
+
+Bot:   🎯 Select Upload Type For Leech
+
+You:   [📄 Regular ✨]
+
+Bot:   🚀 Initializing Task...
+
+       📥 Downloading link 1/3
+       ████████░░░░ 78% | 12.3 MB/s
+       ...
+
+       📥 Downloading link 2/3
+       ████████░░░░ 45% | 11.8 MB/s
+       ...
+
+       📥 Downloading link 3/3
+       ████████░░░░ 92% | 13.1 MB/s
+       ...
+
+       ✅ Task Complete
+       📦 Size: 1.2 GB
+       📋 Files: 3
+       ⏱️ Time: 02:15
+```
+
+### Demo 3: Download YouTube Video
+
+Use `/ytupload` for YouTube and other video platforms. Choose quality with `/format` first.
+
+```
+You:   /format
+
+Bot:   🎬 YT-DLP Format Selection
+       Current: bestvideo+bestaudio/best
+       Choose the quality for video downloads:
+       💡 Tip: Lower quality = faster download & smaller size
+
+       [📺 1080p] [📺 720p]
+       [📱 480p]  [📱 360p]
+       [🎵 Audio Only]
+       [❰ Back]
+
+You:   [📺 720p]
+
+Bot:   (callback acknowledged)
+
+You:   /ytupload
+
+Bot:   ⚡ Send Yt-Dlp Link(s) 🔗
+       📋 Follow The Pattern Below:
+       https://youtube.com/watch?v=xxxxx
+       https://youtu.be/xxxxx
+       [Custom Name.mp4]
+       {Zip Password}
+       💡 Supported Sites:
+       • Youtube, Facebook, Instagram
+       • Twitter, Tiktok, And More...
+
+You:   https://www.youtube.com/watch?v=dQw4w9WgXcQ
+
+Bot:   🚀 Initializing Task...
+
+       📥 Downloading
+       ████████░░░░ 85% | 8.4 MB/s | ETA: 00:05
+       Engine: YT-DLP 🏮
+
+       ⏳ Please Wait...
+       Merging YT-DLP Video...
+
+       📤 Uploading
+       ████████████ 100% | 45.2 MB/s
+       Engine: Telegram 📤
+
+       ✅ Task Complete
+       📛 Name: Rick Astley - Never Gonna Give You Up.mp4
+       📦 Size: 48.3 MB
+       ⏱️ Time: 00:32
+```
+
+### Demo 4: Download Photo Gallery
+
+Use `/glupload` for Instagram, Twitter, Pinterest, Pixiv, and 100+ gallery sites.
+
+```
+You:   /glupload
+
+Bot:   📸 Send Gallery Link(s) 🖼️
+       📋 Follow The Pattern Below:
+       https://instagram.com/username
+       https://twitter.com/username
+       https://pinterest.com/user/board
+       https://pixiv.net/users/123456
+       [Custom Name]
+       {Zip Password}
+       🖼️ Supported Sites:
+       • Instagram (Posts, Profiles, Stories)
+       • Twitter / X (Timelines, Likes, Bookmarks)
+       • Pinterest (Boards, Pins)
+       • Pixiv (Artworks, Users)
+       • DeviantArt, ArtStation, Flickr
+       • Reddit, Tumblr, Imgur
+       • TikTok, Bluesky, Newgrounds
+       • Danbooru, Gelbooru, Yande.re
+       • And 100+ more gallery sites
+       💡 Tips:
+       • Multiple Links Supported
+       • Use [] For Custom Folder Name
+
+You:   https://www.pixiv.net/en/users/123456
+
+Bot:   🚀 Initializing Gallery Download...
+       Please Wait While I Prepare Your Download
+
+       📸 Downloading Gallery Link 01
+       📸 Downloaded: 24 files (156 MB)
+
+       📤 Uploading photos in batches...
+
+       ✅ Task Complete
+       📦 Size: 156 MB
+       📋 Files: 24
+       ⏱️ Time: 00:28
+```
+
+### Demo 5: Download and Compress (Zip)
+
+Download files and upload them as a zip archive. Set a password for encryption.
+
+```
+You:   /zipaswd mySecret123
+
+Bot:   🔐 Zip Password Set Successfully
+
+You:   /tupload
+
+Bot:   ⚡ Send Download Link(s) 🔗
+       ...
+
+You:   https://site.com/project-files.tar.gz
+
+Bot:   🎯 Select Upload Type For Leech
+
+You:   [🗜️ Compress]
+
+Bot:   🚀 Initializing Task...
+
+       📥 Downloading
+       ████████████ 100% | 15.6 MB/s
+       Engine: aria2c 🚀
+
+       🗜️ Zipping
+       project-files.tar.gz
+       ████████████ 100%
+
+       📤 Uploading
+       ████████████ 100% | 52.1 MB/s
+       Engine: Telegram 📤
+
+       ✅ Task Complete
+       📦 Size: 89.2 MB
+       ⏱️ Time: 00:18
+```
+
+### Demo 6: Extract Archive Before Upload
+
+Download a zip/rar/7z file and extract it before uploading the contents.
+
+```
+You:   /tupload
+
+Bot:   ⚡ Send Download Link(s) 🔗
+       ...
+
+You:   https://site.com/archive.zip
+
+Bot:   🎯 Select Upload Type For Leech
+
+You:   [📂 Extract]
+
+Bot:   🚀 Initializing Task...
+
+       📥 Downloading
+       ████████████ 100% | 22.4 MB/s
+       Engine: aria2c 🚀
+
+       📂 Extracting
+       archive.zip
+       ████████████ 100%
+
+       📤 Uploading
+       📤 Uploading Split 1/5
+       ████████████ 100% | 48.2 MB/s
+
+       📤 Uploading Split 2/5
+       ████████████ 100% | 51.3 MB/s
+       ...
+
+       ✅ Task Complete
+       📋 Files: 5
+       📦 Size: 234 MB
+       ⏱️ Time: 00:42
+```
+
+### Demo 7: Download from Telegram
+
+Download a file from another Telegram channel or group.
+
+```
+You:   /tupload
+
+Bot:   ⚡ Send Download Link(s) 🔗
+       ...
+
+You:   https://t.me/c/1234567890/45678
+
+Bot:   🎯 Select Upload Type For Leech
+
+You:   [📄 Regular ✨]
+
+Bot:   🚀 Initializing Task...
+
+       📥 Downloading
+       ████████░░░░ 56% | 34.7 MB/s
+       Engine: Telegram 💬
+
+       📤 Uploading
+       ████████████ 100% | 48.9 MB/s
+       Engine: Telegram 📤
+
+       ✅ Task Complete
+       📛 Name: documentary.mp4
+       📦 Size: 1.1 GB
+       ⏱️ Time: 01:22
+```
+
+### Demo 8: Mirror to Google Drive
+
+Download a file and upload it to your Google Drive instead of Telegram.
+
+```
+You:   /gdupload
+
+Bot:   ⚡ Send Download Link(s) 🔗
+       📋 Follow The Pattern Below:
+       https://example.com/file1.mp4
+       ...
+       💡 Tips:
+       • Multiple Links Supported
+       • Files Will Be Mirrored To Your Gdrive
+       • Make Sure Gdrive Is Mounted
+
+You:   https://site.com/big-backup.zip
+
+Bot:   🎯 Select Upload Type For Mirror
+
+You:   [📄 Regular ✨]
+
+Bot:   🚀 Initializing Task...
+
+       📥 Downloading
+       ████████████ 100% | 18.3 MB/s
+       Engine: aria2c 🚀
+
+       ♻️ Uploading to Google Drive...
+       ████████████ 100%
+
+       ✅ Task Complete
+       📛 Name: big-backup.zip
+       📦 Size: 4.2 GB
+       ⏱️ Time: 04:12
+```
+
+### Demo 9: Upload a Local Directory
+
+Upload an entire folder from the server to Telegram.
+
+```
+You:   /drupload
+
+Bot:   ⚡ Send Folder Path 📁
+       📋 Example:
+       /home/user/Downloads/myfolder
+       💡 Note:
+       • Provide Absolute Path To The Folder
+       • Ensure The Bot Has Read Permissions
+
+You:   /home/user/Downloads/my-photos
+
+Bot:   🚀 Initializing Task...
+
+       📤 Uploading photo 1/15
+       ████████████ 100% | 52.1 MB/s
+
+       📤 Uploading photo 2/15
+       ████████████ 100% | 48.3 MB/s
+       ...
+
+       ✅ Task Complete
+       📋 Files: 15
+       📦 Size: 67.8 MB
+       ⏱️ Time: 00:08
+```
+
+### Demo 10: Queue Multiple Tasks
+
+Queue several download batches without waiting for each to finish.
+
+```
+You:   /tupload
+
+Bot:   ⚡ Send Download Link(s) 🔗
+       ...
+
+You:   https://site.com/video1.mp4
+
+Bot:   🎯 Select Upload Type For Leech
+
+You:   [📄 Regular ✨]
+
+Bot:   🚀 Initializing Task...
+       (task starts downloading)
+
+You:   /tupload
+
+Bot:   ⚡ Send Download Link(s) 🔗
+       ...
+
+You:   https://site.com/video2.mp4
+
+Bot:   🎯 Select Upload Type For Leech
+
+You:   [📄 Regular ✨]
+
+Bot:   (added to queue — will start after current task finishes)
+
+       ... (first task completes) ...
+
+       (second task starts automatically)
+
+You:   /queue
+
+Bot:   📋 Download Queue
+       🔄 Active: video2.mp4
+       📦 Links: 1
+       📭 Queue is empty
+
+       📈 Session Stats:
+       • Completed: 1
+       • Failed: 0
+       • Downloaded: 450 MB
+       • Uploaded: 450 MB
+```
+
+### Demo 11: Set Custom Thumbnail
+
+Send a photo to set it as the default thumbnail for all uploads.
+
+```
+You:   (sends a photo)
+
+Bot:   🖼️ Processing Thumbnail...
+       ✅ Thumbnail Set Successfully
+
+You:   /tupload
+
+Bot:   ⚡ Send Download Link(s) 🔗
+       ...
+
+You:   https://site.com/movie.mp4
+
+Bot:   🎯 Select Upload Type For Leech
+
+You:   [📄 Regular ✨]
+
+Bot:   🚀 Initializing Task...
+       ...
+       ✅ Task Complete
+       (uploads now show your custom thumbnail)
+```
+
+### Demo 12: Set Prefix and Suffix
+
+Customize how filenames appear in captions.
+
+```
+You:   /settings
+
+Bot:   ⚙️ Bot Settings
+       ┏📤 Upload: Media
+       ┠✂️ Split: Split
+       ┠🔄 Convert: Yes
+       ┠📝 Caption: Regular
+       ┠➕ Prefix: ❎
+       ┠➕ Suffix: ❎
+       ┠🖼️ Thumb: ❎
+       ┠📸 Photos: Group
+       ┗⏳ Auto-Delete: Off
+
+       [📤 Media] [🎬 Video]
+       [📝 Caption] [🖼️ Thumb]
+       [➕ Prefix] [➕ Suffix]
+       [📸 Photos: Group]
+       [⏳ Auto-Delete: OFF]
+       [🔒 Close]
+
+You:   [➕ Prefix]
+
+Bot:   📝 Send prefix text:
+       (This will be added before every filename)
+
+You:   🎬
+
+Bot:   ✅ Prefix Set: 🎬
+
+You:   /settings
+
+Bot:   ⚙️ Bot Settings
+       ...
+       ┠➕ Prefix: ✅
+       ...
+
+You:   [➕ Suffix]
+
+Bot:   📝 Send suffix text:
+       (This will be added after every filename)
+
+You:   @MyChannel
+
+Bot:   ✅ Suffix Set: @MyChannel
+
+You:   /tupload → send link → select Regular
+       ...
+       (uploads now show: 🎬 filename.mp4 @MyChannel)
+```
+
+### Demo 13: Bandwidth Limiting
+
+Limit download speed to avoid saturating your connection.
+
+```
+You:   /speed
+
+Bot:   ⚡ Bandwidth Limiter
+       Current Limit: Unlimited
+       Set maximum download speed to avoid saturating your connection.
+       This applies to aria2c and YT-DLP downloads.
+
+       [🚀 Unlimited] [💨 50 MB/s]
+       [⚡ 20 MB/s]   [🔌 10 MB/s]
+       [🐢 5 MB/s]    [🐌 1 MB/s]
+       [❰ Back]
+
+You:   [🐢 5 MB/s]
+
+Bot:   (callback acknowledged — speed limited to 5 MB/s)
+
+You:   /tupload → send link
+       ...
+       (downloads now capped at 5 MB/s)
+```
+
+### Demo 14: Multi-User Setup
+
+Allow friends or team members to use your bot.
+
+```
+You:   /admin
+
+Bot:   👥 Admin Panel
+       Allowed Users:
+       None
+
+       Commands:
+       /admin add <user_id> — Allow a user
+       /admin remove <user_id> — Deny a user
+       /admin list — Show allowed users
+
+You:   /admin add 987654321
+
+Bot:   ✅ User 987654321 added to allowed list.
+
+You:   /admin add 111222333
+
+Bot:   ✅ User 111222333 added to allowed list.
+
+You:   /admin list
+
+Bot:   👥 Allowed Users:
+       • 987654321
+       • 111222333
+
+(Now these users can also send commands to the bot)
+```
+
+### Demo 15: Broadcast Last Upload
+
+Send the last uploaded file to multiple Telegram chats at once.
+
+```
+You:   /broadcast -1001234567890, -1009876543210, -100555444333
+
+Bot:   📢 Broadcasting to 3 chats...
+
+       📢 Broadcast Complete
+       ✅ Success: 2
+       ❌ Failed: 1
+       📊 Total: 3
+```
+
+### Demo 16: Update the Bot
+
+Check for new versions and update with one click.
+
+```
+You:   /update
+
+Bot:   🔄 Checking for updates...
+
+       🔄 Update Available!
+       Current: abc1234
+       Latest: def5678
+       Behind: 3 commits
+
+       📋 Changes:
+       fix: batch photo upload parameter
+       feat: add /glupload command
+       docs: add comprehensive GUIDE.md
+
+       [✅ Update Now] [❌ Cancel]
+
+You:   [✅ Update Now]
+
+Bot:   🔄 Updating...
+       Pulling latest changes...
+       Restarting bot...
+       ✅ Update complete!
+```
+
+### Demo 17: YouTube Cookie Authentication
+
+Fix "Sign in to confirm you're not a bot" errors.
+
+```
+You:   /cookies
+
+Bot:   🍪 YT-DLP Authentication Status
+       ❌ PO Token Plugin — not installed
+       ⚠️ Cookies — not configured (fallback)
+
+       How it works:
+       1. PO Token Plugin (auto) — generates tokens in the background
+       2. Cookies (manual fallback) — only needed if PO tokens stop working
+
+       If YouTube still fails:
+       Upload a cookies.txt file here as a backup...
+
+You:   /setcookies
+
+Bot:   🍪 Upload Cookies File
+       Send me your cookies.txt file as a document (not as text).
+
+       How to get it:
+       Chrome / Edge / Brave:
+       1. Install extension: Get cookies.txt LOCALLY
+       2. Go to https://www.youtube.com (logged in)
+       3. Click extension → Export → saves cookies.txt
+       4. Upload that file here
+
+You:   (uploads cookies.txt as document)
+
+Bot:   🍪 Downloading cookies file...
+       ✅ Cookies file saved!
+       YouTube downloads should now work.
+       Use /cookies to verify status.
+
+You:   /cookies
+
+Bot:   🍪 YT-DLP Authentication Status
+       ✅ PO Token Plugin — auto-generating tokens (primary)
+       ✅ Cookies file (uploaded) — /tmp/leechbot/sessions/cookies.txt
+```
+
+### Demo 18: Cancel a Running Task
+
+Stop a download that's taking too long.
+
+```
+You:   /tupload → send huge link → select Regular
+
+Bot:   🚀 Initializing Task...
+       📥 Downloading
+       ████░░░░░░░░ 32% | 2.1 MB/s | ETA: 45:00
+
+You:   /cancel
+
+Bot:   🚫 Task Cancelled
+
+       🚫 Task Cancelled
+       🔗 Source: Here
+       🎯 Mode: Leech
+       ⚠️ Reason: User cancelled the task
+       ⏱️ Elapsed: 05:23
+```
+
+### Demo 19: Auto-Delete Status Messages
+
+Keep your chat clean by auto-deleting bot messages.
+
+```
+You:   /settings
+
+Bot:   ⚙️ Bot Settings
+       ...
+       ┗⏳ Auto-Delete: Off
+       ...
+
+You:   [⏳ Auto-Delete: OFF]
+
+Bot:   ⏳ Auto-Delete Settings
+       Status: OFF
+       Delay: 30s
+
+       [🔄 Toggle ON/OFF]
+       [⏱️ Set Delay]
+       [❰ Back]
+
+You:   [🔄 Toggle ON/OFF]
+
+Bot:   ✅ Auto-Delete: ON
+
+You:   [⏱️ Set Delay]
+
+Bot:   ⏱️ Enter delay in seconds (5-300):
+
+You:   60
+
+Bot:   ✅ Auto-delete delay set to 60 seconds.
+
+(All bot status messages now auto-delete after 60 seconds)
+```
+
+### Demo 20: Error Recovery
+
+The bot automatically retries failed downloads.
+
+```
+You:   /tupload → send link → select Regular
+
+Bot:   🚀 Initializing Task...
+
+       📥 Downloading
+       ████░░░░░░░░ 23% | 5.2 MB/s
+
+       (connection drops)
+
+       ⚠️ Download failed, retrying... (attempt 2/3)
+
+       📥 Downloading
+       ████████░░░░ 67% | 4.8 MB/s
+
+       (completes successfully)
+
+       📤 Uploading
+       ████████████ 100% | 52.1 MB/s
+
+       ✅ Task Complete
+       📦 Size: 234 MB
+       ⏱️ Time: 01:12
+```
 
 ---
 

@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - `BOT.Mode.gallery` flag to track gallery-dl mode state across the task pipeline
 - Gallery mode label in task status display (shows "Gallery" instead of generic "Leech")
 - `GUIDE.md` — comprehensive user guide covering credentials, installation, configuration, commands, settings, supported sites, Google Drive setup, YouTube auth, and troubleshooting
+- 20 interactive demos in `GUIDE.md` showing real command flows: single file download, multi-link, YouTube, gallery, zip/extract, Telegram download, Google Drive mirror, local directory, queuing, thumbnail, prefix/suffix, bandwidth limiting, multi-user, broadcast, update, cookie auth, cancel, auto-delete, and error recovery
 
 ### Changed
 - `upload_photos_batch()` now accepts `remove` parameter to match `upload_file()` cleanup behavior
