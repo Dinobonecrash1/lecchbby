@@ -39,7 +39,7 @@
 
 ---
 
-## ✨ What's New in v3
+## ✨ What's New in v3.X.X
 
 ### 🔧 v3.0.8 — Progress Bars, Error Handling & UI Overhaul
 
