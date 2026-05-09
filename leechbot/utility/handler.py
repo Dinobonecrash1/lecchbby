@@ -281,14 +281,14 @@ async def cancelTask(reason: str):
     elapsed = getTime(int((datetime.now() - BotTimes.start_time).total_seconds()))
     mode_label = BOT.Mode.mode.capitalize() if BOT.Mode.mode else "Unknown"
 
-    src_line = f"→ 🔗 **Source:** [Here]({Messages.src_link})\n" if Messages.src_link else ""
+    src_line = f"• 🔗 **Source:** [Here]({Messages.src_link})\n" if Messages.src_link else ""
 
     text = (
-        f"**🚫 Task Cancelled**\n\n"
+        f"🚫 **Task Cancelled**\n\n"
         f"{src_line}"
-        f"→ 🎯 **Mode:** `{mode_label}`\n"
-        f"→ ⚠️ **Reason:** `{reason}`\n"
-        f"→ ⏱️ **Elapsed:** `{elapsed}`"
+        f"• 🎯 **Mode:** `{mode_label}`\n"
+        f"• ⚠️ **Reason:** `{reason}`\n"
+        f"• ⏱️ **Elapsed:** `{elapsed}`"
     )
 
     if BOT.State.task_going:
@@ -343,15 +343,15 @@ async def SendLogs(is_leech: bool):
     file_count_num = len(Transfer.sent_file) if is_leech else 0
     size = sizeUnit(sum(Transfer.up_bytes)) if is_leech else sizeUnit(Transfer.total_down_size)
 
-    file_count_line = f"→ 📋 **Files:** `{file_count_num}`\n" if is_leech else ""
+    file_count_line = f"• 📋 **Files:** `{file_count_num}`\n" if is_leech else ""
 
     summary = (
-        f"\n\n**✅ Task Complete**\n\n"
-        f"→ 📛 **Name:** `{Messages.download_name or 'Unknown'}`\n"
-        f"→ 📦 **Size:** `{size}`\n"
+        f"\n\n✅ **Task Complete**\n\n"
+        f"• 📛 **Name:** `{Messages.download_name or 'Unknown'}`\n"
+        f"• 📦 **Size:** `{size}`\n"
         f"{file_count_line}"
-        f"→ ⏱️ **Time:** `{elapsed}`\n"
-        f"→ 🤖 **By:** [LeechBot](https://github.com/Shineii86/LeechBot)"
+        f"• ⏱️ **Time:** `{elapsed}`\n"
+        f"• 🤖 **By:** [LeechBot](https://github.com/Shineii86/LeechBot)"
     )
 
     if not BOT.State.task_going:

@@ -285,10 +285,10 @@ async def _handle_video_settings(client, callback_query):
     await callback_query.message.edit_text(
         f"""**⚙️ Video Settings**
 
-→ 🔄 **Convert:** `{BOT.Setting.convert_video}`
-→ ✂️ **Split:** `{BOT.Setting.split_video}`
-→ 🎬 **Format:** `{BOT.Options.video_out}`
-→ 🔴 **Quality:** `{BOT.Setting.convert_quality}`""",
+• 🔄 **Convert:** `{BOT.Setting.convert_video}`
+• ✂️ **Split:** `{BOT.Setting.split_video}`
+• 🎬 **Format:** `{BOT.Options.video_out}`
+• 🔴 **Quality:** `{BOT.Setting.convert_quality}`""",
         reply_markup=keyboard,
     )
     await callback_query.answer()

@@ -33,24 +33,24 @@ WELCOME_TEXT = """**🤖 Leech Bot** — Advanced Telegram File Transloader
 
 ◈ **💪 Powerful • 🚀 Fast • 🔰 Secure**
 
-**📥 Download From Anywhere**
-→ Direct Links, Google Drive, Telegram
-→ YouTube, Facebook, Instagram & 2000+ sites
-→ Terabox, Mega, Pixeldrain, Mediafire
+─── Download From Anywhere ───
+• Direct Links, Google Drive, Telegram
+• YouTube, Facebook, Instagram & 2000+ sites
+• Terabox, Mega, Pixeldrain, Mediafire
 
-**📤 Upload To Premium Destination**
-→ Telegram (Unlimited Storage)
-→ Google Drive (Mirror Mode)
-→ Local Directory Leech
+─── Upload To ───
+• Telegram (Unlimited Storage)
+• Google Drive (Mirror Mode)
+• Local Directory Leech
 
-**🛠️ Advance Tools**
-→ Video Converter (GPU Accelerated)
-→ Archive Extractor (Zip, Rar, 7z)
-→ Smart Splitting For Large Files
-→ Custom Thumbnails & Captions
-→ Download Queue & Bandwidth Control
+─── Advance Tools ───
+• Video Converter (GPU Accelerated)
+• Archive Extractor (Zip, Rar, 7z)
+• Smart Splitting For Large Files
+• Custom Thumbnails & Captions
+• Download Queue & Bandwidth Control
 
-**📋 Quick Commands**
+─── Quick Commands ───
 `/tupload` — Upload To Telegram
 `/gdupload` — Mirror To Google Drive
 `/ytupload` — Download With YT-DLP
@@ -103,11 +103,11 @@ https://example.com/file2.mp4
 {Zip Password}
 (Unzip Password)</code>
 
-**💡 Tips:**
-→ Multiple Links Supported
-→ Use `[ ]` For Custom Filename
-→ Use `{ }` For Zip Password
-→ Use `( )` For Extract Password"""
+─── Tips ───
+• Multiple Links Supported
+• Use `[ ]` For Custom Filename
+• Use `{ }` For Zip Password
+• Use `( )` For Extract Password"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -131,10 +131,10 @@ https://example.com/file2.mp4
 {Zip Password}
 (Unzip Password)</code>
 
-**💡 Tips:**
-→ Multiple Links Supported
-→ Files Will Be Mirrored To Your GDrive
-→ Make Sure GDrive Is Mounted"""
+─── Tips ───
+• Multiple Links Supported
+• Files Will Be Mirrored To Your GDrive
+• Make Sure GDrive Is Mounted"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -154,9 +154,9 @@ async def directory_upload_command(client, message):
 
 <code>/home/user/Downloads/myfolder</code>
 
-**💡 Note:**
-→ Provide Absolute Path To The Folder
-→ Ensure The Bot Has Read Permissions"""
+─── Note ───
+• Provide Absolute Path To The Folder
+• Ensure The Bot Has Read Permissions"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -179,10 +179,10 @@ https://youtu.be/xxxxx
 [Custom Name.mp4]
 {Zip Password}</code>
 
-**💡 Supported Sites:**
-→ YouTube, Facebook, Instagram
-→ Twitter, TikTok, Vimeo, Dailymotion
-→ And 2000+ more sites"""
+─── Supported Sites ───
+• YouTube, Facebook, Instagram
+• Twitter, TikTok, Vimeo, Dailymotion
+• And 2000+ more sites"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -207,17 +207,17 @@ https://pixiv.net/users/123456
 [Custom Name]
 {Zip Password}</code>
 
-**🖼️ Supported Sites:**
-→ Instagram, Twitter / X, Pinterest
-→ Pixiv, DeviantArt, ArtStation, Flickr
-→ Reddit, Tumblr, Imgur, TikTok
-→ Bluesky, Newgrounds, Danbooru
-→ And 100+ more gallery sites
+─── Supported Sites ───
+• Instagram, Twitter / X, Pinterest
+• Pixiv, DeviantArt, ArtStation, Flickr
+• Reddit, Tumblr, Imgur, TikTok
+• Bluesky, Newgrounds, Danbooru
+• And 100+ more gallery sites
 
-**💡 Tips:**
-→ Multiple Links Supported
-→ Use `[ ]` For Custom Folder Name
-→ Use `{ }` For Zip Password"""
+─── Tips ───
+• Multiple Links Supported
+• Use `[ ]` For Custom Folder Name
+• Use `{ }` For Zip Password"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -241,42 +241,42 @@ async def help_command(client, message):
 
     help_text = """**📖 LeechBot Help Menu**
 
-**📥 Download Commands**
-→ `/start` — Start the bot
-→ `/tupload` — Upload to Telegram
-→ `/gdupload` — Mirror to Google Drive
-→ `/drupload` — Upload local directory
-→ `/ytupload` — Download with YT-DLP
-→ `/glupload` — Download image galleries
+─── Download Commands ───
+• `/start` — Start the bot
+• `/tupload` — Upload to Telegram
+• `/gdupload` — Mirror to Google Drive
+• `/drupload` — Upload local directory
+• `/ytupload` — Download with YT-DLP
+• `/glupload` — Download image galleries
 
-**📋 Queue & Control**
-→ `/queue` — View download queue
-→ `/cancel` — Cancel current task
-→ `/cancel_all` — Cancel & clear queue
+─── Queue & Control ───
+• `/queue` — View download queue
+• `/cancel` — Cancel current task
+• `/cancel_all` — Cancel & clear queue
 
-**⚙️ Settings**
-→ `/settings` — Bot settings menu
-→ `/setname` — Set custom filename
-→ `/zipaswd` — Set zip password
-→ `/unzipaswd` — Set unzip password
-→ `/format` — Set YT-DLP quality
-→ `/speed` — Set bandwidth limit
+─── Settings ───
+• `/settings` — Bot settings menu
+• `/setname` — Set custom filename
+• `/zipaswd` — Set zip password
+• `/unzipaswd` — Set unzip password
+• `/format` — Set YT-DLP quality
+• `/speed` — Set bandwidth limit
 
-**🛠️ Admin**
-→ `/admin` — Manage allowed users
-→ `/broadcast` — Send file to multiple chats
-→ `/stats` — System statistics
-→ `/update` — Check for updates
-→ `/help` — Show this help message
+─── Admin ───
+• `/admin` — Manage allowed users
+• `/broadcast` — Send file to multiple chats
+• `/stats` — System statistics
+• `/update` — Check for updates
+• `/help` — Show this help message
 
-**🍪 YT-DLP Auth**
-→ `/cookies` — Check auth status & setup guide
-→ `/setcookies` — Upload cookies.txt as fallback
-→ `/clearcookies` — Delete stored cookies
+─── YT-DLP Auth ───
+• `/cookies` — Check auth status & setup guide
+• `/setcookies` — Upload cookies.txt as fallback
+• `/clearcookies` — Delete stored cookies
 
 **🖼️ Thumbnail:** Send any image to set as thumbnail
 
-**💡 Supported Sites:**
+─── Supported Sites ───
 Direct Links, Google Drive, Telegram
 YouTube, Facebook, Instagram & 2000+ sites
 Terabox, Mega, Pixeldrain, Mediafire"""
@@ -393,8 +393,8 @@ async def queue_command(client, message):
 
     text = "**📋 Download Queue**\n\n"
     if current:
-        text += f"→ 🔄 **Active:** `{current.get('name', 'Unknown')}`\n"
-        text += f"→ 📦 **Links:** `{len(current.get('links', []))}`\n\n"
+        text += f"• 🔄 **Active:** `{current.get('name', 'Unknown')}`\n"
+        text += f"• 📦 **Links:** `{len(current.get('links', []))}`\n\n"
     else:
         text += "**🔄 Active:** `None`\n\n"
 
@@ -405,11 +405,11 @@ async def queue_command(client, message):
     else:
         text += "**📭 Queue is empty**"
 
-    stats_text = "\n\n**📊 Session Stats**\n"
-    stats_text += f"→ Completed: `{BotStats.total_tasks}`\n"
-    stats_text += f"→ Failed: `{BotStats.failed_tasks}`\n"
-    stats_text += f"→ Downloaded: `{BotStats.total_downloaded}`\n"
-    stats_text += f"→ Uploaded: `{BotStats.total_uploaded}`"
+    stats_text = "\n\n─── Session Stats ───\n"
+    stats_text += f"• Completed: `{BotStats.total_tasks}`\n"
+    stats_text += f"• Failed: `{BotStats.failed_tasks}`\n"
+    stats_text += f"• Downloaded: `{BotStats.total_downloaded}`\n"
+    stats_text += f"• Uploaded: `{BotStats.total_uploaded}`"
 
     msg = await message.reply_text(text + stats_text, quote=True)
     await message_deleter(message, msg)
@@ -553,10 +553,10 @@ async def broadcast_command(client, message):
         await sleep(1)
 
     await msg.edit_text(
-        f"**📢 Broadcast Complete**\n\n"
-        f"→ ✅ **Success:** `{success}`\n"
-        f"→ ❌ **Failed:** `{failed}`\n"
-        f"→ 📊 **Total:** `{len(chat_ids)}`"
+        f"📢 **Broadcast Complete**\n\n"
+        f"• ✅ **Success:** `{success}`\n"
+        f"• ❌ **Failed:** `{failed}`\n"
+        f"• 📊 **Total:** `{len(chat_ids)}`"
     )
 
 # =============================================================================
@@ -569,7 +569,7 @@ async def admin_command(client, message):
         return
 
     if len(message.command) < 2:
-        users_list = "\n".join([f"→ `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
+        users_list = "\n".join([f"• `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
         msg = await message.reply_text(
             f"**👥 Admin Panel**\n\n"
             f"**Allowed Users:**\n{users_list}\n\n"
@@ -608,7 +608,7 @@ async def admin_command(client, message):
             msg = await message.reply_text("**⚠️ Invalid user ID**", quote=True)
 
     elif action == "list":
-        users_list = "\n".join([f"→ `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
+        users_list = "\n".join([f"• `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
         msg = await message.reply_text(f"**👥 Allowed Users:**\n{users_list}", quote=True)
 
     else:
@@ -667,14 +667,14 @@ async def cookies_command(client, message):
 
 {status}
 
-**How It Works:**
-→ **PO Token Plugin** (auto) — generates tokens in background
-→ **Cookies** (manual fallback) — only needed if PO tokens fail
+─── How It Works ───
+• **PO Token Plugin** (auto) — generates tokens in background
+• **Cookies** (manual fallback) — only needed if PO tokens fail
 
 **If YouTube Still Fails:**
 Upload a `cookies.txt` file here as a backup:
 `1.` Install [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
-`2.` Go to `youtube.com` → click extension → **Export**
+`2.` Go to `youtube.com` • click extension • **Export**
 `3.` Send the file here
 
 📖 [PO Token Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide)"""
@@ -698,13 +698,13 @@ Send me your `cookies.txt` file **as a document** (not as text).
 **Chrome / Edge / Brave:**
 `1.` Install [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
 `2.` Go to `youtube.com` (make sure you're logged in)
-`3.` Click extension icon → **Export** → saves `cookies.txt`
+`3.` Click extension icon • **Export** • saves `cookies.txt`
 `4.` Upload that file here
 
 **Firefox:**
 `1.` Install [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
 `2.` Go to `youtube.com` (logged in)
-`3.` Click extension → **Export** → upload here
+`3.` Click extension • **Export** • upload here
 
 ⚠️ **Security:** Cookies contain your session tokens. The bot stores them locally and never shares them. Delete with `/clearcookies` if needed."""
 

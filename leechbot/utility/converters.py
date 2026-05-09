@@ -61,10 +61,10 @@ async def videoConverter(file: str) -> str:
         """Update conversion progress"""
         bar = "░" * count + "█" + "░" * (11 - count)
         messg = f"\n`{bar}`"
-        messg += f"\n→ ⏳ **Status:** `Running`"
-        messg += f"\n→ 🔄 **Attempt:** `{attempt}`"
-        messg += f"\n→ 🔧 **Engine:** `{engine}`"
-        messg += f"\n→ 💪 **Handler:** `{core}`"
+        messg += f"\n• ⏳ **Status:** `Running`"
+        messg += f"\n• 🔄 **Attempt:** `{attempt}`"
+        messg += f"\n• 🔧 **Engine:** `{engine}`"
+        messg += f"\n• 💪 **Handler:** `{core}`"
         messg += f"\n┖⏱️ **Elapsed:** `{getTime((datetime.now() - BotTimes.start_time).seconds)}`"
 
         try:

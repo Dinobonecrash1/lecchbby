@@ -456,7 +456,8 @@ def sysINFO() -> str:
 
         return f"""
 
-**🖥️** `{cpu_usage}%` **·** **💾** `{sizeUnit(ram_usage)} RAM` **·** **💽** `{sizeUnit(disk_usage.free)} free`"""
+─── System ───
+• 🖥️ `{cpu_usage}%` · 💾 `{sizeUnit(ram_usage)} RAM` · 💽 `{sizeUnit(disk_usage.free)} free`"""
     except Exception:
         return ""
 
@@ -477,12 +478,12 @@ def sysINFO_full() -> str:
 
         return f"""
 
-**📊 System Info (Detailed)**
-→ 🖥️ **CPU:** `{psutil.cpu_percent()}%` (cores: {core_str})
-→ 💽 **RAM:** `{sizeUnit(ram.used)} / {sizeUnit(ram.total)}` ({ram.percent}%)
-→ 💾 **Disk:** `{sizeUnit(disk.used)} / {sizeUnit(disk.total)}` ({disk.percent}%)
-→ 🌐 **Net:** ↓`{sizeUnit(net.bytes_recv)}` ↑`{sizeUnit(net.bytes_sent)}`
-→ ⏱️ **Uptime:** `{getTime(int(time() - psutil.boot_time()))}`"""
+📊 **System Info (Detailed)**
+• 🖥️ **CPU:** `{psutil.cpu_percent()}%` (cores: {core_str})
+• 💽 **RAM:** `{sizeUnit(ram.used)} / {sizeUnit(ram.total)}` ({ram.percent}%)
+• 💾 **Disk:** `{sizeUnit(disk.used)} / {sizeUnit(disk.total)}` ({disk.percent}%)
+• 🌐 **Net:** ↓`{sizeUnit(net.bytes_recv)}` ↑`{sizeUnit(net.bytes_sent)}`
+• ⏱️ **Uptime:** `{getTime(int(time() - psutil.boot_time()))}`"""
     except Exception:
         return sysINFO()
 
@@ -495,13 +496,13 @@ def format_stats() -> str:
 
     uptime = getTime(int((datetime.now() - BotStats.start_time).total_seconds()))
 
-    return f"""**📊 Bot Statistics**
+    return f"""📊 **Bot Statistics**
 
-→ 📥 **Total Downloads:** `{BotStats.total_tasks}`
-→ 📤 **Data Downloaded:** `{sizeUnit(BotStats.total_downloaded)}`
-→ 📥 **Data Uploaded:** `{sizeUnit(BotStats.total_uploaded)}`
-→ ❌ **Failed Tasks:** `{BotStats.failed_tasks}`
-→ ⏱️ **Uptime:** `{uptime}`"""
+• 📥 **Total Downloads:** `{BotStats.total_tasks}`
+• 📤 **Data Downloaded:** `{sizeUnit(BotStats.total_downloaded)}`
+• 📥 **Data Uploaded:** `{sizeUnit(BotStats.total_uploaded)}`
+• ❌ **Failed Tasks:** `{BotStats.failed_tasks}`
+• ⏱️ **Uptime:** `{uptime}`"""
 
 def mini_bar(percentage: float, length: int = 10) -> str:
     """Generate a mini text progress bar."""
@@ -660,17 +661,17 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
     thmb = "✅" if BOT.Setting.thumbnail else "❎"
     auto_del = f"{BOT.Setting.auto_delete_delay}s" if BOT.Setting.auto_delete else "Off"
 
-    text = f"""**⚙️ Bot Settings**
+    text = f"""⚙️ **Bot Settings**
 
-→ 📤 **Upload:** `{BOT.Setting.stream_upload}`
-→ ✂️ **Split:** `{BOT.Setting.split_video}`
-→ 🔄 **Convert:** `{BOT.Setting.convert_video}`
-→ 📝 **Caption:** `{BOT.Setting.caption}`
-→ ➕ **Prefix:** {pr}
-→ ➕ **Suffix:** {su}
-→ 🖼️ **Thumb:** {thmb}
-→ 📸 **Photos:** `{BOT.Setting.photo_mode}`
-→ ⏳ **Auto-Delete:** `{auto_del}`"""
+• 📤 **Upload:** `{BOT.Setting.stream_upload}`
+• ✂️ **Split:** `{BOT.Setting.split_video}`
+• 🔄 **Convert:** `{BOT.Setting.convert_video}`
+• 📝 **Caption:** `{BOT.Setting.caption}`
+• ➕ **Prefix:** {pr}
+• ➕ **Suffix:** {su}
+• 🖼️ **Thumb:** {thmb}
+• 📸 **Photos:** `{BOT.Setting.photo_mode}`
+• ⏳ **Auto-Delete:** `{auto_del}`"""
 
     try:
         if is_command:
@@ -703,9 +704,9 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
 
 `{bar}` **{percentage:.1f}%**
 
-**⚡** `{speed}` **·** **📦** `{done}` / `{left}`
-**⏳** `{eta}` **·** **⏱️** `{elapsed}`
-**🔧** `{engine}`"""
+• ⚡ `{speed}` · 📦 `{done}` / `{left}`
+• ⏳ `{eta}` · ⏱️ `{elapsed}`
+• 🔧 `{engine}`"""
 
     try:
         if isTimeOver():
