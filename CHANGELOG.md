@@ -220,3 +220,63 @@ All notable changes to this project will be documented in this file.
   - `AsyncExceptionHandler` — catches unhandled asyncio task exceptions and reports to Telegram
   - `send_debug()` — manual debug message sender for testing
   - All errors now appear in the DUMP_ID channel with emoji severity, timestamps, module names, and tracebacks
+
+---
+
+## [1.0.1] - 2026-05-09
+
+### Fixed
+- **Colab credentials not loading** — `credentials.json` is now loaded as fallback when env vars are missing (Colab notebook compatibility)
+- **Colab ALSA audio noise** — suppressed ALSA error messages that spam the Colab console
+- **Colab session cleanup** — fixed wrong session file being deleted on bot restart
+
+---
+
+## [1.0.0] - 2026-05-09
+
+### Added
+- **Complete redesign** of the Telegram Leecher codebase
+- Modular architecture — separated into `commands`, `callbacks`, `handlers`, `downloader`, `uploader`, `utility`
+- **Download sources:** Direct links, Google Drive, Telegram, YouTube (YT-DLP), Terabox, Mega.nz, Pixeldrain, Mediafire
+- **Upload targets:** Telegram (single file + batch photos), Google Drive mirror
+- **Video processing:** GPU-accelerated FFmpeg conversion, MoviePy fallback
+- **Archive handling:** ZIP, RAR, 7z, TAR, GZ creation and extraction with password support
+- **Smart splitting:** Auto-split files >2GB for Telegram limits
+- **Interactive settings menu:** Upload mode, video settings, caption style, thumbnail, prefix/suffix, auto-delete
+- **Download queue:** Queue multiple downloads, process sequentially
+- **Bandwidth control:** Limit download speed via aria2c
+- **Custom thumbnails:** Auto-generate from video or user-uploaded images
+- **Multi-user support:** Admin panel to allow/deny users
+- **Broadcast:** Send files to multiple chats
+- **Auto-retry:** Configurable retry count on download failures
+- **Custom naming:** `/setname` or inline `[name]` syntax
+- **Password protection:** ZIP/unzip passwords via inline `{}` / `()` syntax
+- **Auto-delete:** Configurable auto-delete for bot messages
+- **System monitoring:** CPU, RAM, disk usage in status messages
+- **Debug logging:** Error reporting to Telegram channel
+- **Google Colab support:** One-click notebook deployment
+- **Text styling:** Unicode small caps for consistent UI
+- `style.py` — Text styling utilities
+- `variables.py` — Centralized global state management
+- `config.py` — Environment-based configuration with `.env` support
+
+### Changed
+- Renamed project from "Telegram Leecher" to "LeechBot"
+- Replaced monolithic `__main__.py` (1,149 lines) with modular structure
+- All Pyrogram client references renamed from `leechbot` to `app`
+- Replaced synchronous `os.system()` calls with `asyncio.create_subprocess_exec()`
+- Replaced incorrect `global` declarations with proper module imports
+- Updated README with new project structure, features, and deployment guide
+
+---
+
+## [0.1.0] - 2026-05-09
+
+### Added
+- Initial project upload — based on [XronTrix10/Telegram-Leecher](https://github.com/XronTrix10/Telegram-Leecher)
+- Basic file download and upload functionality
+- Google Drive integration
+- YouTube download via YT-DLP
+- Aria2c download engine
+- Google Colab notebook
+- Basic README and requirements.txt
