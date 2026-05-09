@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [3.1.14] - 2026-05-10
 
+### Changed
+- **Colab notebook consolidated: 6 cells → 3** — merged Google Drive Setup + Health Check into Setup cell, merged Update into Deploy cell as ACTION dropdown ("Start Bot" / "Update & Restart" / "Stop Bot"). Cleaner flow: Setup → Deploy.
+
 ### Fixed
 - **Colab notebook missing libtorrent** — removed from pip (not on PyPI) but never added to Colab apt install. Added `python3-libtorrent` to system packages with apt → conda → pip fallback chain. Optional — setup continues even if unavailable.
 - **Health Check missing libtorrent/megatools** — added checks for both with "optional" tag so users know what's available.
