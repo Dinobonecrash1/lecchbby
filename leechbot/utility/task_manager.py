@@ -157,10 +157,11 @@ async def taskScheduler():
                  _glob.glob(os.path.join(Paths.ASSETS_IMAGES, "*.webp"))
         if images:
             Paths.HERO_IMAGE = random.choice(images)
+            Paths.DEFAULT_HERO = images[0]
         else:
-            Paths.HERO_IMAGE = Paths.DEFAULT_HERO
+            logger.warning("No hero images found in %s", Paths.ASSETS_IMAGES)
     except Exception:
-        Paths.HERO_IMAGE = Paths.DEFAULT_HERO
+        pass
 
     # Send task log
     MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task)
@@ -170,12 +171,21 @@ async def taskScheduler():
     # Update status message
     await MSG.status_msg.delete()
     img = Paths.THMB_PATH if ospath.exists(Paths.THMB_PATH) else Paths.HERO_IMAGE
-    MSG.status_msg = await app.send_photo(
-        chat_id=OWNER,
-        photo=img,
-        caption=Messages.task_msg + Messages.status_head + "\n📝 Initializing..." + sysINFO(),
-        reply_markup=keyboard()
-    )
+    caption = Messages.task_msg + Messages.status_head + "\n📝 Initializing..." + sysINFO()
+
+    if img and ospath.exists(img):
+        MSG.status_msg = await app.send_photo(
+            chat_id=OWNER,
+            photo=img,
+            caption=caption,
+            reply_markup=keyboard()
+        )
+    else:
+        MSG.status_msg = await app.send_message(
+            chat_id=OWNER,
+            text=caption,
+            reply_markup=keyboard()
+        )
 
     # Calculate download size
     await calDownSize(BOT.SOURCE)

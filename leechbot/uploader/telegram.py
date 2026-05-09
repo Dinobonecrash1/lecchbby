@@ -89,8 +89,13 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
 
             thmb_path, seconds = thumbMaintainer(file_path)
 
-            with Image.open(thmb_path) as img:
-                width, height = img.size
+            # Use thumbnail if valid, otherwise skip
+            if thmb_path and ospath.exists(thmb_path):
+                with Image.open(thmb_path) as img:
+                    width, height = img.size
+            else:
+                width, height = 0, 0
+                thmb_path = None
 
             MSG.sent_msg = await MSG.sent_msg.reply_video(
                 video=file_path,

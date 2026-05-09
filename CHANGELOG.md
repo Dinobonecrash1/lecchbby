@@ -7,7 +7,8 @@ All notable changes to this project will be documented in this file.
 ## [3.1.15] - 2026-05-10
 
 ### Fixed
-- **Hero image path wrong on Colab** — `ASSETS_IMAGES` pointed to `BASE_DIR/assets/images/` but images are in the repo root at `assets/images/`. On Colab, `BASE_DIR` is `/content/leechbot/BOT_WORK` so the path resolved to a non-existent directory. Fixed to use `Path(__file__)` relative to the package root.
+- **Hero image path wrong on Colab** — `ASSETS_IMAGES` pointed to `BASE_DIR/assets/images/` but images are in the repo root. Fixed to use `Path(__file__)` relative to package root. Made `HERO_IMAGE`/`DEFAULT_HERO` dynamic — picks whatever images exist in the folder, no hardcoded filenames. Gracefully falls back to text message if no images found.
+- **`Image.open()` crash when hero image missing** — uploader crashed with `FileNotFoundError` if thumbnail path didn't exist. Added existence check, falls back to `None` (no thumbnail).
 - **Bot completely unresponsive** — `__main__.py` never imported `leechbot.commands`, `leechbot.callbacks`, `leechbot.handlers`. Without these imports, no `@app.on_message()` or `@app.on_callback_query()` decorators registered. Bot started but responded to nothing.
 - **Colab runtime disconnects on Deploy cell** — old notebook used `get_ipython().system('python3 -m leechbot')` which blocks the event loop, preventing JS keep-alive from firing. Colab's idle detection triggers and disconnects. Replaced with `subprocess.Popen` (non-blocking) + JS keep-alive daemon thread + `clear_output` monitor loop. Old notebook had no keep-alive at all.
 - **Colab notebook libtorrent install** — added `python3-libtorrent` via apt with conda fallback to setup flow.
