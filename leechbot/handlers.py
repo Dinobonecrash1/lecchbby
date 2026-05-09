@@ -31,13 +31,17 @@ logger = logging.getLogger(__name__)
 @app.on_message(filters.reply)
 async def handle_reply(client, message):
     """Handle reply messages for setting prefix/suffix."""
+    text = message.text or message.caption
+    if not text:
+        return  # Ignore non-text replies (photos, stickers, etc.)
+
     if BOT.State.prefix:
-        BOT.Setting.prefix = message.text
+        BOT.Setting.prefix = text
         BOT.State.prefix = False
         await send_settings(client, message, message.reply_to_message_id, False)
         await message.delete()
     elif BOT.State.suffix:
-        BOT.Setting.suffix = message.text
+        BOT.Setting.suffix = text
         BOT.State.suffix = False
         await send_settings(client, message, message.reply_to_message_id, False)
         await message.delete()

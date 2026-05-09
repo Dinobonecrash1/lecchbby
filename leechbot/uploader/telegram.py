@@ -44,9 +44,9 @@ async def progress_bar(current: int, total: int):
     else:
         upload_speed = 4 * 1024 * 1024  # Default 4MB/s
     
-    remaining = Transfer.total_down_size - current - sum(Transfer.up_bytes)
+    remaining = max(Transfer.total_down_size - current - sum(Transfer.up_bytes), 0)
     eta = remaining / upload_speed if upload_speed > 0 else 0
-    percentage = (current + sum(Transfer.up_bytes)) / Transfer.total_down_size * 100
+    percentage = (current + sum(Transfer.up_bytes)) / max(Transfer.total_down_size, 1) * 100
     
     await status_bar(
         down_msg=Messages.status_head,

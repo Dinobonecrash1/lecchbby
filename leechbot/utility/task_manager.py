@@ -133,7 +133,7 @@ async def taskScheduler():
     
     # Create working directories
     if ospath.exists(Paths.WORK_PATH):
-        shutil.rmtree(Paths.WORK_PATH)
+        shutil.rmtree(Paths.WORK_PATH, ignore_errors=True)
         makedirs(Paths.down_path)
     else:
         makedirs(Paths.WORK_PATH)

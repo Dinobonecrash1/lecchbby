@@ -96,7 +96,10 @@ async def Leech(folder_path: str, remove: bool):
                 short_path = ospath.join(Paths.temp_zpath, dir_path)
                 file_name = ospath.basename(short_path)
                 new_path = shortFileName(short_path)
-                os.rename(short_path, new_path)
+                try:
+                    os.rename(short_path, new_path)
+                except OSError as e:
+                    logger.warning(f"Rename failed: {e}")
                 
                 BotTimes.current_time = time()
                 Messages.status_head = f"**📤 Uploading Split** `{count}/{len(dir_list)}`\n\n`{file_name}`\n"
@@ -113,7 +116,7 @@ async def Leech(folder_path: str, remove: bool):
                 Transfer.up_bytes.append(os.stat(new_path).st_size)
                 count += 1
             
-            shutil.rmtree(Paths.temp_zpath)
+            shutil.rmtree(Paths.temp_zpath, ignore_errors=True)
         
         else:  # Regular file upload
             if not ospath.exists(Paths.temp_files_dir):
@@ -124,7 +127,11 @@ async def Leech(folder_path: str, remove: bool):
             
             file_name = ospath.basename(file_path)
             new_path = shortFileName(file_path)
-            os.rename(file_path, new_path)
+            try:
+                os.rename(file_path, new_path)
+            except OSError as e:
+                logger.warning(f"Rename failed: {e}")
+                new_path = file_path
             
             BotTimes.current_time = time()
             Messages.status_head = f"**📤 Uploading**\n\n`{file_name}`\n"
@@ -146,15 +153,18 @@ async def Leech(folder_path: str, remove: bool):
                     os.remove(new_path)
             else:
                 for file in os.listdir(Paths.temp_files_dir):
-                    os.remove(ospath.join(Paths.temp_files_dir, file))
+                    try:
+                        os.remove(ospath.join(Paths.temp_files_dir, file))
+                    except OSError:
+                        pass
     
     # Cleanup
     if remove and ospath.exists(folder_path):
-        shutil.rmtree(folder_path)
+        shutil.rmtree(folder_path, ignore_errors=True)
     if ospath.exists(Paths.thumbnail_ytdl):
-        shutil.rmtree(Paths.thumbnail_ytdl)
+        shutil.rmtree(Paths.thumbnail_ytdl, ignore_errors=True)
     if ospath.exists(Paths.temp_files_dir):
-        shutil.rmtree(Paths.temp_files_dir)
+        shutil.rmtree(Paths.temp_files_dir, ignore_errors=True)
 
 
 # =============================================================================
@@ -193,7 +203,7 @@ async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
     Transfer.total_down_size = getSize(Paths.temp_zpath)
     
     if remove and ospath.exists(down_path):
-        shutil.rmtree(down_path)
+        shutil.rmtree(down_path, ignore_errors=True)
 
 
 # =============================================================================
@@ -236,7 +246,7 @@ async def Unzip_Handler(down_path: str, remove: bool):
             logger.error(f"Unzip handler error: {e}")
     
     if remove:
-        shutil.rmtree(down_path)
+        shutil.rmtree(down_path, ignore_errors=True)
 
 
 # =============================================================================
@@ -260,7 +270,7 @@ async def cancelTask(reason: str):
     if BOT.State.task_going:
         try:
             BOT.TASK.cancel()
-            shutil.rmtree(Paths.WORK_PATH)
+            shutil.rmtree(Paths.WORK_PATH, ignore_errors=True)
         except Exception as e:
             logger.error(f"Task cancellation error: {e}")
         else:

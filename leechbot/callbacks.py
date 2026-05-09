@@ -160,7 +160,10 @@ __Underline__""",
     # =========================================================================
     elif data == "del-thumb":
         if BOT.Setting.thumbnail and os.path.exists(Paths.THMB_PATH):
-            os.remove(Paths.THMB_PATH)
+            try:
+                os.remove(Paths.THMB_PATH)
+            except OSError as e:
+                logger.warning(f"Failed to delete thumbnail: {e}")
         BOT.Setting.thumbnail = False
         await send_settings(client, callback_query.message, callback_query.message.id, False)
 

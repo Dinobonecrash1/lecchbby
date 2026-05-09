@@ -267,7 +267,10 @@ def videoExtFix(file_path: str) -> str:
     if f_name.endswith(".mp4") or f_name.endswith(".mkv"):
         return file_path
     new_path = file_path + ".mp4"
-    os.rename(file_path, new_path)
+    try:
+        os.rename(file_path, new_path)
+    except OSError:
+        return file_path
     return new_path
 
 

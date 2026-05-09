@@ -233,9 +233,12 @@ async def archive(path: str, is_split: bool, remove: bool):
     
     if remove:
         if ospath.isfile(path):
-            os.remove(path)
+            try:
+                os.remove(path)
+            except OSError:
+                pass
         else:
-            shutil.rmtree(path)
+            shutil.rmtree(path, ignore_errors=True)
 
 
 # =============================================================================
@@ -415,5 +418,8 @@ async def splitVideo(file_path: str, max_size: int, remove: bool):
         )
         await sleep(1)
     
-    if remove:
-        os.remove(file_path)
+    if remove and ospath.exists(file_path):
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass
