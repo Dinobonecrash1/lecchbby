@@ -27,7 +27,10 @@ except ImportError:
     try:
         from moviepy.video.io.VideoFileClip import VideoFileClip as VideoClip
     except ImportError:
-        from moviepy.editor import VideoFileClip as VideoClip
+        try:
+            from moviepy.editor import VideoFileClip as VideoClip
+        except ImportError:
+            VideoClip = None
 from leechbot.utility.variables import BOT, MSG, BotTimes, Paths, Messages
 from leechbot.utility.helper import getSize, fileType, keyboard, multipartArchive, sizeUnit, speedETA, status_bar, getTime, sysINFO
 
@@ -116,6 +119,9 @@ async def videoConverter(file: str) -> str:
 
     # Fallback to moviepy
     if error:
+        if VideoClip is None:
+            logger.error("FFmpeg failed and moviepy not available — cannot convert")
+            return file
         logger.warning("FFmpeg failed, trying moviepy...")
         thread = Thread(target=convert_to_mp4, args=(file, out_file))
         thread.start()

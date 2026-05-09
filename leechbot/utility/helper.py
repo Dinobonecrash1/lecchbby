@@ -348,17 +348,7 @@ def thumbMaintainer(file_path: str):
     Returns:
         tuple: (thumbnail_path, duration_seconds)
     """
-    try:
-        from moviepy import VideoFileClip
-    except ImportError:
-        try:
-            from moviepy.video.io.VideoFileClip import VideoFileClip
-        except ImportError:
-            from moviepy.editor import VideoFileClip
-        logger.warning("moviepy not available for thumbnail generation")
-        if ospath.exists(Paths.THMB_PATH):
-            return Paths.THMB_PATH, 0
-        return Paths.HERO_IMAGE, 0
+    import subprocess
 
     if ospath.exists(Paths.VIDEO_FRAME):
         os.remove(Paths.VIDEO_FRAME)
@@ -373,14 +363,34 @@ def thumbMaintainer(file_path: str):
                 ytdl_thmb = candidate
                 break
 
-        with VideoFileClip(file_path) as video:
-            if ospath.exists(Paths.THMB_PATH):
-                return Paths.THMB_PATH, video.duration
-            elif ospath.exists(ytdl_thmb):
-                return convertIMG(ytdl_thmb), video.duration
-            else:
-                video.save_frame(Paths.VIDEO_FRAME, t=math.floor(video.duration / 2))
-                return Paths.VIDEO_FRAME, video.duration
+        # Get duration via ffprobe
+        duration = 0
+        try:
+            result = subprocess.run(
+                ["ffprobe", "-v", "quiet", "-show_entries", "format=duration",
+                 "-of", "default=noprint_wrappers=1:nokey=1", file_path],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                duration = float(result.stdout.strip())
+        except Exception:
+            pass
+
+        if ospath.exists(Paths.THMB_PATH):
+            return Paths.THMB_PATH, duration
+        elif ospath.exists(ytdl_thmb):
+            return convertIMG(ytdl_thmb), duration
+        else:
+            # Extract frame at midpoint via ffmpeg
+            mid = max(int(duration / 2), 1)
+            subprocess.run(
+                ["ffmpeg", "-y", "-ss", str(mid), "-i", file_path,
+                 "-vframes", "1", "-q:v", "2", Paths.VIDEO_FRAME],
+                capture_output=True, timeout=15,
+            )
+            if ospath.exists(Paths.VIDEO_FRAME):
+                return Paths.VIDEO_FRAME, duration
+            return Paths.HERO_IMAGE, duration
     except Exception as e:
         logger.error(f"Thumbnail generation error: {e}")
         if ospath.exists(Paths.THMB_PATH):
