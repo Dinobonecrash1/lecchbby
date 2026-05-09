@@ -130,11 +130,10 @@ Now edit `.env` with your credentials (see [Configuration](#-configuration)).
 
 1. Open `notebooks/LeechBot.ipynb` in Google Colab
 2. Add your credentials to Colab Secrets (recommended) or fill in the form
-3. Run **🚀 Deploy LeechBot** (Cell 2) — bot starts in the background
-4. Run **🌐 Dashboard Tunnel** (Cell 3) — exposes the dashboard to the internet
-5. Run **📋 Bot Logs & Status** (Cell 4) — check bot health and view recent logs
+3. Run **📦 Setup LeechBot** (Cell 2) — clones repo, installs dependencies, saves config
+4. Run **🚀 Deploy LeechBot** (Cell 3) — starts bot, sets up dashboard tunnel, keeps session alive
 
-> 💡 The notebook cells are designed to run in order. The Deploy cell runs the bot as a background process so subsequent cells can execute.
+> 💡 The Deploy cell handles everything: bot launch, tunnel setup, and anti-idle keep-alive. It stays running to prevent Colab from disconnecting.
 
 ### Option C: Docker (Coming Soon)
 
@@ -284,14 +283,14 @@ The dashboard starts automatically when the bot starts. You'll see this in the l
 
 The dashboard is hosted at **https://shineii86.github.io/LeechBot/** — no setup needed.
 
-1. Deploy the bot using the notebook (`notebooks/LeechBot.ipynb`) → Cell 2
-2. Run the **🌐 Dashboard Tunnel** cell → Cell 3 (choose ngrok or cloudflared)
+1. Run **📦 Setup LeechBot** (Cell 2), then **🚀 Deploy LeechBot** (Cell 3)
+2. Choose `ngrok` or `cloudflared` in the Tunnel dropdown before running
 3. Copy the **tunnel URL** from the cell output (e.g. `https://xxxx.ngrok-free.app`)
 4. Copy the **auth token** from the bot logs (look for `🔑 Dashboard token:`)
 5. Open [https://shineii86.github.io/LeechBot/](https://shineii86.github.io/LeechBot/)
 6. Paste the tunnel URL and token → hit **Connect**
 
-> 💡 The Deploy cell runs the bot in the background, so the Tunnel cell starts automatically after it.
+> 💡 The Deploy cell starts the bot, sets up the tunnel, and keeps the session alive — all in one cell.
 
 **Option 2: Local Dashboard (VPS / Self-hosted)**
 
@@ -301,7 +300,7 @@ The dashboard is hosted at **https://shineii86.github.io/LeechBot/** — no setu
 
 **Option 3: Colab Built-in (No GitHub Pages)**
 
-1. Deploy the bot (Cell 2) and run the Tunnel cell (Cell 3)
+1. Run **🚀 Deploy LeechBot** (Cell 3) — tunnel URL appears in the output
 2. Open the tunnel URL directly in your browser
 3. The bot serves the dashboard HTML at `/dashboard` — no separate page needed
 

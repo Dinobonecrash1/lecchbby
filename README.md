@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.1-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.5-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -38,7 +38,14 @@
 
 ---
 
-## ✨ What's New in v3.1.1
+## ✨ What's New in v3.1.5
+
+### 🔧 Colab Notebook Fix — Runtime No Longer Disconnects
+- **Root cause:** monolithic Deploy cell + browser-side idle detection killed sessions
+- **Restructured notebook:** Setup cell (fast) → Deploy cell (bot + tunnel + keep-alive in one)
+- **3-strategy JS keep-alive:** clicks indicators, simulates DOM activity, focus/blur cycle (every 30s)
+- **Auto-restart watchdog:** bot crashes → automatic restart (up to 5 attempts)
+- **Dashboard tunnel integrated:** URL/token shown immediately in Deploy cell output
 
 ### 👤 UserBot — Private Channel Access
 - **Download from private channels/groups** without adding the bot as a member
@@ -202,9 +209,9 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 </a>
 
 1. Open notebook → fill credentials (or use Colab Secrets)
-2. Runtime → Run all
+2. Run **📦 Setup** then **🚀 Deploy** — bot starts with keep-alive
 3. Bot starts, send `/start` on Telegram
-4. Optional: Run the **Dashboard Tunnel** cell for remote access
+4. Optional: choose ngrok/cloudflared tunnel for remote dashboard access
 
 ### 2️⃣ VPS / Local
 
