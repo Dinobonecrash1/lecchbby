@@ -44,3 +44,10 @@ All notable changes to this project will be documented in this file.
 - `handle_reply` in handlers.py crashed on non-text replies (photo/sticker) — now checks `message.text or message.caption` and returns early if None
 - Upload `progress_bar` division by zero when `Transfer.total_down_size` is 0 — added `max(..., 1)` guard
 - Unguarded `os.remove()` / `os.rename()` / `shutil.rmtree()` calls across `handler.py`, `converters.py`, `helper.py`, `callbacks.py` — wrapped with try/except or `ignore_errors=True`
+
+### Added
+- `leechbot/debug.py` — Debug logging and error reporting module:
+  - `TelegramLogHandler` — sends ERROR/CRITICAL logs to DUMP_ID channel in real-time
+  - `AsyncExceptionHandler` — catches unhandled asyncio task exceptions and reports to Telegram
+  - `send_debug()` — manual debug message sender for testing
+  - All errors now appear in the DUMP_ID channel with emoji severity, timestamps, module names, and tracebacks

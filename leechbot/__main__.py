@@ -91,15 +91,17 @@ async def _resolve_peer(peer_id: int, label: str):
 
 
 # =============================================================================
-# Startup — resolve peers before entering idle loop
+# Startup — resolve peers, install error reporting, enter idle loop
 # =============================================================================
 async def startup():
     """
     Runs once after the bot connects to Telegram.
-    Resolves DUMP_ID and OWNER_ID peers so Pyrogram caches them.
-    This prevents 'Peer id invalid' errors on fresh/restarted sessions.
+    1. Resolves DUMP_ID and OWNER_ID peers
+    2. Installs debug/error reporting to Telegram
+    3. Enters idle loop
     """
     from pyrogram import idle
+    from leechbot.debug import setup_error_reporting
 
     # Start the client first (required before resolve_peer)
     await app.start()
@@ -108,10 +110,14 @@ async def startup():
     await _resolve_peer(config.DUMP_ID, "DUMP_ID")
     await _resolve_peer(config.OWNER_ID, "OWNER_ID")
 
+    # Install error reporting (sends errors to DUMP_ID channel)
+    await setup_error_reporting(app, config.DUMP_ID, config.OWNER_ID)
+
     logger.info("=" * 60)
     logger.info("LeechBot started successfully")
     logger.info("Developer: Shinei Nouzen")
     logger.info("GitHub: https://github.com/Shineii86/LeechBot")
+    logger.info("Debug: Error reporting → DUMP_ID channel")
     logger.info("=" * 60)
 
     # Keep the bot running
