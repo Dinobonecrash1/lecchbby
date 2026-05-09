@@ -56,7 +56,7 @@ def _check_libtorrent():
             "  • Debian/Ubuntu: sudo apt install python3-libtorrent\n"
             "  • Conda:         conda install -c conda-forge libtorrent\n"
             "  • Arch:          sudo pacman -S libtorrent-rasterbar\n"
-            "  • Colab:         !conda install -y -c conda-forge libtorrent"
+            "  • Colab:         !apt-get install -y python3-libtorrent"
         )
 
 

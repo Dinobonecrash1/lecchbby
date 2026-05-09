@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **Colab notebook libtorrent install order** — notebook tried `conda install` first, but Google Colab does not have conda installed, causing `/bin/sh: 1: conda not found` error and setup failure. Reordered to try `apt-get install python3-libtorrent` first (works on Colab), then conda as fallback. This fixes the libtorrent install on Colab without breaking other environments.
 - **Colab runtime disconnects on Deploy cell** — the Deploy cell (cell 3) used a bloated JS keep-alive approach with character-by-character encoding that was too heavy, causing Colab's idle detection to trigger and disconnect the runtime. Simplified the JS keep-alive to a clean compact function and reduced monitor loop overhead. The cell now uses a lean daemon thread + `clear_output` pattern that reliably keeps Colab alive.
+- **`info()` NameError in torrent fallback** — `manager.py` called `info()` (a notebook-only UI function) when libtorrent falls back to aria2c, causing `NameError` crash at runtime. Replaced with `logger.warning()`.
+- **Wrong Colab install instruction in `_check_libtorrent()`** — `torrent.py` error message still told Colab users `!conda install -y -c conda-forge libtorrent` (conda doesn't exist on Colab). Fixed to `!apt-get install -y python3-libtorrent`.
+- **Wrong Colab install instruction in FAQ** — `.github/discussions/faq.md` had same conda instruction for Colab. Fixed to apt-get.
 - **Notebook cell count mismatch** — header claimed 5 cells but only had 2 code cells. Updated header to reflect actual 2-cell structure (Setup → Deploy).
 - **Notebook version badge** — updated from 3.1.5 to 3.1.15.
 

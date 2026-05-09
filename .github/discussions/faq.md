@@ -38,7 +38,7 @@ brew install megatools       # macOS
 **A:** Install libtorrent for best performance:
 ```bash
 sudo apt install python3-libtorrent    # Linux
-conda install -c conda-forge libtorrent  # Colab
+apt-get install -y python3-libtorrent  # Colab
 ```
 Without it, torrents use aria2c (slower but functional).
 

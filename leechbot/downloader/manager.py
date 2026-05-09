@@ -189,7 +189,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
                     except ImportError:
                         # libtorrent not installed — fall back to aria2c
                         logger.warning("libtorrent not available, falling back to aria2c for torrent/magnet")
-                        info("⚠️ libtorrent not installed — using aria2c fallback")
+                        logger.warning("⚠️ libtorrent not installed — using aria2c fallback")
                         Aria2c.link_info = False
                         await _with_retry(lambda l=link, n=i+1: aria2_Download(l, n), link)
 
