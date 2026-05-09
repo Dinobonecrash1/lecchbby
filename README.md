@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.0.3-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.0.8-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -41,13 +41,18 @@
 
 ## ✨ What's New in v3
 
-### 🔧 v3.0.3 — Gallery Command & Batch Photo Fix
+### 🔧 v3.0.8 — Progress Bars, Error Handling & UI Overhaul
 
-- 📸 **`/glupload` command** — Dedicated gallery-dl download mode with site-specific instructions, skips zip/unzip selection since galleries are images only
-- 🐛 **Critical fix** — `reply_media_group()` parameter `media_group` corrected to `media` (Pyrogram API)
-- 🐛 **Batch photo retry fix** — FloodWait retries now actually work (was using `for` loop with no effect)
-- 🐛 **Batch photo cleanup** — Uploaded photos are now properly deleted when `remove=True`
-- 📊 **Progress tracking** — `Transfer.up_bytes` now tracked in batch photo mode
+- 📊 **Gallery-dl progress bar** — real-time speed, ETA, file count, and total size during gallery downloads
+- 📊 **Batch photo upload progress** — live progress bar during media group uploads (was missing entirely)
+- 🤖 **Auto-register commands** — 23 bot commands registered with Telegram on startup (no @BotFather needed)
+- 🎨 **Upgraded message styles** — consistent box-drawing panels (`┏┣┗`) across all bot messages
+- 🔧 **Callback refactor** — monolithic 400-line handler split into 12 focused async functions
+- ✅ **All callbacks answer** — no more stuck loading spinner on button press
+- 🛡️ **Robust error handling** — `cancelTask()` and `SendLogs()` wrap each operation in individual try/except
+- 🐛 **GDrive fix** — `down_msg` NameError in `gDownloadFile()` (was out-of-scope local variable)
+- 🐛 **Gallery-dl fix** — removed `-q` flag, added async stderr reader for real-time output parsing
+- 🐛 **cancelTask fix** — `getTime(.seconds)` → `int(.total_seconds())` (was wrong for tasks >1 hour)
 
 > 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md)
 
@@ -163,14 +168,15 @@ ALLOWED_USERS=123456789,987654321
 ```
 leechbot/
 ├── __init__.py          # Pyrogram client initialization
-├── __main__.py          # Entry point (imports handlers, runs bot)
+├── __main__.py          # Entry point (imports handlers, runs bot, registers commands)
 ├── commands.py          # All /command handlers
-├── callbacks.py         # Inline keyboard callback handlers
+├── callbacks.py         # Inline keyboard callback handlers (split into focused functions)
 ├── debug.py             # Error reporting & debug logging to Telegram
 ├── handlers.py          # Message handlers (URL, photo, text, reply)
+├── updater.py           # Auto-update from GitHub
 ├── downloader/
 │   ├── aria2.py         # HTTP/FTP/torrent via aria2c
-│   ├── gallery.py       # Photo galleries via gallery-dl
+│   ├── gallery.py       # Photo galleries via gallery-dl (with progress bar)
 │   ├── gdrive.py        # Google Drive downloads
 │   ├── manager.py       # Download router & retry logic
 │   ├── mediafire.py     # Mediafire downloads
@@ -180,10 +186,10 @@ leechbot/
 │   ├── terabox.py       # Terabox downloads
 │   └── ytdl.py          # YT-DLP (YouTube, 2000+ sites)
 ├── uploader/
-│   └── telegram.py      # Telegram upload with progress
+│   └── telegram.py      # Telegram upload with progress (including batch photo)
 └── utility/
     ├── converters.py    # Video conversion, archive/extract
-    ├── handler.py       # Task handlers (Leech, Zip, Unzip)
+    ├── handler.py       # Task handlers (Leech, Zip, Unzip, SendLogs, cancelTask)
     ├── helper.py        # Formatting, link detection, UI helpers
     ├── style.py         # Unicode small caps styling
     ├── task_manager.py  # Task scheduler & orchestrator
@@ -289,16 +295,18 @@ When sending links, append:
 
 | **Aspect**             | **Telegram Leecher**                 | **LeechBot**                                         |
 | ---------------------- | ------------------------------------ | ---------------------------------------------------- |
-| **UI / UX**            | Plain text messages                  | Clean, professional Markdown with inline menus       |
+| **UI / UX**            | Plain text messages                  | Box-drawing panels (`┏┣┗`), clean Markdown with inline menus |
 | **Auto‑Delete**        | None                                 | Configurable auto‑delete for bot messages            |
-| **Batch Photo Upload** | One‑by‑one photos                    | Media groups of 10 for cleaner delivery              |
-| **Code Structure**     | Monolithic, less documented          | Modular (`commands` / `callbacks` / `handlers`), fully typed, clean docstrings |
+| **Batch Photo Upload** | One‑by‑one photos                    | Media groups of 10 with live progress bar            |
+| **Code Structure**     | Monolithic, less documented          | Modular (`commands` / `callbacks` / `handlers`), split callbacks, fully typed, clean docstrings |
 | **Video Converter**    | Basic FFmpeg                         | GPU‑accelerated FFmpeg + MoviePy fallback            |
 | **Archive Support**    | Limited to ZIP                       | Full 7z, RAR, TAR, GZ, multipart extraction          |
 | **Settings Menu**      | None                                 | Interactive inline menu with toggle switches         |
 | **Thumbnail**          | Manual only                          | Auto‑generate from video, YT‑DLP thumb support       |
-| **Link Support**       | HTTP, GDrive, YT, Telegram           | Added Terabox, improved GDrive folder handling       |
-| **Progress Updates**   | Basic text                           | Real‑time speed, ETA, percentage, system stats       |
+| **Link Support**       | HTTP, GDrive, YT, Telegram           | Added Terabox, Mediafire, Pixeldrain, Mega, gallery-dl (100+ sites) |
+| **Progress Updates**   | Basic text                           | Real‑time speed, ETA, percentage, system stats for ALL engines |
+| **Commands**           | Manual via @BotFather                | Auto-registered on startup (23 commands)             |
+| **Error Handling**     | Single try/except                    | Individual try/except per operation, robust cancellation |
 | **License**            | GPL‑3.0                              | MIT (more permissive)                                |
 
 ---

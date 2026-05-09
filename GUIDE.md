@@ -82,6 +82,8 @@ You need **5 values** to run the bot. Here's how to get each one:
 
 > 💡 You can create multiple bots with BotFather. Use `/mybots` to manage them.
 
+> ℹ️ **Note:** Bot commands are **auto-registered** on startup — you don't need to set them manually via BotFather. The bot registers all 23 commands with Telegram automatically when it starts.
+
 ### 3. OWNER_ID
 
 This is **your personal Telegram user ID** (not your phone number).
@@ -642,6 +644,7 @@ Use `/glupload` for Instagram, Twitter, Pinterest, Pixiv, and 100+ gallery sites
 You:   /glupload
 
 Bot:   📸 Send Gallery Link(s) 🖼️
+       ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
        📋 Follow The Pattern Below:
        https://instagram.com/username
        https://twitter.com/username
@@ -649,19 +652,12 @@ Bot:   📸 Send Gallery Link(s) 🖼️
        https://pixiv.net/users/123456
        [Custom Name]
        {Zip Password}
+       ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
        🖼️ Supported Sites:
-       • Instagram (Posts, Profiles, Stories)
-       • Twitter / X (Timelines, Likes, Bookmarks)
-       • Pinterest (Boards, Pins)
-       • Pixiv (Artworks, Users)
-       • DeviantArt, ArtStation, Flickr
-       • Reddit, Tumblr, Imgur
-       • TikTok, Bluesky, Newgrounds
-       • Danbooru, Gelbooru, Yande.re
-       • And 100+ more gallery sites
-       💡 Tips:
-       • Multiple Links Supported
-       • Use [] For Custom Folder Name
+       ┣ Instagram, Twitter / X, Pinterest
+       ┣ Pixiv, DeviantArt, ArtStation, Flickr
+       ┣ Reddit, Tumblr, Imgur, TikTok
+       ┗ And 100+ more gallery sites
 
 You:   https://www.pixiv.net/en/users/123456
 
@@ -669,12 +665,16 @@ Bot:   🚀 Initializing Gallery Download...
        Please Wait While I Prepare Your Download
 
        📸 Downloading Gallery Link 01
-       📸 Downloaded: 24 files (156 MB)
-
-       📤 Uploading photos in batches...
+       ┏「████████░░░░」 » 67.2%
+       ┠⚡ Speed: 5.2 MiB/s
+       ┠🔧 Engine: gallery-dl 📸
+       ┠⏳ ETA: —
+       ┠⏱️ Elapsed: 00:12
+       ┠✅ Done: 16 files (98.4 MiB)
+       ┗📦 Total: 📥 image_016.jpg
 
        ✅ Task Complete
-       📦 Size: 156 MB
+       📦 Size: 156 MiB
        📋 Files: 24
        ⏱️ Time: 00:28
 ```
