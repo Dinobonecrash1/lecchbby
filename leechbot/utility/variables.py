@@ -19,6 +19,7 @@ its attributes directly — this module is the single source of truth.
 import config
 from time import time
 from datetime import datetime
+from pathlib import Path
 from collections import deque
 from pyrogram.types import Message
 
