@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.16] - 2026-05-10
+
+### Optimized
+- **Hero images reduced 91% (15.4MB → 1.4MB)** — all 11 PNG hero images in `assets/images/` converted to WebP format. Oversized JPEGs masquerading as .png (up to 4035×2690) downscaled to 1280px width. Quality set to 90 (visually lossless). No code changes needed — existing glob already picks up `.webp` files.
+
 ## [3.1.15] - 2026-05-10
 
 ### Fixed
