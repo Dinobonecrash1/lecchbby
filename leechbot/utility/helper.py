@@ -377,7 +377,13 @@ def thumbMaintainer(file_path: str):
 
     try:
         fname, _ = ospath.splitext(ospath.basename(file_path))
-        ytdl_thmb = ospath.join(Paths.thumbnail_ytdl, f"{fname}.webp")
+        # Check for thumbnail in multiple formats (yt-dlp saves as webp/jpg/png)
+        ytdl_thmb = None
+        for ext in (".webp", ".jpg", ".png", ".jpeg"):
+            candidate = ospath.join(Paths.thumbnail_ytdl, f"{fname}{ext}")
+            if ospath.exists(candidate):
+                ytdl_thmb = candidate
+                break
 
         with VideoFileClip(file_path) as video:
             if ospath.exists(Paths.THMB_PATH):

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.11] - 2026-05-10
+
+### Fixed
+- **YouTube thumbnails not showing** — yt-dlp saved thumbnails as `%(id)s.webp` but `thumbMaintainer` looked for `%(title)s.webp`. Filename mismatch meant thumbnails were never found, falling back to generated frames.
+  - `ytdl.py`: changed thumbnail template from `%(id)s.%(ext)s` to `%(title)s.%(ext)s`
+  - `helper.py`: `thumbMaintainer` now checks multiple extensions (`.webp`, `.jpg`, `.png`, `.jpeg`) instead of hardcoding `.webp`
+
+---
+
 ## [3.1.10] - 2026-05-10
 
 ### Added

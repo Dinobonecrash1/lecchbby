@@ -207,7 +207,7 @@ def YouTubeDL(url: str):
         ),
         "outtmpl": {
             "default": f"{Paths.down_path}/%(title)s.%(ext)s",
-            "thumbnail": f"{Paths.thumbnail_ytdl}/%(id)s.%(ext)s",
+            "thumbnail": f"{Paths.thumbnail_ytdl}/%(title)s.%(ext)s",
         },
     }
 
