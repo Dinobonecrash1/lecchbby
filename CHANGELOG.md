@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.2] - 2026-05-10
+
+### Fixed
+- **Critical: `helper.py` SyntaxError on startup** — removed unreachable dead code (duplicate `elif is_streamtape()` / `else` block) after a `return` statement in `get_link_type()` that caused Python to refuse loading the module, crashing the entire bot on launch
+
+---
+
 ## [3.1.1] - 2026-05-09
 
 ### Fixed

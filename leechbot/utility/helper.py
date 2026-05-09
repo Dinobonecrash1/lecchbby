@@ -212,10 +212,6 @@ def detect_link_type(link: str) -> str:
         return "🔗 Direct Link"
     else:
         return "🌐 Web Link"
-    elif is_streamtape(link):
-        return "🎬 Streamtape"
-    else:
-        return "🔗 Direct Link"
 
 
 # =============================================================================
