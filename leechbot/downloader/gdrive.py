@@ -54,15 +54,15 @@ async def build_service():
 async def g_DownLoad(link: str, num: int):
     """
     Download file or folder from Google Drive.
-    
+
     Args:
         link: Google Drive share link
         num: link number for display
     """
-    down_msg = f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n**🏷️ Name:** `{Messages.download_name}`\n"
+    Messages.status_head = f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n**🏷️ Name:** `{Messages.download_name}`\n"
     file_id = await getIDFromURL(link)
     meta = getFileMetadata(file_id)
-    
+
     if meta.get("mimeType") == "application/vnd.google-apps.folder":
         await gDownloadFolder(file_id, Paths.down_path)
     else:
@@ -259,7 +259,7 @@ async def gDownloadFile(file_id: str, path: str):
             )
             
             await status_bar(
-                down_msg=down_msg,
+                down_msg=Messages.status_head,
                 speed=speed_string,
                 percentage=percentage,
                 eta=getTime(eta),

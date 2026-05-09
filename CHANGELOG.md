@@ -11,12 +11,15 @@ All notable changes to this project will be documented in this file.
 - Removed `-q` (quiet) flag from gallery-dl command to enable real-time stderr output parsing
 - Added async stderr reader task for non-blocking line-by-line output capture during gallery downloads
 - Gallery completion message now includes elapsed time
+- **Batch photo uploads now show a live progress bar** — `upload_photos_batch()` was missing the `progress` callback, so batch uploads showed no progress until completion; added `_batch_progress()` callback with speed, ETA, and percentage
+- **GDrive downloader `down_msg` NameError** — `g_DownLoad()` defined `down_msg` as a local variable but `gDownloadFile()` referenced it out of scope; replaced with `Messages.status_head` which is the shared status message pattern used by all other downloaders
 
 ### Changed
 - `gallery_download()` now uses `status_bar()` for consistent UI across all download engines
 - Progress monitoring loop reads stderr in real-time instead of only polling file count
 - Added `datetime` import for proper speed/elapsed time calculation
 - Added `getTime` and `status_bar` imports to gallery module
+- Batch photo upload now shows batch range label (e.g. "📤 Uploading Photos 1–10/25")
 
 ---
 

@@ -159,9 +159,31 @@ async def upload_file(file_path: str, real_name: str):
 # =============================================================================
 # Batch Photo Upload (New) 29-04-2026
 # =============================================================================
+async def _batch_progress(current: int, total: int):
+    """Progress callback for batch photo uploads — updates status bar."""
+    elapsed = max((datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
+    speed = current / elapsed if current > 0 else 0
+    percentage = (current + sum(Transfer.up_bytes)) / max(Transfer.total_down_size, 1) * 100
+    remaining = max(Transfer.total_down_size - current - sum(Transfer.up_bytes), 0)
+    eta = remaining / speed if speed > 0 else 0
+
+    await status_bar(
+        down_msg=Messages.status_head,
+        speed=f"{sizeUnit(speed)}/s",
+        percentage=min(percentage, 100),
+        eta=getTime(eta),
+        done=sizeUnit(current + sum(Transfer.up_bytes)),
+        left=sizeUnit(Transfer.total_down_size),
+        engine="Telegram 📤",
+    )
+
+
 async def upload_photos_batch(photo_paths: list, remove: bool = False):
     """
     Upload multiple photos in batches of 10 using media groups.
+
+    Each batch upload shows a live progress bar with speed, ETA,
+    and percentage via the Pyrogram progress callback.
 
     Args:
         photo_paths: list of absolute paths to photo files
@@ -198,9 +220,24 @@ async def upload_photos_batch(photo_paths: list, remove: bool = False):
             )
 
         try:
-            # Send the media group as reply to current sent_msg
+            # Calculate batch size for progress tracking
+            batch_bytes = 0
+            for file_path in batch:
+                try:
+                    batch_bytes += os.stat(file_path).st_size
+                except OSError:
+                    pass
+
+            # Update status head for this batch
+            batch_label = f"{processed + 1}–{min(processed + batch_size, total_photos)}"
+            Messages.status_head = (
+                f"**📤 Uploading Photos** `{batch_label}/{total_photos}`\n\n"
+            )
+
+            # Send the media group with progress callback
             messages = await MSG.sent_msg.reply_media_group(
                 media=media_group,
+                progress=_batch_progress,
                 reply_to_message_id=MSG.sent_msg.id
             )
 
