@@ -343,7 +343,7 @@ __Underline__""",
     # System Info
     # =========================================================================
     elif data == "sys_refresh":
-        original_text = callback_query.message.text
+        original_text = callback_query.message.text or callback_query.message.caption or ""
         parts = original_text.split("⌬─────")
         if len(parts) >= 2:
             new_text = parts[0] + sysINFO()
@@ -357,7 +357,7 @@ __Underline__""",
         await callback_query.answer("System info refreshed")
 
     elif data == "sys_stats":
-        original_text = callback_query.message.text
+        original_text = callback_query.message.text or callback_query.message.caption or ""
         parts = original_text.split("⌬─────")
         if len(parts) >= 2:
             new_text = parts[0] + sysINFO_full()
