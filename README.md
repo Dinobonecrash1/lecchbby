@@ -63,10 +63,11 @@ This is a **major rewrite** with focus on **configurability, new download source
 - ⚡ **Async fix** — Replaced blocking `os.system()` with `asyncio.create_subprocess_exec()` in task manager
 - 📝 **CHANGELOG.md** — All changes now tracked at the repository root
 
-### 🔧 v3.0.2 — YouTube Fix & Photo Mode
+### 🔧 v3.0.2 — YouTube Fix, Photo Mode & Gallery-dl
 
 - 🎬 **YouTube bot detection fix** — Added `bgutil-ytdlp-pot-provider` for automatic PO Token generation, no manual setup needed
 - 🍪 **Cookie authentication** — Fallback support via `YTDL_COOKIES_FILE` or `YTDL_BROWSER_COOKIES` env vars
+- 📸 **gallery-dl integration** — Download photo galleries from Instagram, Twitter, Pinterest, Pixiv, DeviantArt, ArtStation, Flickr, Reddit, Tumblr, and 100+ sites
 - 📸 **Photo upload mode** — Choose between Group (batch of 10) or Single (one by one) via `/settings`
 - 📋 **New commands** — `/cookies`, `/setcookies`, `/clearcookies` for YouTube auth management
 - 🐛 **Format fix** — Removed `mweb` client restriction for full format availability
@@ -96,6 +97,7 @@ This is a **major rewrite** with focus on **configurability, new download source
 | 🏷️ **Custom Filename** | `/setname` or inline `[name]` syntax |
 | ⏳ **Auto-Delete** | Configurable auto-delete for bot messages |
 | 🎬 **YouTube PO Tokens** | Auto-generated via plugin — no manual cookie setup |
+| 📸 **Photo Galleries** | Instagram, Twitter, Pinterest, Pixiv, DeviantArt via gallery-dl |
 
 ---
 
@@ -140,11 +142,16 @@ ALLOWED_USERS=123456789,987654321
 | Direct HTTP/HTTPS | ✅ Full | Resume supported via aria2c |
 | Google Drive | ✅ Full | Files, folders, shared drives |
 | Telegram | ✅ Full | Public/private channel messages |
-| YouTube / YT-DLP | ✅ Full | 2000+ sites with format selection |
+| YouTube / YT-DLP | ✅ Full | 2000+ sites with PO Token auto-auth |
+| Instagram | ✅ **NEW** | Posts, carousels via gallery-dl |
+| Twitter / X | ✅ **NEW** | Media timelines via gallery-dl |
+| Pinterest | ✅ **NEW** | Boards, pins via gallery-dl |
+| Pixiv / DeviantArt | ✅ **NEW** | Art galleries via gallery-dl |
 | Terabox | ✅ Full | Using third-party API |
 | Mega.nz | ✅ Full | Using megatools |
-| Pixeldrain | ✅ **NEW** | Single files and lists |
-| Mediafire | ✅ **NEW** | Auto-extracted direct links |
+| Pixeldrain | ✅ Full | Single files and lists |
+| Mediafire | ✅ Full | Auto-extracted direct links |
+| Reddit / Flickr / Tumblr | ✅ **NEW** | Image galleries via gallery-dl |
 | Torrent / Magnet | ⚙️ Optional | Enable via `ENABLE_TORRENTS=true` |
 
 ---
@@ -166,6 +173,7 @@ ALLOWED_USERS=123456789,987654321
 | Bot Framework       | [Pyrogram](https://docs.pyrogram.org/) (MTProto API)                    |
 | Download Manager    | [aria2c](https://aria2.github.io/) + [yt‑dlp](https://github.com/yt-dlp/yt-dlp) |
 | YouTube Auth        | [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) (PO Token auto-gen) |
+| Photo Galleries     | [gallery-dl](https://github.com/mikf/gallery-dl) (Instagram, Twitter, Pinterest, 100+ sites) |
 | Video Processing    | FFmpeg, MoviePy, GPUtil (GPU acceleration)                              |
 | Archive Handling    | 7z, unrar, zip, tar                                                    |
 | Cloud Environment   | Google Colab (Python 3.10+, Ubuntu 22.04)                               |
@@ -184,6 +192,7 @@ leechbot/
 ├── handlers.py          # Message handlers (URL, photo, text, reply)
 ├── downloader/
 │   ├── aria2.py         # HTTP/FTP/torrent via aria2c
+│   ├── gallery.py       # Photo galleries via gallery-dl
 │   ├── gdrive.py        # Google Drive downloads
 │   ├── manager.py       # Download router & retry logic
 │   ├── mediafire.py     # Mediafire downloads
