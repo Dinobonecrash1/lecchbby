@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.14-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.15-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -24,7 +24,7 @@
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
 - [🗺️ Roadmap](ROADMAP.md) — what's planned
-- [✨ What's New?](#-whats-new-in-v3114)
+- [✨ What's New?](#-whats-new-in-v3115)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
 - [👤 UserBot — Private Channels](#-userbot--private-channels)
@@ -36,6 +36,33 @@
 - [📄 License](#-license)
 - [🫂 Updates & Support](#-updates--support)
 - [👤 Developer & Credits](#-developer--credits)
+
+---
+
+## ✨ What's New in v3.1.15
+
+### 🔴 Critical Fix — Bot Was Completely Unresponsive
+- **`__main__.py` never imported handler modules** — `leechbot.commands`, `leechbot.callbacks`, `leechbot.handlers` were missing. Without these, no `@app.on_message()` or `@app.on_callback_query()` decorators registered. Bot started but responded to **nothing**.
+
+### 🔧 Full Diagnostic Sweep — 19 Bugs Fixed Across 15 Files
+- **Shell injection risk in `converters.py`** — `subprocess.Popen(cmd, shell=True)` with user-controlled filenames. Replaced all 4 instances with list-based args.
+- **`Transfer.total_down_size` not reset between tasks** — progress bar used stale data from previous task.
+- **`Paths.down_path` persists across tasks** — class variable mutation caused wrong download path.
+- **`BotStats` counters always zero** — `total_tasks`, `total_downloaded`, `total_uploaded` never incremented.
+- **`asyncio.get_event_loop()` deprecated** — replaced with `get_running_loop()` across 6 files (Python 3.12+ safe).
+- **GoFile downloads 404** — URL used `filename` instead of `file_id`.
+- **Photo upload infinite FloodWait recursion** — added max 10 retries.
+- **Dead `_download()` function in `gdrive.py`** — removed unused generator.
+- **Duplicate cookie config in `config.py`** — removed duplicate block.
+- **`MyLogger.debug` inconsistency** — made all methods `@staticmethod`.
+- **`isLink` filter `__` parameter** — renamed to `client`.
+
+### 📒 Colab Notebook — Fixed Runtime Disconnects
+- **Root cause:** old notebook used `get_ipython().system()` which blocks the event loop, preventing any keep-alive from working.
+- **Fixed:** restored old working style with `get_ipython().system()` + libtorrent install via apt (conda fallback) + health checks.
+- **Code cells hidden** by default for cleaner UI.
+
+> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
@@ -233,8 +260,8 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 </a>
 
 1. Open notebook → fill credentials (or use Colab Secrets)
-2. Run **📦 Setup** then **🚀 Deploy** — bot starts with keep-alive
-3. Bot starts, send `/start` on Telegram
+2. **Runtime → Run all** — bot starts automatically
+3. Send `/start` on Telegram
 
 ### 2️⃣ Docker
 
