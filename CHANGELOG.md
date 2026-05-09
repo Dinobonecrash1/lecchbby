@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.8] - 2026-05-10
+
+### Fixed
+- **Colab runtime still disconnects despite JS keep-alive** — Two root causes:
+  1. **JS `setInterval` couldn't fire** — the Python `while True: time.sleep(15)` loop blocked the IPython event loop, preventing JS callbacks from executing. Fix: JS keep-alive now runs in a **separate daemon thread** using `google.colab.output.eval_js()` which bypasses the blocked event loop.
+  2. **`\r` heartbeat wasn't counted as output** — Colab's server-side idle detection didn't recognize carriage-return-only updates as new output. Fix: uses `clear_output(wait=True)` + full `print()` every 20 seconds to force Colab to register fresh output as activity.
+
+### Changed
+- Keep-alive now uses **dual strategy**: daemon thread for JS injection (eval_js every 25s) + main loop with `clear_output` for visible output (every 20s)
+- Heartbeat shows full banner + uptime + PID + last log line (not just `\r` overwrite)
+- `global restart_count, bot_proc` replaces `nonlocal` (Colab IPython compat)
+
+---
+
 ## [3.1.7] - 2026-05-10
 
 ### Added
