@@ -36,3 +36,7 @@ All notable changes to this project will be documented in this file.
 - Updated README with v3.0.1 changelog section
 - Added project structure tree to README
 - Updated "Code Structure" in comparison table to reflect modularization
+
+### Fixed (continued)
+- **Critical:** Pyrogram rejects large channel IDs (>2147483647) due to 32-bit limits — patched `MIN_CHANNEL_ID` to support 15-digit Telegram IDs
+- Bot startup now resolves DUMP_ID and OWNER_ID peers at launch to prevent 'Peer id invalid' errors on restarts
