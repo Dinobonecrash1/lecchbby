@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ## [3.1.14] - 2026-05-10
 
+### Fixed
+- **Colab notebook missing libtorrent** — removed from pip (not on PyPI) but never added to Colab apt install. Added `python3-libtorrent` to system packages with apt → conda → pip fallback chain. Optional — setup continues even if unavailable.
+- **Health Check missing libtorrent/megatools** — added checks for both with "optional" tag so users know what's available.
+
 ### Changed
 - **All documentation updated** to reflect v3.1.12–3.1.14 changes:
   - `README.md`: version badge → 3.1.14, What's New rewrite, system deps (libtorrent, megatools), Mega.nz async status
