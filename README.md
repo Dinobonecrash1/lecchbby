@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.0.2-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -51,6 +51,8 @@ This is a **major rewrite** with focus on **configurability, new download source
 - 📢 **Broadcast** — Send uploaded files to multiple chats with `/broadcast`.
 - 👥 **Admin Panel** — Multi-user management with `/admin add|remove|list`.
 - 🔄 **Auto-Retry** — Failed downloads automatically retry up to 3 times.
+- 🎬 **YouTube PO Tokens** — Auto-generated via `bgutil-ytdlp-pot-provider` plugin, no manual cookie setup.
+- 📸 **Photo Upload Mode** — Choose Group (batch of 10) or Single (one by one) via `/settings`.
 - 🐛 **Bug Fixes** — Fixed hardcoded paths, missing imports, uninitialized globals, and more.
 
 ### 🔧 v3.0.1 — Codebase Overhaul
@@ -60,6 +62,15 @@ This is a **major rewrite** with focus on **configurability, new download source
 - 🔒 **Security** — Expanded `.gitignore` with proper patterns for `.env`, sessions, credentials, IDE files
 - ⚡ **Async fix** — Replaced blocking `os.system()` with `asyncio.create_subprocess_exec()` in task manager
 - 📝 **CHANGELOG.md** — All changes now tracked at the repository root
+
+### 🔧 v3.0.2 — YouTube Fix & Photo Mode
+
+- 🎬 **YouTube bot detection fix** — Added `bgutil-ytdlp-pot-provider` for automatic PO Token generation, no manual setup needed
+- 🍪 **Cookie authentication** — Fallback support via `YTDL_COOKIES_FILE` or `YTDL_BROWSER_COOKIES` env vars
+- 📸 **Photo upload mode** — Choose between Group (batch of 10) or Single (one by one) via `/settings`
+- 📋 **New commands** — `/cookies`, `/setcookies`, `/clearcookies` for YouTube auth management
+- 🐛 **Format fix** — Removed `mweb` client restriction for full format availability
+- 📓 **Notebook redesign** — 5-cell layout with Health Check and Update cells
 
 ---
 
@@ -74,7 +85,7 @@ This is a **major rewrite** with focus on **configurability, new download source
 | ✂️ **Smart Splitting** | Split files >2GB into chunks |
 | 🗜️ **Archive Handling** | Create/extract ZIP, RAR, 7z, TAR, GZ with password support |
 | 🖼️ **Auto Thumbnail** | Generate from video or use custom images |
-| 📸 **Batch Photo Uploads** | Media groups of 10 for cleaner delivery |
+| 📸 **Photo Upload Mode** | Group (batch of 10) or Single (one by one) via `/settings` |
 | 📋 **Download Queue** | Queue multiple downloads, process sequentially |
 | 🎬 **Format Selection** | Choose YT-DLP quality per-session |
 | ⚡ **Bandwidth Control** | Limit download speed |
@@ -84,6 +95,7 @@ This is a **major rewrite** with focus on **configurability, new download source
 | 🔒 **Password Protection** | ZIP/unzip passwords |
 | 🏷️ **Custom Filename** | `/setname` or inline `[name]` syntax |
 | ⏳ **Auto-Delete** | Configurable auto-delete for bot messages |
+| 🎬 **YouTube PO Tokens** | Auto-generated via plugin — no manual cookie setup |
 
 ---
 
@@ -112,6 +124,10 @@ BANDWIDTH_LIMIT=
 # Google Drive
 GDRIVE_ENABLED=false
 TOKEN_PICKLE_PATH=
+
+# YT-DLP Cookie Authentication (optional fallback)
+# YTDL_COOKIES_FILE=/path/to/cookies.txt
+# YTDL_BROWSER_COOKIES=chrome
 
 # Multi-user (comma-separated user IDs)
 ALLOWED_USERS=123456789,987654321
@@ -149,6 +165,7 @@ ALLOWED_USERS=123456789,987654321
 | ------------------- | ----------------------------------------------------------------------- |
 | Bot Framework       | [Pyrogram](https://docs.pyrogram.org/) (MTProto API)                    |
 | Download Manager    | [aria2c](https://aria2.github.io/) + [yt‑dlp](https://github.com/yt-dlp/yt-dlp) |
+| YouTube Auth        | [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) (PO Token auto-gen) |
 | Video Processing    | FFmpeg, MoviePy, GPUtil (GPU acceleration)                              |
 | Archive Handling    | 7z, unrar, zip, tar                                                    |
 | Cloud Environment   | Google Colab (Python 3.10+, Ubuntu 22.04)                               |
@@ -163,6 +180,7 @@ leechbot/
 ├── __main__.py          # Entry point (imports handlers, runs bot)
 ├── commands.py          # All /command handlers
 ├── callbacks.py         # Inline keyboard callback handlers
+├── debug.py             # Error reporting & debug logging to Telegram
 ├── handlers.py          # Message handlers (URL, photo, text, reply)
 ├── downloader/
 │   ├── aria2.py         # HTTP/FTP/torrent via aria2c
@@ -262,6 +280,13 @@ python -m leechbot
 | `/admin` | Manage allowed users |
 | `/stats` | System resource usage |
 | `/help` | Display all commands |
+
+### 🍪 YouTube Auth
+| Command | Description |
+|---------|-------------|
+| `/cookies` | Check YouTube authentication status |
+| `/setcookies` | Upload cookies.txt for YouTube fallback |
+| `/clearcookies` | Delete stored cookies file |
 
 ### 💡 Inline Options
 When sending links, append:
