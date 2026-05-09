@@ -25,7 +25,7 @@ from leechbot.utility.variables import (
 )
 from leechbot.utility.helper import (
     is_google_drive, is_telegram, is_ytdl_link, is_mega,
-    is_terabox, is_pixeldrain, is_mediafire,
+    is_terabox, is_pixeldrain, is_mediafire, is_gallery,
     isYtdlComplete, keyboard, sysINFO, detect_link_type,
 )
 import config
@@ -81,6 +81,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
     from leechbot.downloader.gdrive import build_service, g_DownLoad, getIDFromURL, getFileMetadata, get_Gfolder_size
     from leechbot.downloader.telegram import TelegramDownload, media_Identifier
     from leechbot.downloader.mega import megadl
+    from leechbot.downloader.gallery import gallery_download
 
     merge_msg = "\n**⏳ Please Wait...**\n`Merging YT-DLP Video...`"
     BotTimes.task_start = datetime.now()
@@ -120,6 +121,9 @@ async def downloadManager(sources: list, is_ytdl: bool):
 
                 elif is_telegram(link):
                     await _with_retry(lambda l=link, n=i+1: TelegramDownload(l, n), link)
+
+                elif is_gallery(link):
+                    await _with_retry(lambda l=link, n=i+1: gallery_download(l, n), link)
 
                 elif is_ytdl_link(link):
                     await _with_retry(lambda l=link, n=i+1: YTDL_Status(l, n), link)
@@ -228,6 +232,9 @@ async def get_d_name(link: str):
     elif is_telegram(link):
         media, _ = await media_Identifier(link)
         Messages.download_name = getattr(media, "file_name", None) or "Telegram File"
+    elif is_gallery(link):
+        from leechbot.downloader.gallery import get_gallery_name
+        Messages.download_name = await get_gallery_name(link)
     elif is_ytdl_link(link):
         Messages.download_name = await get_YT_Name(link)
     elif is_mega(link):

@@ -19,6 +19,7 @@ from .mega import megadl
 from .telegram import TelegramDownload, media_Identifier
 from .ytdl import YTDL_Status, get_YT_Name
 from .terabox import terabox_download
+from .gallery import gallery_download, is_gallery_link, get_gallery_name
 from .manager import downloadManager, calDownSize, get_d_name
 
 __all__ = [
@@ -36,6 +37,9 @@ __all__ = [
     "YTDL_Status",
     "get_YT_Name",
     "terabox_download",
+    "gallery_download",
+    "is_gallery_link",
+    "get_gallery_name",
     "downloadManager",
     "calDownSize",
     "get_d_name",

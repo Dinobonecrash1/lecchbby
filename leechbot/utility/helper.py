@@ -113,6 +113,11 @@ def is_mediafire(link: str) -> bool:
 def is_streamtape(link: str) -> bool:
     return "streamtape" in link or "stape." in link
 
+def is_gallery(link: str) -> bool:
+    """Check if link is a photo gallery site (Instagram, Twitter, Pinterest, etc.)."""
+    from leechbot.downloader.gallery import is_gallery_link
+    return is_gallery_link(link)
+
 
 def detect_link_type(link: str) -> str:
     """Return a human-readable label for the link type."""
@@ -122,6 +127,8 @@ def detect_link_type(link: str) -> str:
         return "♻️ Google Drive"
     elif is_torrent(link):
         return "🧲 Torrent"
+    elif is_gallery(link):
+        return "📸 Gallery"
     elif is_ytdl_link(link):
         return "🏮 YT-DLP"
     elif is_terabox(link):

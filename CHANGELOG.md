@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **PO Token auto-generation** via `bgutil-ytdlp-pot-provider` plugin — fully automated, no manual setup
+- **📸 gallery-dl integration** — download photo galleries from Instagram, Twitter, Pinterest, Pixiv, DeviantArt, ArtStation, Flickr, Reddit, Tumblr, and 100+ sites
 - **📸 Photo Upload Mode** setting — choose between Group (batch of 10) or Single (one by one) via `/settings` menu
 - **YT-DLP Cookie Authentication** — fallback methods to pass cookies to yt-dlp:
   - `YTDL_COOKIES_FILE` env var — path to a Netscape-format cookies.txt file
