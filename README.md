@@ -22,6 +22,7 @@
 
 ## 📑 **Table of Contents**
 
+- [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
 - [✨ What's New?](#-whats-new-in-v3)
 - [🚀 Features](#-features)
 - [⚙️ Configuration](#-configuration)
@@ -228,6 +229,7 @@ python -m leechbot
 ### 3️⃣ **Detailed Instructions**
 
 - 📘 [Full Deployment Guide](https://github.com/XronTrix10/Telegram-Leecher/wiki/INSTRUCTIONS) (original base)
+- 📖 [Complete User Guide](GUIDE.md) — credentials, setup, commands, troubleshooting
 - 🎥 [YouTube Tutorial](https://www.youtube.com/watch?v=6LvYd-oO3U0)
 
 ---
