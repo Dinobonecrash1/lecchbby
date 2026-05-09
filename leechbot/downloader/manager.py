@@ -27,7 +27,7 @@ from leechbot.utility.helper import (
     is_google_drive, is_telegram, is_ytdl_link, is_mega,
     is_terabox, is_pixeldrain, is_mediafire, is_gallery,
     is_hls_stream, is_gofile, is_bunkr, is_catbox, is_streamtape,
-    isYtdlComplete, keyboard, sysINFO, detect_link_type,
+    is_torrent, isYtdlComplete, keyboard, sysINFO, detect_link_type,
 )
 import config
 
@@ -182,6 +182,10 @@ async def downloadManager(sources: list, is_ytdl: bool):
                     from leechbot.downloader.mediafire import mediafire_download
                     await _with_retry(lambda l=link, n=i+1: mediafire_download(l, n), link)
 
+                elif is_torrent(link):
+                    from leechbot.downloader.torrent import torrent_download
+                    await _with_retry(lambda l=link, n=i+1: torrent_download(l, n), link)
+
                 else:
                     # Default: aria2c (HTTP/FTP/torrent)
                     aria_msg = f"**⏳ Getting Info...**\n\n`{link}`"
@@ -269,6 +273,10 @@ async def get_d_name(link: str):
         Messages.download_name = await get_YT_Name(link)
     elif is_hls_stream(link):
         Messages.download_name = await get_YT_Name(link)
+    elif is_torrent(link):
+        from leechbot.downloader.torrent import get_torrent_name
+        Messages.download_name = await get_torrent_name(link)
+
     elif is_mega(link):
         Messages.download_name = "Mega Download"
     elif is_pixeldrain(link):

@@ -39,6 +39,9 @@ GPUtil>=1.4.0
 natsort>=8.4.0
 pytz>=2024.1
 
+# Torrent/Magnet downloads
+python-libtorrent>=2.0.0
+
 # Optional system dependencies (install via package manager):
 #   aria2        — HTTP/FTP/Bittorrent downloader
 #   ffmpeg       — video/audio processing

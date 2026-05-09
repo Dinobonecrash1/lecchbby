@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.7] - 2026-05-10
+
+### Added
+- **🧲 libtorrent magnet/torrent downloader** — new `leechbot/downloader/torrent.py` module using python-libtorrent for magnet links and .torrent files:
+  - Fast metadata retrieval via DHT with 2-minute timeout
+  - Real-time progress bar with speed, ETA, peers, seeds, pieces
+  - Resume data persistence — interrupted downloads resume where they left off
+  - 15 built-in DHT trackers for better peer discovery
+  - Sequential download mode for streaming
+  - Bandwidth limit support
+  - Multi-file and single-file torrent support
+  - Automatic seeding after download completes
+- `python-libtorrent>=2.0.0` added to `requirements.txt`
+- Magnet/torrent links now route to libtorrent instead of aria2c in download manager
+
+### Changed
+- Download manager: magnet links (`magnet:`) and `.torrent` files now use dedicated libtorrent downloader instead of falling through to aria2c
+- `get_d_name()`: torrent/magnet links resolve actual torrent name via metadata
+
+---
+
 ## [3.1.6] - 2026-05-10
 
 ### Fixed
