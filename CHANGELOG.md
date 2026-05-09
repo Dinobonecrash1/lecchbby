@@ -100,6 +100,7 @@ All notable changes to this project will be documented in this file.
 - Gallery completion message now includes elapsed time
 - **Batch photo uploads now show a live progress bar** — `upload_photos_batch()` was missing the `progress` callback, so batch uploads showed no progress until completion; added `_batch_progress()` callback with speed, ETA, and percentage
 - **GDrive downloader `down_msg` NameError** — `g_DownLoad()` defined `down_msg` as a local variable but `gDownloadFile()` referenced it out of scope; replaced with `Messages.status_head` which is the shared status message pattern used by all other downloaders
+- **Telegram downloader error handling** — improved error messages for public vs private channel access; better detection of missing media, empty messages, and service messages
 
 ### Changed
 - `gallery_download()` now uses `status_bar()` for consistent UI across all download engines
@@ -130,8 +131,6 @@ All notable changes to this project will be documented in this file.
 - Improved `media_Identifier()` in Telegram downloader with better error messages for public vs private channel access
 - Added `message.empty` and `message.service` checks to prevent processing invalid messages
 - Updated `GUIDE.md` Telegram section with clear public/private link distinction and membership requirements
-
-### Changed
 - `upload_photos_batch()` now accepts `remove` parameter to match `upload_file()` cleanup behavior
 - Added `import os` to `telegram.py` for file cleanup support
 - Updated `/start` welcome text and `/help` menu with `/glupload` command
@@ -167,6 +166,10 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Updated `/help` command with PO token + cookie configuration section
 - Updated VERSION to 3.0.2
+- Redesigned Colab notebook with better UI/UX and Update cell for one-click updates
+- Fixed Colab credentials loading — `credentials.json` now works as fallback for Colab compatibility
+- Fixed Colab ALSA audio noise — suppressed ALSA error messages in Colab environment
+- Fixed Colab session cleanup — wrong session file was being cleaned on restart
 
 ---
 
