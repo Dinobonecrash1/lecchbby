@@ -16,12 +16,18 @@ Extracts direct download links from StreamTape embed pages.
 """
 
 import re
+import asyncio
 import logging
-import aiohttp
 from os import path as ospath
+
+import aiohttp
+
 from leechbot.utility.variables import Paths
 
 logger = logging.getLogger(__name__)
+
+_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 
 async def _extract_download_url(page_url: str) -> tuple:
@@ -30,13 +36,11 @@ async def _extract_download_url(page_url: str) -> tuple:
 
     Returns: (download_url, filename)
     """
-    async with aiohttp.ClientSession() as session:
-        async with session.get(page_url) as resp:
+    async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
+        async with session.get(page_url, headers=_HEADERS) as resp:
             html = await resp.text()
 
-    # StreamTape uses JavaScript to construct the download URL
-    # Pattern: ('robotlink') + '/<hash>' or similar obfuscated patterns
-    # Try multiple extraction methods
+    url = None
 
     # Method 1: Direct link pattern in page source
     dl_match = re.search(r"getElementById\('norobotlink'\)\.href\s*=\s*['\"]([^'\"]+)", html)
@@ -46,17 +50,20 @@ async def _extract_download_url(page_url: str) -> tuple:
             url = "https:" + url
 
     # Method 2: Token-based extraction
-    if not dl_match:
+    if not url:
         token_match = re.search(r"token=([a-zA-Z0-9_]+)", html)
         if token_match:
             token = token_match.group(1)
             url = f"https://streamtape.com/get_video?id={token}"
 
     # Method 3: Obfuscated link construction
-    if not dl_match:
+    if not url:
         parts = re.findall(r"(/\d+/[^'\"]+)", html)
         if parts:
             url = "https://streamtape.com" + parts[-1]
+
+    if not url:
+        raise Exception("Could not extract download URL from StreamTape page")
 
     # Extract filename from page
     title_match = re.search(r'<title>([^<]+)</title>', html)
@@ -76,50 +83,41 @@ async def streamtape_download(link: str, num: int):
         link: StreamTape URL
         num: link number in batch
     """
-    from leechbot.downloader.aria2 import aria2_Download
-
     logger.info(f"StreamTape: extracting from {link[:60]}")
 
-    try:
-        url, filename = await _extract_download_url(link)
-        logger.info(f"StreamTape: direct URL extracted, downloading via aria2c")
+    url, filename = await _extract_download_url(link)
+    logger.info(f"StreamTape: direct URL extracted, downloading via aria2c")
 
-        # Use aria2c for the actual download (resumable, multi-connection)
-        # We pass the direct URL to aria2c
-        import subprocess
-        from leechbot.utility.variables import Messages, BotTimes
-        from leechbot.utility.helper import sizeUnit, getTime, status_bar, sysINFO, keyboard
+    dest = ospath.join(Paths.down_path, filename)
 
-        dest = ospath.join(Paths.down_path, filename)
-        Messages.status_head = f"**📥 StreamTape** `{num}`\n\n`{filename}`\n"
+    from leechbot.utility.variables import Messages, BotTimes
+    Messages.status_head = f"**📥 StreamTape** `{num}`\n\n`{filename}`\n"
 
-        # Use aria2c for reliable download
-        cmd = [
-            "aria2c", "--dir=" + Paths.down_path,
-            "--out=" + filename,
-            "--max-connection-per-server=16",
-            "--split=16",
-            "--continue=true",
-            "--summary-interval=0",
-            "--console-log-level=error",
-            url
-        ]
+    # Use aria2c for reliable download (resumable, multi-connection)
+    cmd = [
+        "aria2c",
+        f"--dir={Paths.down_path}",
+        f"--out={filename}",
+        "--max-connection-per-server=16",
+        "--split=16",
+        "--continue=true",
+        "--summary-interval=0",
+        "--console-log-level=error",
+        url,
+    ]
 
-        proc = await __import__('asyncio').create_subprocess_exec(
-            *cmd,
-            stdout=__import__('asyncio').subprocess.PIPE,
-            stderr=__import__('asyncio').subprocess.PIPE
-        )
-        await proc.communicate()
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    await proc.wait()
 
-        if proc.returncode != 0:
-            raise Exception(f"aria2c failed with code {proc.returncode}")
+    if proc.returncode != 0:
+        stderr = await proc.stderr.read()
+        raise Exception(f"aria2c failed with code {proc.returncode}: {stderr.decode()[:200]}")
 
-        logger.info(f"StreamTape: downloaded {filename}")
-
-    except Exception as e:
-        logger.error(f"StreamTape download failed: {e}")
-        raise
+    logger.info(f"StreamTape: downloaded {filename}")
 
 
 def is_streamtape_link(link: str) -> bool:

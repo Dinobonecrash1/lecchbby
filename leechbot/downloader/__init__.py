@@ -20,9 +20,9 @@ from .telegram import TelegramDownload, media_Identifier
 from .ytdl import YTDL_Status, get_YT_Name
 from .terabox import terabox_download
 from .gallery import gallery_download, is_gallery_link, get_gallery_name
-from .gofile import gofile_download, is_gofile
-from .bunkr import bunkr_download, is_bunkr
-from .catbox import catbox_download, is_catbox
+from .gofile import gofile_download, is_gofile_link
+from .bunkr import bunkr_download, is_bunkr_link
+from .catbox import catbox_download, is_catbox_link
 from .streamtape import streamtape_download, is_streamtape_link
 from .manager import downloadManager, calDownSize, get_d_name
 
@@ -45,11 +45,11 @@ __all__ = [
     "is_gallery_link",
     "get_gallery_name",
     "gofile_download",
-    "is_gofile",
+    "is_gofile_link",
     "bunkr_download",
-    "is_bunkr",
+    "is_bunkr_link",
     "catbox_download",
-    "is_catbox",
+    "is_catbox_link",
     "streamtape_download",
     "is_streamtape_link",
     "downloadManager",

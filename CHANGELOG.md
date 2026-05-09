@@ -4,7 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [3.1.13] - 2026-05-10
+## [3.1.14] - 2026-05-10
+
+### Fixed
+- **`__init__.py` broken imports** — `is_gofile`, `is_bunkr`, `is_catbox` imported but functions are actually named `is_gofile_link`, `is_bunkr_link`, `is_catbox_link`. Any code importing from the package would crash with `ImportError`.
+- **aria2c blocks event loop** — `subprocess.Popen` froze the entire bot during downloads. Replaced with `asyncio.create_subprocess_exec`.
+- **aria2c tracker download at import time** — `subprocess.run(["wget", ...])` ran during `import leechbot.downloader.aria2`, blocking module loading. Changed to lazy-load on first download via `_load_trackers()`.
+- **Upload speed/ETA wrong after 1 hour** — `progress_bar()` used `.seconds` (resets at 3600s) instead of `.total_seconds()`. Uploads >1hr showed incorrect speed and ETA.
+- **Upload FloodWait recursion** — `upload_file()` called itself recursively on FloodWait, which could stack overflow on repeated waits. Added max retry depth (10) with `_retry_depth` parameter.
+- **StreamTape `url` undefined** — if no regex matched, `url` was used before assignment. Added explicit `None` check with clear error.
+- **GoFile/Bunkr/Catbox `__import__` hacks** — inline `__import__('datetime')` replaced with proper top-level `from datetime import datetime`.
+- **GoFile no request timeout** — API calls had no timeout, dead server = bot hangs. Added 30s `aiohttp.ClientTimeout`.
+- **Bunkr no request timeout** — added 60s timeout on all HTTP requests.
+- **Catbox no request timeout** — added 300s timeout (catbox files can be large).
+- **Pixeldrain list status timing** — status updated AFTER downloading each file, not BEFORE. Now shows correct current file name during download.
+- **Pixeldrain no request timeout** — added 30s timeout on API calls.
+- **Mediafire no request timeout** — added 60s timeout, deduplicated headers into module-level `_HEADERS`.
+- **`global Transfer, MSG`** — removed useless `global` declaration in `upload_file()`.
+
+### Changed
+- **Dockerfile overhaul**
 
 ### Added
 - **Mega.nz folder support** — folder links (`/folder/...`, `/#F!...`) now download all files recursively with per-file progress tracking and file count in status bar.

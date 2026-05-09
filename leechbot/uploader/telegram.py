@@ -39,7 +39,7 @@ async def progress_bar(current: int, total: int):
         current: bytes uploaded
         total: total bytes
     """
-    elapsed = (datetime.now() - BotTimes.task_start).seconds
+    elapsed = max((datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
 
     if current > 0 and elapsed > 0:
         upload_speed = current / elapsed
@@ -64,7 +64,7 @@ async def progress_bar(current: int, total: int):
 # =============================================================================
 # Main Upload Function
 # =============================================================================
-async def upload_file(file_path: str, real_name: str):
+async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
     """
     Upload file to Telegram.
 
@@ -72,8 +72,6 @@ async def upload_file(file_path: str, real_name: str):
         file_path: path to file
         real_name: original filename
     """
-    global Transfer, MSG
-
     BotTimes.task_start = datetime.now()
 
     # Build styled caption
@@ -149,9 +147,12 @@ async def upload_file(file_path: str, real_name: str):
         Transfer.sent_file_names.append(real_name)
 
     except FloodWait as e:
-        logger.warning(f"Flood wait: waiting {e.value} seconds")
-        await sleep(e.value)
-        await upload_file(file_path, real_name)
+        if _retry_depth >= 10:
+            logger.error(f"FloodWait exceeded max retries for {real_name}")
+            raise
+        logger.warning(f"Flood wait: waiting {e.value} seconds (retry {_retry_depth + 1}/10)")
+        await sleep(e.value + 1)  # +1s safety margin
+        await upload_file(file_path, real_name, _retry_depth=_retry_depth + 1)
 
     except Exception as e:
         logger.error(f"Upload error: {e}")

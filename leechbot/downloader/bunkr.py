@@ -18,44 +18,37 @@ Handles album and single file downloads from Bunkr image/video hosting.
 import re
 import os
 import logging
-import aiohttp
+from datetime import datetime
 from os import path as ospath
+
+import aiohttp
+
 from leechbot.utility.variables import Messages, BotTimes, Paths
 from leechbot.utility.helper import sizeUnit, getTime, status_bar
 
 logger = logging.getLogger(__name__)
 
 BUNKR_DOMAINS = ["bunkr.la", "bunkr.ru", "bunkr.si", "bunkr.is", "bunkr.black"]
+_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+_TIMEOUT = aiohttp.ClientTimeout(total=60)
 
 
 async def _get_page(session, url: str) -> str:
     """Fetch a page and return HTML."""
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
-    async with session.get(url, headers=headers) as resp:
+    async with session.get(url, headers=_HEADERS, timeout=_TIMEOUT) as resp:
         return await resp.text()
 
 
 async def _extract_album_files(html: str) -> list:
     """Extract file URLs from a Bunkr album page."""
-    # Bunkr album pages have file cards with links
-    # Pattern: href="/f/xxxxx" or href="https://bunkr.xx/f/xxxxx"
     file_links = re.findall(r'href=["\']([^"\']*(?:/f/|/v/)[^"\']*)["\']', html)
 
-    # Deduplicate and make absolute
     seen = set()
     result = []
     for link in file_links:
-        if link.startswith("/"):
-            # Will be resolved later with domain
-            if link not in seen:
-                seen.add(link)
-                result.append(link)
-        elif any(d in link for d in BUNKR_DOMAINS):
-            if link not in seen:
-                seen.add(link)
-                result.append(link)
+        if link not in seen:
+            seen.add(link)
+            result.append(link)
 
     return result
 
@@ -64,23 +57,25 @@ async def _get_direct_url(session, page_url: str) -> tuple:
     """Get direct download URL from a Bunkr file page."""
     html = await _get_page(session, page_url)
 
-    # Look for direct download link
-    # Bunkr uses CDN URLs like cdn.bunkr.xx/filename.ext
+    # Method 1: CDN link
     cdn_match = re.findall(r'href=["\']([^"\']*cdn[^"\']*\.\w{2,4})["\']', html)
     if cdn_match:
         url = cdn_match[0]
         filename = url.split("/")[-1].split("?")[0]
         return url, filename
 
-    # Alternative: look for download button
+    # Method 2: Download button
     dl_match = re.findall(r'href=["\']([^"\']*download[^"\']*)["\']', html)
     if dl_match:
         url = dl_match[0]
         filename = url.split("/")[-1].split("?")[0]
         return url, filename
 
-    # Fallback: look for any direct media link
-    media_match = re.findall(r'(https?://[^"\'\s]*\.(?:mp4|mkv|avi|webm|jpg|jpeg|png|gif|webp))', html, re.IGNORECASE)
+    # Method 3: Direct media link
+    media_match = re.findall(
+        r'(https?://[^"\'\s]*\.(?:mp4|mkv|avi|webm|jpg|jpeg|png|gif|webp))',
+        html, re.IGNORECASE
+    )
     if media_match:
         url = media_match[0]
         filename = url.split("/")[-1].split("?")[0]
@@ -91,13 +86,9 @@ async def _get_direct_url(session, page_url: str) -> tuple:
 
 async def _download_file(session, url: str, dest: str, filename: str, file_num: int, total: int):
     """Download a single file with progress."""
-    BotTimes.task_start = __import__('datetime').datetime.now()
+    BotTimes.task_start = datetime.now()
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
-
-    async with session.get(url, headers=headers) as resp:
+    async with session.get(url, headers=_HEADERS, timeout=_TIMEOUT) as resp:
         if resp.status != 200:
             raise Exception(f"HTTP {resp.status}")
 
@@ -116,7 +107,7 @@ async def _download_file(session, url: str, dest: str, filename: str, file_num: 
 
                 if total_size > 0:
                     pct = (downloaded / total_size) * 100
-                    elapsed = max((__import__('datetime').datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
+                    elapsed = max((datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
                     speed = downloaded / elapsed
                     remaining = total_size - downloaded
                     eta = remaining / speed if speed > 0 else 0

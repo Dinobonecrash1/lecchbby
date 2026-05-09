@@ -19,6 +19,7 @@ Includes bandwidth limiting and real-time progress parsing.
 import re
 import os
 import shlex
+import asyncio
 import logging
 import subprocess
 from datetime import datetime
@@ -30,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
-# Tracker Configuration
+# Tracker Configuration (lazy-loaded, not at import time)
 # =============================================================================
 ARIA2_DIR = os.path.expanduser("~/.aria2")
 TRACKER_FILES = [
@@ -38,23 +39,36 @@ TRACKER_FILES = [
     ("all_aria2.txt", "https://cf.trackerslist.com/all_aria2.txt"),
 ]
 
-os.makedirs(ARIA2_DIR, exist_ok=True)
-_trackers = []
+_trackers: list = []
+_trackers_loaded = False
 
-for _fname, _url in TRACKER_FILES:
-    _fpath = os.path.join(ARIA2_DIR, _fname)
-    if not os.path.exists(_fpath):
+
+def _load_trackers():
+    """Load tracker lists from disk or download them. Runs once."""
+    global _trackers, _trackers_loaded
+    if _trackers_loaded:
+        return
+    _trackers_loaded = True
+
+    os.makedirs(ARIA2_DIR, exist_ok=True)
+    for fname, url in TRACKER_FILES:
+        fpath = os.path.join(ARIA2_DIR, fname)
+        if not os.path.exists(fpath):
+            try:
+                subprocess.run(["wget", "-q", "-O", fpath, url], timeout=10)
+            except Exception:
+                pass
         try:
-            subprocess.run(["wget", "-q", "-O", _fpath, _url], timeout=10)
+            with open(fpath, "r") as f:
+                _trackers.append(f.read().replace("\n", ",").strip())
         except Exception:
             pass
-    try:
-        with open(_fpath, "r") as f:
-            _trackers.append(f.read().replace("\n", ",").strip())
-    except Exception:
-        pass
 
-TRACKER_STRING = ",".join(t for t in _trackers if t)
+
+def _get_tracker_string() -> str:
+    """Return comma-separated tracker list."""
+    _load_trackers()
+    return ",".join(t for t in _trackers if t)
 
 
 # =============================================================================
@@ -130,8 +144,9 @@ def _build_command(url: str, headers: list, out: str, bandwidth_limit: str) -> l
             "--summary-interval=1",
             "--console-log-level=notice",
         ]
-        if TRACKER_STRING:
-            command.append(f"--bt-tracker={TRACKER_STRING}")
+        tracker_str = _get_tracker_string()
+        if tracker_str:
+            command.append(f"--bt-tracker={tracker_str}")
     else:
         command += [
             "-x16",
@@ -191,35 +206,35 @@ async def aria2_Download(link: str, num: int):
 
     logger.info(f"Aria2c command: {' '.join(command)}")
 
-    proc = subprocess.Popen(
-        command,
-        bufsize=0,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+    # Launch as async subprocess — does NOT block the event loop
+    proc = await asyncio.create_subprocess_exec(
+        *command,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
     )
 
     # Read output in real-time
     while True:
-        output = proc.stdout.readline()
-        if output == b"" and proc.poll() is not None:
+        raw = await proc.stdout.readline()
+        if not raw:
             break
-        if output:
-            line = output.decode("utf-8", errors="replace").strip()
-            if line:
-                logger.debug(f"Aria2c: {line}")
-                await on_output(line)
+        line = raw.decode("utf-8", errors="replace").strip()
+        if line:
+            logger.debug(f"Aria2c: {line}")
+            await on_output(line)
 
     # Check exit code
-    exit_code = proc.wait()
+    await proc.wait()
 
-    if exit_code != 0:
-        error_output = proc.stderr.read().decode("utf-8", errors="replace").strip()
+    if proc.returncode != 0:
+        stderr_data = await proc.stderr.read()
+        error_output = stderr_data.decode("utf-8", errors="replace").strip()
         error_messages = {
             3: "Resource not found",
             9: "Insufficient disk space",
             24: "HTTP authorization failed",
         }
-        error_msg = error_messages.get(exit_code, f"Aria2c failed with code {exit_code}")
+        error_msg = error_messages.get(proc.returncode, f"Aria2c failed with code {proc.returncode}")
         logger.error(f"{error_msg}: {error_output}")
         raise RuntimeError(error_msg)
 

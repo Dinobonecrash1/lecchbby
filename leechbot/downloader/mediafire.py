@@ -27,6 +27,12 @@ from leechbot.utility.helper import sizeUnit, getTime, speedETA, status_bar
 
 logger = logging.getLogger(__name__)
 
+_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
+_TIMEOUT = aiohttp.ClientTimeout(total=60)
+
 
 async def extract_mediafire_url(link: str) -> tuple:
     """
@@ -38,14 +44,9 @@ async def extract_mediafire_url(link: str) -> tuple:
     Returns:
         tuple: (direct_url, filename, file_size) or (None, None, None) on failure
     """
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                       "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(link, headers=headers) as resp:
+        async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
+            async with session.get(link, headers=_HEADERS) as resp:
                 if resp.status != 200:
                     logger.error(f"Mediafire page fetch failed: HTTP {resp.status}")
                     return None, None, None
@@ -128,13 +129,9 @@ async def mediafire_download(link: str, num: int):
     file_path = ospath.join(Paths.down_path, filename)
     downloaded = 0
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
-
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(direct_url, headers=headers) as resp:
+        async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
+            async with session.get(direct_url, headers=_HEADERS) as resp:
                 if resp.status not in (200, 206):
                     logger.error(f"Mediafire download failed: HTTP {resp.status}")
                     return

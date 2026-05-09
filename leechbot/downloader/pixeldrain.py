@@ -27,6 +27,8 @@ from leechbot.utility.helper import sizeUnit, getTime, speedETA, status_bar
 
 logger = logging.getLogger(__name__)
 
+_TIMEOUT = aiohttp.ClientTimeout(total=30)
+
 
 def parse_pixeldrain_url(link: str):
     """
@@ -75,7 +77,7 @@ async def _download_file(file_id: str, num: int):
     api_url = f"https://pixeldrain.com/api/file/{file_id}"
     info_url = f"https://pixeldrain.com/api/file/{file_id}/info"
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
         # Get file info first
         try:
             async with session.get(info_url) as resp:
@@ -138,7 +140,7 @@ async def _download_list(list_id: str, num: int):
     """Download all files from a Pixeldrain list."""
     info_url = f"https://pixeldrain.com/api/list/{list_id}"
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
         try:
             async with session.get(info_url) as resp:
                 if resp.status != 200:
@@ -160,11 +162,12 @@ async def _download_list(list_id: str, num: int):
         for i, file_info in enumerate(files, 1):
             file_id = file_info.get("id")
             file_name = file_info.get("name", f"file_{i}")
-            await _download_file(file_id, num)
 
-            # Update status for multi-file lists
+            # Update status BEFORE downloading each file
             if total_files > 1:
                 Messages.status_head = (
                     f"**📥 Pixeldrain List** `{i}/{total_files}`\n\n"
                     f"**🏷️ Name:** `{file_name}`\n"
                 )
+
+            await _download_file(file_id, num)

@@ -18,26 +18,31 @@ Supports folders, multi-file downloads, and password-protected content.
 
 import os
 import logging
-import aiohttp
+from datetime import datetime
 from os import path as ospath
+
+import aiohttp
+
 from leechbot.utility.variables import Messages, BotTimes, Paths
 from leechbot.utility.helper import sizeUnit, getTime, status_bar
 
 logger = logging.getLogger(__name__)
 
 GOFILE_API = "https://api.gofile.io"
+_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
 
 async def _api_get(endpoint: str, params: dict = None) -> dict:
     """Make a GET request to GoFile API."""
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
         async with session.get(f"{GOFILE_API}{endpoint}", params=params) as resp:
+            resp.raise_for_status()
             return await resp.json()
 
 
 async def _download_file(url: str, dest: str, filename: str, file_num: int, total: int):
     """Download a single file with progress tracking."""
-    BotTimes.task_start = __import__('datetime').datetime.now()
+    BotTimes.task_start = datetime.now()
 
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as resp:
@@ -59,7 +64,7 @@ async def _download_file(url: str, dest: str, filename: str, file_num: int, tota
 
                     if total_size > 0:
                         pct = (downloaded / total_size) * 100
-                        elapsed = max((__import__('datetime').datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
+                        elapsed = max((datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
                         speed = downloaded / elapsed
                         remaining = total_size - downloaded
                         eta = remaining / speed if speed > 0 else 0

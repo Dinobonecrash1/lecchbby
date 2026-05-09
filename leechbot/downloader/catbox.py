@@ -18,12 +18,18 @@ Litterbox.moe (temporary) file hosting.
 
 import os
 import logging
-import aiohttp
+from datetime import datetime
 from os import path as ospath
+
+import aiohttp
+
 from leechbot.utility.variables import Messages, BotTimes, Paths
 from leechbot.utility.helper import sizeUnit, getTime, status_bar
 
 logger = logging.getLogger(__name__)
+
+_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+_TIMEOUT = aiohttp.ClientTimeout(total=300)  # 5 min — catbox files can be large
 
 
 async def catbox_download(link: str, num: int):
@@ -47,16 +53,11 @@ async def catbox_download(link: str, num: int):
 
     dest = ospath.join(Paths.down_path, filename)
 
-    BotTimes.task_start = __import__('datetime').datetime.now()
-
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-    }
-
+    BotTimes.task_start = datetime.now()
     Messages.status_head = f"**📥 Catbox** `{num}`\n\n`{filename}`\n"
 
-    async with aiohttp.ClientSession() as session:
-        async with session.get(link, headers=headers) as resp:
+    async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
+        async with session.get(link, headers=_HEADERS) as resp:
             if resp.status != 200:
                 raise Exception(f"HTTP {resp.status}")
 
@@ -70,7 +71,7 @@ async def catbox_download(link: str, num: int):
 
                     if total_size > 0:
                         pct = (downloaded / total_size) * 100
-                        elapsed = max((__import__('datetime').datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
+                        elapsed = max((datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
                         speed = downloaded / elapsed
                         remaining = total_size - downloaded
                         eta = remaining / speed if speed > 0 else 0
