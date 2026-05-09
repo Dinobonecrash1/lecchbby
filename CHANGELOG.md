@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.0.5] - 2026-05-09
+
+### Fixed
+- **callbacks.py: Massive refactor** — split monolithic 400-line `handle_callback()` into focused async functions (`_handle_upload_type`, `_handle_video_settings`, `_handle_caption_settings`, `_handle_thumb_settings`, `_handle_delete_thumb`, `_handle_autodelete_menu`, `_handle_photo_mode_menu`, `_handle_ytdl_confirm`, `_handle_do_update`, `_handle_sys_refresh`, `_handle_sys_stats`)
+- **All callbacks now answer properly** — added missing `callback_query.answer()` to every callback path; users no longer see a stuck loading spinner on button press
+- **cancelTask() robustness** — wrapped all operations in individual try/except blocks so a single failure (e.g., status_msg.delete()) doesn't prevent the rest of the cancellation flow from completing
+- **cancelTask() crash on missing src_link** — `Messages.src_link` could be empty if task was cancelled before source log was sent; now conditionally includes the source line
+- **cancelTask() getTime() crash** — was calling `.seconds` on a timedelta which loses hours/days; now uses `int(...total_seconds())` for correct elapsed time
+- **SendLogs() robustness** — wrapped source reply, status edit, and file list send in individual try/except blocks; a failure in one doesn't block the others
+- **SendLogs() index safety** — added bounds check for `Transfer.sent_file_names` access
+- **SendLogs() empty download_name** — falls back to "Unknown" if `Messages.download_name` is empty
+- **callbacks.py redundant import** — removed duplicate `import config` (already imported at module level)
+- **callbacks.py fragile sysinfo parsing** — extracted `_strip_sysinfo()` helper for cleaner text manipulation in sys_refresh/sys_stats callbacks
+- **do_update restart safety** — wrapped `os.execv()` in try/except with user-facing fallback message if auto-restart fails
+- **Unknown callback handling** — added catch-all with `show_alert=True` so users see a proper error for unhandled callback data
+
+### Changed
+- `callbacks.py` — dispatcher now logs callback data at DEBUG level for easier troubleshooting
+- `callbacks.py` — all callback errors caught and shown to user as "❌ Something went wrong" alert instead of silent failure
+- `handler.py` — `cancelTask()` logs reason at INFO level for debugging
+- `handler.py` — `SendLogs()` logs individual failures at ERROR level instead of silently swallowing exceptions
+
+---
+
 ## [3.0.4] - 2026-05-09
 
 ### Fixed

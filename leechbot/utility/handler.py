@@ -276,41 +276,59 @@ async def Unzip_Handler(down_path: str, remove: bool):
 async def cancelTask(reason: str):
     """
     Cancel the current running task.
-    
+
     Args:
         reason: cancellation reason
     """
     from leechbot.utility.variables import BOT, BotTimes, Messages, Paths, MSG
-    text = f"""**🚫 Task Cancelled**
 
-┏🔗 **Source:** [Here]({Messages.src_link})
-┠🎯 **Mode:** `{BOT.Mode.mode.capitalize()}`
-┠⚠️ **Reason:** `{reason}`
-┗⏱️ **Elapsed:** `{getTime((datetime.now() - BotTimes.start_time).seconds)}`"""
-    
+    elapsed = getTime(int((datetime.now() - BotTimes.start_time).total_seconds()))
+    mode_label = BOT.Mode.mode.capitalize() if BOT.Mode.mode else "Unknown"
+
+    src_line = f"┏🔗 **Source:** [Here]({Messages.src_link})\n" if Messages.src_link else ""
+
+    text = (
+        f"**🚫 Task Cancelled**\n\n"
+        f"{src_line}"
+        f"┠🎯 **Mode:** `{mode_label}`\n"
+        f"┠⚠️ **Reason:** `{reason}`\n"
+        f"┗⏱️ **Elapsed:** `{elapsed}`"
+    )
+
     if BOT.State.task_going:
         try:
             BOT.TASK.cancel()
+        except Exception as e:
+            logger.error("Task cancel error: %s", e)
+
+        try:
             shutil.rmtree(Paths.WORK_PATH, ignore_errors=True)
         except Exception as e:
-            logger.error(f"Task cancellation error: {e}")
-        else:
-            logger.info("Task cancelled successfully")
-        finally:
-            BOT.State.task_going = False
+            logger.warning("Cleanup error: %s", e)
+
+        BOT.State.task_going = False
+        logger.info("Task cancelled: %s", reason)
+
+        # Clean up status message
+        try:
             await MSG.status_msg.delete()
+        except Exception:
+            pass
+
+        # Notify user
+        try:
             await app.send_message(
                 chat_id=OWNER,
                 text=text,
-                reply_markup=InlineKeyboardMarkup(
+                reply_markup=InlineKeyboardMarkup([
                     [
-                        [
-                            InlineKeyboardButton("📣 Channel", url="https://t.me/MaximXBots"),
-                            InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
-                        ]
+                        InlineKeyboardButton("📣 Channel", url="https://t.me/MaximXBots"),
+                        InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
                     ]
-                )
+                ]),
             )
+        except Exception as e:
+            logger.error("Failed to send cancel notification: %s", e)
 
 
 # =============================================================================
@@ -319,74 +337,81 @@ async def cancelTask(reason: str):
 async def SendLogs(is_leech: bool):
     """
     Send completion logs and summary.
-    
+
     Args:
         is_leech: whether this was a leech task
     """
     from leechbot.utility.variables import BOT, BotTimes, Messages, MSG, Transfer
-    
-    final_text = f"**📋 File List:** `{len(Transfer.sent_file)}`\n\n**📜 Logs:**\n"
-    
-    if is_leech:
-        file_count = f"┠📋 **Files:** `{len(Transfer.sent_file)}`\n"
-        size = sizeUnit(sum(Transfer.up_bytes))
-    else:
-        file_count = ""
-        size = sizeUnit(Transfer.total_down_size)
-    
-    summary = f"""
 
-**✅ Task Complete**
+    elapsed = getTime(int((datetime.now() - BotTimes.start_time).total_seconds()))
+    file_count_num = len(Transfer.sent_file) if is_leech else 0
+    size = sizeUnit(sum(Transfer.up_bytes)) if is_leech else sizeUnit(Transfer.total_down_size)
 
-┏📛 **Name:** `{Messages.download_name}`
-┠📦 **Size:** `{size}`
-{file_count}
-┠⏱️ **Time:** `{getTime((datetime.now() - BotTimes.start_time).seconds)}`
-┗🤖 **By:** [LeechBot](https://github.com/Shineii86/LeechBot)"""
-    
-    if BOT.State.task_going:
-        await MSG.sent_msg.reply_text(
-            text=f"**🔗 Source:** [Here]({Messages.src_link})" + summary
-        )
-        
+    file_count_line = f"┠📋 **Files:** `{file_count_num}`\n" if is_leech else ""
+
+    summary = (
+        f"\n\n**✅ Task Complete**\n\n"
+        f"┏📛 **Name:** `{Messages.download_name or 'Unknown'}`\n"
+        f"┠📦 **Size:** `{size}`\n"
+        f"{file_count_line}"
+        f"┠⏱️ **Time:** `{elapsed}`\n"
+        f"┗🤖 **By:** [LeechBot](https://github.com/Shineii86/LeechBot)"
+    )
+
+    if not BOT.State.task_going:
+        return
+
+    # Send summary reply
+    try:
+        src_text = f"**🔗 Source:** [Here]({Messages.src_link})" if Messages.src_link else "**🔗 Source:** N/A"
+        await MSG.sent_msg.reply_text(text=src_text + summary)
+    except Exception as e:
+        logger.error("Failed to send source reply: %s", e)
+
+    # Update status message
+    try:
         await MSG.status_msg.edit_text(
             text=Messages.task_msg + summary,
-            reply_markup=InlineKeyboardMarkup(
+            reply_markup=InlineKeyboardMarkup([
                 [
-                    [
-                        InlineKeyboardButton("📣 Channel", url="https://t.me/MaximXBots"),
-                        InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
-                    ],
-                    [
-                        InlineKeyboardButton("📂 GitHub ✨", url="https://github.com/Shineii86/LeechBot"),
-                    ]
+                    InlineKeyboardButton("📣 Channel", url="https://t.me/MaximXBots"),
+                    InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
+                ],
+                [
+                    InlineKeyboardButton("📂 GitHub ✨", url="https://github.com/Shineii86/LeechBot"),
                 ]
-            )
+            ]),
         )
-        
-        # Send file list if leech task
-        if is_leech:
+    except Exception as e:
+        logger.error("Failed to update status message: %s", e)
+
+    # Send file list if leech task
+    if is_leech and Transfer.sent_file:
+        final_text = f"**📋 File List:** `{file_count_num}`\n\n**📜 Logs:**\n"
+        try:
+            final_texts = []
+            for i in range(len(Transfer.sent_file)):
+                file_link = f"https://t.me/c/{Messages.link_p}/{Transfer.sent_file[i].id}"
+                file_name = Transfer.sent_file_names[i] if i < len(Transfer.sent_file_names) else f"File {i+1}"
+                file_text = f"\n({str(i+1).zfill(2)}) [{file_name}]({file_link})"
+
+                if len(final_text + file_text) >= 4096:
+                    final_texts.append(final_text)
+                    final_text = file_text
+                else:
+                    final_text += file_text
+
+            final_texts.append(final_text)
+
+            for fn_txt in final_texts:
+                MSG.status_msg = await MSG.status_msg.reply_text(text=fn_txt)
+
+        except Exception as e:
+            logger.error("File list send error: %s", e)
             try:
-                final_texts = []
-                for i in range(len(Transfer.sent_file)):
-                    file_link = f"https://t.me/c/{Messages.link_p}/{Transfer.sent_file[i].id}"
-                    fileName = Transfer.sent_file_names[i]
-                    fileText = f"\n({str(i+1).zfill(2)}) [{fileName}]({file_link})"
-                    
-                    if len(final_text + fileText) >= 4096:
-                        final_texts.append(final_text)
-                        final_text = fileText
-                    else:
-                        final_text += fileText
-                
-                final_texts.append(final_text)
-                
-                for fn_txt in final_texts:
-                    MSG.status_msg = await MSG.status_msg.reply_text(text=fn_txt)
-            
-            except Exception as e:
-                error_msg = f"**❌ Log Error:** `{e}`"
-                await MSG.status_msg.reply_text(text=error_msg)
-    
+                await MSG.status_msg.reply_text(text=f"**❌ Log Error:** `{e}`")
+            except Exception:
+                pass
+
     BOT.State.started = False
     BOT.State.task_going = False
