@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.4] - 2026-05-10
+
+### Fixed
+- **Colab runtime keeps disconnecting** — merged Deploy + Dashboard Tunnel + Bot Logs into a single cell. One cell runs the entire stack (deploy → bot → tunnel → monitor → keep-alive loop). Colab stays connected because the cell never exits.
+
+### Changed
+- **Simplified notebook to 5 cells** — Google Drive → Deploy (all-in-one) → Update → Health Check. No more separate tunnel/logs cells to run manually.
+
+---
+
 ## [3.1.3] - 2026-05-10
 
 ### Removed
