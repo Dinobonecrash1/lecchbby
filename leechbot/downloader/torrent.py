@@ -25,7 +25,10 @@ import asyncio
 import logging
 from datetime import datetime
 
-import libtorrent as lt
+try:
+    import libtorrent as lt
+except ImportError:
+    lt = None
 
 from leechbot.utility.variables import (
     BOT, Transfer, MSG, Messages, BotTimes,
@@ -45,6 +48,17 @@ RESUME_DIR.mkdir(parents=True, exist_ok=True)
 # =============================================================================
 # Helpers
 # =============================================================================
+def _check_libtorrent():
+    """Raise a clear error if libtorrent is not installed."""
+    if lt is None:
+        raise ImportError(
+            "libtorrent is not installed. Install it via:\n"
+            "  • Debian/Ubuntu: sudo apt install python3-libtorrent\n"
+            "  • Conda:         conda install -c conda-forge libtorrent\n"
+            "  • Arch:          sudo pacman -S libtorrent-rasterbar"
+        )
+
+
 def _get_resume_file(info_hash: str):
     return RESUME_DIR / f"{info_hash}.resume"
 
@@ -125,6 +139,7 @@ def _magnet_name(magnet_uri: str) -> str:
 # =============================================================================
 async def get_torrent_name(link: str) -> str:
     """Resolve human-readable name from magnet/torrent link."""
+    _check_libtorrent()
     if BOT.Options.custom_name:
         return BOT.Options.custom_name
 
@@ -152,6 +167,7 @@ async def torrent_download(link: str, num: int):
         link: magnet URI or .torrent file path
         num: link number for display
     """
+    _check_libtorrent()
     BotTimes.task_start = datetime.now()
 
     # ─── Session setup ───────────────────────────────────────

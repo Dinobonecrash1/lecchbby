@@ -39,8 +39,10 @@ GPUtil>=1.4.0
 natsort>=8.4.0
 pytz>=2024.1
 
-# Torrent/Magnet downloads
-python-libtorrent>=2.0.0
+# Torrent/Magnet downloads (install via system package manager — not on PyPI)
+# Debian/Ubuntu: sudo apt install python3-libtorrent
+# Conda:         conda install -c conda-forge libtorrent
+# The torrent module gracefully skips if libtorrent is unavailable.
 
 # Optional system dependencies (install via package manager):
 #   aria2        — HTTP/FTP/Bittorrent downloader

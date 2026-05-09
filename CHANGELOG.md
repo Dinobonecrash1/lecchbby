@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.12] - 2026-05-10
+
+### Fixed
+- **IndentationError in Colab notebook** — `Setup LeechBot` cell had credential backup/restore code at wrong indentation level inside `if os.path.exists("/content/leechbot"):` block, causing `IndentationError: expected an indented block after 'if'` on line 138. Fixed indentation so backup, cleanup, and clone logic are properly nested.
+- **`python-libtorrent` not on PyPI** — `requirements.txt` listed `python-libtorrent>=2.0.0` which doesn't exist on PyPI, breaking `pip install` in Colab and all deployment platforms. Removed from pip requirements; now documented as a system package install (`apt install python3-libtorrent`, `conda install libtorrent`).
+- **Torrent module crashes on import if libtorrent missing** — `torrent.py` did `import libtorrent as lt` at module level with no guard, causing `ImportError` that could break the entire bot. Added `try/except` import guard with `lt = None` fallback and `_check_libtorrent()` helper that raises a clear install instruction at call time.
+
+---
+
 ## [3.1.11] - 2026-05-10
 
 ### Fixed
