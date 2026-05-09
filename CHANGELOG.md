@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Critical: `helper.py` SyntaxError on startup** — removed unreachable dead code (duplicate `elif is_streamtape()` / `else` block) after a `return` statement in `get_link_type()` that caused Python to refuse loading the module, crashing the entire bot on launch
+- **Colab: Deploy cell blocks Dashboard Tunnel cell** — bot was launched with `get_ipython().system()` which runs as a foreground blocking process; Cell 3 (tunnel) could never execute because Cell 2 never finished. Replaced with `subprocess.Popen` so the bot runs in the background, Cell 2 completes, and the tunnel cell is now reachable
+
+### Added
+- **📋 Bot Logs & Status cell** in `LeechBot.ipynb` — new cell between Tunnel and Update that checks if the bot process is alive (via `pgrep`) and tails the last 50 lines of `bot.log` for quick debugging
 
 ---
 
