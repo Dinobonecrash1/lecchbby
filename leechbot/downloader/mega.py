@@ -28,13 +28,13 @@ logger = logging.getLogger(__name__)
 async def megadl(link: str, num: int):
     """
     Download file from Mega.nz.
-    
+
     Args:
         link: Mega.nz share link
         num: link number for display
     """
     BotTimes.task_start = datetime.now()
-    
+
     try:
         # Build megadl command
         command = [
@@ -43,7 +43,7 @@ async def megadl(link: str, num: int):
             "--path", Paths.down_path,
             link
         ]
-        
+
         # Execute download
         process = subprocess.Popen(
             command,
@@ -51,16 +51,16 @@ async def megadl(link: str, num: int):
             stderr=subprocess.PIPE,
             bufsize=0
         )
-        
+
         # Read output
         while True:
             output = process.stdout.readline()
             if output == b"" and process.poll() is not None:
                 break
-            
+
             if output:
                 await extract_info(output.strip().decode("utf-8"), num)
-    
+
     except Exception as e:
         logger.error(f"Mega download error: {e}")
 
@@ -71,7 +71,7 @@ async def megadl(link: str, num: int):
 async def extract_info(line: str, num: int):
     """
     Extract download progress from megadl output.
-    
+
     Args:
         line: output line
         num: link number
@@ -79,13 +79,13 @@ async def extract_info(line: str, num: int):
     try:
         parts = line.split(": ")
         subparts = parts[1].split() if len(parts) > 1 else []
-        
+
         file_name = "N/A"
         progress = "N/A"
         downloaded_size = "N/A"
         total_size = "N/A"
         speed = "N/A"
-        
+
         if len(subparts) > 10:
             file_name = parts[0]
             Messages.download_name = file_name
@@ -95,9 +95,9 @@ async def extract_info(line: str, num: int):
             downloaded_size = f"{subparts[2]} {subparts[3]}"
             total_size = f"{subparts[7]} {subparts[8]}"
             speed = f"{subparts[9][1:]} {subparts[10][:-1]}"
-        
+
         Messages.status_head = f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n**🏷️ Name:** `{file_name}`\n"
-        
+
         await status_bar(
             Messages.status_head,
             speed,
@@ -107,6 +107,6 @@ async def extract_info(line: str, num: int):
             total_size,
             "Mega 💾"
         )
-    
+
     except Exception as e:
         logger.error(f"Mega progress error: {e}")

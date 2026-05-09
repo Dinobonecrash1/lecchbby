@@ -19,10 +19,9 @@ Supports folders, multi-file downloads, and password-protected content.
 import os
 import logging
 import aiohttp
-from asyncio import sleep
 from os import path as ospath
-from leechbot.utility.variables import BOT, MSG, Messages, BotTimes, Paths
-from leechbot.utility.helper import sizeUnit, getTime, status_bar, sysINFO, keyboard
+from leechbot.utility.variables import Messages, BotTimes, Paths
+from leechbot.utility.helper import sizeUnit, getTime, status_bar
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +128,6 @@ async def gofile_download(link: str, num: int):
     logger.info(f"GoFile: downloaded {total} files")
 
 
-def is_gofile(link: str) -> bool:
+def is_gofile_link(link: str) -> bool:
     """Check if link is a GoFile URL."""
     return "gofile.io" in link.lower()

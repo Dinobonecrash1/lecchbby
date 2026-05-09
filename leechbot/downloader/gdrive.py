@@ -39,7 +39,7 @@ async def build_service():
     Build Google Drive API service from token.
     """
     global Gdrive
-    
+
     if ospath.exists(Paths.access_token):
         with open(Paths.access_token, "rb") as token:
             creds = pickle.load(token)
@@ -75,10 +75,10 @@ async def g_DownLoad(link: str, num: int):
 async def getIDFromURL(link: str) -> str:
     """
     Extract file ID from Google Drive link.
-    
+
     Args:
         link: Google Drive share link
-    
+
     Returns:
         str: file/folder ID
     """
@@ -90,7 +90,7 @@ async def getIDFromURL(link: str) -> str:
             logger.error("G-Drive ID not found")
             return ""
         return res.group(3)
-    
+
     parsed = urlparse(link)
     return parse_qs(parsed.query)["id"][0]
 
@@ -101,16 +101,16 @@ async def getIDFromURL(link: str) -> str:
 def getFilesByFolderID(folder_id: str):
     """
     Get all files in a Google Drive folder.
-    
+
     Args:
         folder_id: folder ID
-    
+
     Returns:
         list: list of file objects
     """
     page_token = None
     files = []
-    
+
     while True:
         response = (
             Gdrive.service.files()
@@ -130,7 +130,7 @@ def getFilesByFolderID(folder_id: str):
         page_token = response.get("nextPageToken")
         if page_token is None:
             break
-    
+
     return files
 
 
@@ -140,10 +140,10 @@ def getFilesByFolderID(folder_id: str):
 def getFileMetadata(file_id: str):
     """
     Get metadata for a file.
-    
+
     Args:
         file_id: file ID
-    
+
     Returns:
         dict: file metadata
     """
@@ -160,10 +160,10 @@ def getFileMetadata(file_id: str):
 def get_Gfolder_size(folder_id: str) -> int:
     """
     Calculate total size of a folder recursively.
-    
+
     Args:
         folder_id: folder ID
-    
+
     Returns:
         int: total size in bytes
     """
@@ -179,24 +179,24 @@ def get_Gfolder_size(folder_id: str) -> int:
             )
             .execute()
         )
-        
+
         total_size = 0
         items = results.get("files", [])
-        
+
         folders = [
             item["id"] for item in items
             if item.get("size") is None and item["mimeType"] == "application/vnd.google-apps.folder"
         ]
-        
+
         for item in items:
             if "size" in item:
                 total_size += int(item["size"])
-        
+
         for fid in folders:
             total_size += get_Gfolder_size(fid)
-        
+
         return total_size
-    
+
     except HttpError as error:
         logger.error(f"Folder size error: {error}")
         return -1
@@ -208,7 +208,7 @@ def get_Gfolder_size(folder_id: str) -> int:
 async def gDownloadFile(file_id: str, path: str):
     """
     Download a single file from Google Drive.
-    
+
     Args:
         file_id: file ID
         path: download path
@@ -220,44 +220,44 @@ async def gDownloadFile(file_id: str, path: str):
         logger.error(err)
         await cancelTask(err)
         return
-    
+
     if file["mimeType"].startswith("application/vnd.google-apps"):
         err = "Google Docs/Sheets/Slides cannot be downloaded directly"
         logger.error(err)
         await cancelTask(err)
         return
-    
+
     try:
         file_name = file.get("name", f"Untitled_{file_id}")
         file_path = ospath.join(path, file_name)
         file_contents = io.BytesIO()
-        
+
         request = Gdrive.service.files().get_media(
             fileId=file_id, supportsAllDrives=True
         )
-        
+
         file_downloader = MediaIoBaseDownload(
             file_contents, request, chunksize=70 * 1024 * 1024
         )
-        
+
         done = False
         while not done:
             status, done = file_downloader.next_chunk()
             file_contents.seek(0)
-            
+
             with open(file_path, "ab") as f:
                 f.write(file_contents.getvalue())
-            
+
             file_contents.seek(0)
             file_contents.truncate()
-            
+
             file_d_size = int(status.progress() * int(file["size"]))
             down_done = sum(Transfer.down_bytes) + file_d_size
-            
+
             speed_string, eta, percentage = speedETA(
                 BotTimes.task_start, down_done, Transfer.total_down_size
             )
-            
+
             await status_bar(
                 down_msg=Messages.status_head,
                 speed=speed_string,
@@ -267,9 +267,9 @@ async def gDownloadFile(file_id: str, path: str):
                 left=sizeUnit(Transfer.total_down_size),
                 engine="GDrive ♻️"
             )
-        
+
         Transfer.down_bytes.append(int(file["size"]))
-    
+
     except HttpError as error:
         if error.resp.status == 403 and "User rate limit" in str(error):
             logger.error("Download quota exceeded")
@@ -277,7 +277,7 @@ async def gDownloadFile(file_id: str, path: str):
         else:
             logger.error(f"GDrive error: {error}")
             await cancelTask(f"GDrive Error: {error}")
-    
+
     except Exception as e:
         logger.error(f"Download error: {e}")
         await cancelTask(f"Download Error: {e}")
@@ -289,35 +289,35 @@ async def gDownloadFile(file_id: str, path: str):
 async def gDownloadFolder(folder_id: str, path: str):
     """
     Download a folder recursively from Google Drive.
-    
+
     Args:
         folder_id: folder ID
         path: download path
     """
     folder_meta = getFileMetadata(folder_id)
     folder_name = folder_meta["name"]
-    
+
     if not ospath.exists(f"{path}/{folder_name}"):
         makedirs(f"{path}/{folder_name}")
-    
+
     path += f"/{folder_name}"
     result = getFilesByFolderID(folder_id)
-    
+
     if not result:
         return
-    
+
     result = natsorted(result, key=lambda k: k["name"])
-    
+
     for item in result:
         file_id = item["id"]
         shortcut = item.get("shortcutDetails")
-        
+
         if shortcut:
             file_id = shortcut["targetId"]
             mime_type = shortcut["targetMimeType"]
         else:
             mime_type = item.get("mimeType")
-        
+
         if mime_type == "application/vnd.google-apps.folder":
             await gDownloadFolder(file_id, path)
         else:

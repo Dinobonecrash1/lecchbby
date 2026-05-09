@@ -42,9 +42,6 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Import handlers to register them with Pyrogram
 # =============================================================================
-import leechbot.commands   # noqa: F401
-import leechbot.callbacks  # noqa: F401
-import leechbot.handlers   # noqa: F401
 
 
 # =============================================================================

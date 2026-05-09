@@ -28,22 +28,22 @@ logger = logging.getLogger(__name__)
 async def terabox_download(link: str, index: int):
     """
     Download file from Terabox.
-    
+
     Args:
         link: Terabox share link
         index: link number
     """
     global Aria2c
-    
+
     payload = {"url": link}
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
         "Accept": "application/json",
     }
-    
+
     fast_url = ""
     slow_url = ""
-    
+
     try:
         async with aiohttp.ClientSession() as session:
             # Get download links
@@ -61,18 +61,18 @@ async def terabox_download(link: str, index: int):
                     logger.error(f"Terabox API error: {e}")
                     await cancelTask(f"Terabox Link Generation Failed: {e}")
                     return
-            
+
             # Try fast download first
             async with session.get(fast_url, allow_redirects=True) as response:
                 content_type = response.headers.get("Content-Type", "")
                 Aria2c.link_info = False
-                
+
                 if "application/octet-stream" in content_type or "video" in content_type:
                     await aria2_Download(fast_url, index)
                 else:
                     logger.info("Fast link unavailable, using slow link")
                     await aria2_Download(slow_url, index)
-    
+
     except Exception as e:
         logger.error(f"Terabox download error: {e}")
         await cancelTask(f"Terabox Download Failed: {e}")

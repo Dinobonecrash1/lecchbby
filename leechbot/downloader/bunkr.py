@@ -20,8 +20,8 @@ import os
 import logging
 import aiohttp
 from os import path as ospath
-from leechbot.utility.variables import MSG, Messages, BotTimes, Paths
-from leechbot.utility.helper import sizeUnit, getTime, status_bar, sysINFO, keyboard
+from leechbot.utility.variables import Messages, BotTimes, Paths
+from leechbot.utility.helper import sizeUnit, getTime, status_bar
 
 logger = logging.getLogger(__name__)
 
@@ -197,7 +197,7 @@ async def bunkr_download(link: str, num: int):
     logger.info(f"Bunkr: download complete")
 
 
-def is_bunkr(link: str) -> bool:
+def is_bunkr_link(link: str) -> bool:
     """Check if link is a Bunkr URL."""
     lower = link.lower()
     return any(d in lower for d in BUNKR_DOMAINS)

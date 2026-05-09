@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.3] - 2026-05-10
+
+### Removed
+- **29 unused imports** across 10 files
+- **250 lines of trailing whitespace** across 8 files
+
+### Fixed
+- **Duplicate function names** — `is_bunkr()`, `is_catbox()`, `is_gofile()` renamed to `is_bunkr_link()`, `is_catbox_link()`, `is_gofile_link()` in downloader modules to avoid collision with link detection helpers
+
+---
+
 ## [3.1.2] - 2026-05-10
 
 ### Fixed

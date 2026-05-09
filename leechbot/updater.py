@@ -15,7 +15,6 @@ Auto-update module.
 Checks GitHub for new versions and updates the bot automatically.
 """
 
-import os
 import logging
 import subprocess
 from pathlib import Path

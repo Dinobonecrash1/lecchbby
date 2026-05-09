@@ -34,19 +34,19 @@ logger = logging.getLogger(__name__)
 async def task_starter(message, text: str):
     """
     Initiate a new task.
-    
+
     Args:
         message: Telegram message object
         text: instruction text to send
-    
+
     Returns:
         message: request message object
     """
     from leechbot.utility.variables import BOT
-    
+
     await message.delete()
     BOT.State.started = True
-    
+
     if not BOT.State.task_going:
         src_request_msg = await message.reply_text(text)
         return src_request_msg
@@ -65,7 +65,7 @@ async def taskScheduler():
     Main task scheduler that orchestrates the entire download/upload workflow.
     """
     from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError
-    
+
     # Determine task type
     is_dualzip = BOT.Mode.type == "undzip"
     is_unzip = BOT.Mode.type == "unzip"
@@ -78,7 +78,7 @@ async def taskScheduler():
     Messages.task_msg = "**🎯 Task Mode:** "
     mode_label = "Gallery" if is_gallery else BOT.Mode.mode.capitalize()
     Messages.dump_task = Messages.task_msg + f"`{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}`\n\n**🔗 Sources:**"
-    
+
     Transfer.sent_file = []
     Transfer.sent_file_names = []
     Transfer.down_bytes = [0, 0]
@@ -86,7 +86,7 @@ async def taskScheduler():
     Messages.download_name = ""
     Messages.task_msg = ""
     Messages.status_head = "**📥 Downloading**\n"
-    
+
     # Handle directory leech
     if is_dir:
         if not ospath.exists(BOT.SOURCE[0]):
@@ -94,14 +94,14 @@ async def taskScheduler():
             TaskError.text = "Directory path does not exist"
             logger.error(TaskError.text)
             return
-        
+
         if not ospath.exists(Paths.temp_dirleech_path):
             makedirs(Paths.temp_dirleech_path)
-        
+
         Messages.dump_task += f"\n\n📁 `{BOT.SOURCE[0]}`"
         Transfer.total_down_size = getSize(BOT.SOURCE[0])
         Messages.download_name = ospath.basename(BOT.SOURCE[0])
-    
+
     else:  # URL list
         for link in BOT.SOURCE:
             if is_telegram(link):
@@ -119,20 +119,20 @@ async def taskScheduler():
                 icon = "💾"
             else:
                 icon = "🔗"
-            
+
             code_link = f"\n\n{icon} `{link}`"
-            
+
             if len(Messages.dump_task + code_link) >= 4096:
                 await MSG.sent_msg.reply_text(Messages.dump_task)
                 Messages.dump_task = code_link
             else:
                 Messages.dump_task += code_link
-    
+
     # Add timestamp
     cdt = datetime.now(pytz.timezone("Asia/Kolkata"))
     dt = cdt.strftime(" %d-%m-%Y")
     Messages.dump_task += f"\n\n**📅 Date:** `{dt}`"
-    
+
     # Create working directories
     if ospath.exists(Paths.WORK_PATH):
         shutil.rmtree(Paths.WORK_PATH, ignore_errors=True)
@@ -140,9 +140,9 @@ async def taskScheduler():
     else:
         makedirs(Paths.WORK_PATH)
         makedirs(Paths.down_path)
-    
+
     Messages.link_p = str(DUMP_ID)[4:]
-    
+
     # Download hero image
     try:
         proc = await asyncio.create_subprocess_exec(
@@ -153,12 +153,12 @@ async def taskScheduler():
         await asyncio.wait_for(proc.wait(), timeout=30)
     except Exception:
         Paths.HERO_IMAGE = Paths.DEFAULT_HERO
-    
+
     # Send task log
     MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task)
     Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
     Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
-    
+
     # Update status message
     await MSG.status_msg.delete()
     img = Paths.THMB_PATH if ospath.exists(Paths.THMB_PATH) else Paths.HERO_IMAGE
@@ -168,24 +168,24 @@ async def taskScheduler():
         caption=Messages.task_msg + Messages.status_head + "\n📝 Initializing..." + sysINFO(),
         reply_markup=keyboard()
     )
-    
+
     # Calculate download size
     await calDownSize(BOT.SOURCE)
-    
+
     # Get download name
     if not is_dir:
         await get_d_name(BOT.SOURCE[0])
     else:
         Messages.download_name = ospath.basename(BOT.SOURCE[0])
-    
+
     # Prepare zip path if needed
     if is_zip:
         Paths.down_path = ospath.join(Paths.down_path, Messages.download_name)
         if not ospath.exists(Paths.down_path):
             makedirs(Paths.down_path)
-    
+
     BotTimes.current_time = time()
-    
+
     # Execute task
     if BOT.Mode.mode != "mirror":
         await Do_Leech(BOT.SOURCE, is_dir, BOT.Mode.ytdl, is_zip, is_unzip, is_dualzip)
@@ -199,7 +199,7 @@ async def taskScheduler():
 async def Do_Leech(source, is_dir: bool, is_ytdl: bool, is_zip: bool, is_unzip: bool, is_dualzip: bool):
     """
     Execute leech task.
-    
+
     Args:
         source: list of sources
         is_dir: directory leech flag
@@ -215,9 +215,9 @@ async def Do_Leech(source, is_dir: bool, is_ytdl: bool, is_zip: bool, is_unzip: 
                 logger.error("Directory does not exist")
                 await cancelTask("Directory does not exist")
                 return
-            
+
             Paths.down_path = s
-            
+
             if is_zip:
                 await Zip_Handler(Paths.down_path, True, False)
                 await Leech(Paths.temp_zpath, True)
@@ -241,7 +241,7 @@ async def Do_Leech(source, is_dir: bool, is_ytdl: bool, is_zip: bool, is_unzip: 
         await downloadManager(source, is_ytdl)
         Transfer.total_down_size = getSize(Paths.down_path)
         applyCustomName()
-        
+
         if is_zip:
             await Zip_Handler(Paths.down_path, True, True)
             await Leech(Paths.temp_zpath, True)
@@ -254,7 +254,7 @@ async def Do_Leech(source, is_dir: bool, is_ytdl: bool, is_zip: bool, is_unzip: 
             await Leech(Paths.temp_zpath, True)
         else:
             await Leech(Paths.down_path, True)
-    
+
     await SendLogs(True)
 
 
@@ -264,7 +264,7 @@ async def Do_Leech(source, is_dir: bool, is_ytdl: bool, is_zip: bool, is_unzip: 
 async def Do_Mirror(source, is_ytdl: bool, is_zip: bool, is_unzip: bool, is_dualzip: bool):
     """
     Execute mirror task (upload to Google Drive).
-    
+
     Args:
         source: list of sources
         is_ytdl: YT-DLP mode flag
@@ -276,14 +276,14 @@ async def Do_Mirror(source, is_ytdl: bool, is_zip: bool, is_unzip: bool, is_dual
     if not ospath.exists(Paths.MOUNTED_DRIVE):
         await cancelTask("Google Drive is not mounted")
         return
-    
+
     if not ospath.exists(Paths.mirror_dir):
         makedirs(Paths.mirror_dir)
-    
+
     await downloadManager(source, is_ytdl)
     Transfer.total_down_size = getSize(Paths.down_path)
     applyCustomName()
-    
+
     if is_zip:
         await Zip_Handler(Paths.down_path, True, True)
         shutil.copytree(Paths.temp_zpath, Paths.mirror_dir, dirs_exist_ok=True)
@@ -296,5 +296,5 @@ async def Do_Mirror(source, is_ytdl: bool, is_zip: bool, is_unzip: bool, is_dual
         shutil.copytree(Paths.temp_zpath, Paths.mirror_dir, dirs_exist_ok=True)
     else:
         shutil.copytree(Paths.down_path, Paths.mirror_dir, dirs_exist_ok=True)
-    
+
     await SendLogs(False)

@@ -17,12 +17,11 @@ Litterbox.moe (temporary) file hosting.
 """
 
 import os
-import re
 import logging
 import aiohttp
 from os import path as ospath
-from leechbot.utility.variables import MSG, Messages, BotTimes, Paths
-from leechbot.utility.helper import sizeUnit, getTime, status_bar, sysINFO, keyboard
+from leechbot.utility.variables import Messages, BotTimes, Paths
+from leechbot.utility.helper import sizeUnit, getTime, status_bar
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +88,7 @@ async def catbox_download(link: str, num: int):
     logger.info(f"Catbox: downloaded {filename} ({sizeUnit(downloaded)})")
 
 
-def is_catbox(link: str) -> bool:
+def is_catbox_link(link: str) -> bool:
     """Check if link is a Catbox/Litterbox URL."""
     lower = link.lower()
     return "catbox.moe" in lower or "litterbox.moe" in lower

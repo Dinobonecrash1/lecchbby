@@ -36,38 +36,38 @@ logger = logging.getLogger(__name__)
 async def Leech(folder_path: str, remove: bool):
     """
     Main leech function to process and upload files.
-    
+
     Args:
         folder_path: path to folder containing files
         remove: whether to remove files after upload
     """
     from leechbot.utility.variables import BOT, BotTimes, Messages, Paths, Transfer
-    
+
     # Get all files in folder
     files = [str(p) for p in pathlib.Path(folder_path).glob("**/*") if p.is_file()]
-    
+
     # Convert videos if needed
     for f in natsorted(files):
         file_path = ospath.join(folder_path, f)
         if BOT.Options.convert_video and fileType(file_path) == "video":
             file_path = await videoConverter(file_path)
-    
+
     Transfer.total_down_size = getSize(folder_path)
-    
+
     # Refresh file list after possible conversions
     files = [str(p) for p in pathlib.Path(folder_path).glob("**/*") if p.is_file()]
-    
+
     # Separate photos from other files
     photo_files = []
     other_files = []
-    
+
     for f in natsorted(files):
         file_path = ospath.join(folder_path, f)
         if fileType(file_path) == "photo":
             photo_files.append(file_path)
         else:
             other_files.append(file_path)
-    
+
     # Upload photos based on mode setting
     if photo_files:
         if BOT.Setting.photo_mode == "Group":
@@ -101,18 +101,18 @@ async def Leech(folder_path: str, remove: bool):
 
                 if remove and ospath.exists(photo_path):
                     os.remove(photo_path)
-    
+
     # Process remaining files normally
     for file_path in other_files:
         leech_result = await sizeChecker(file_path, remove)
-        
+
         if leech_result:  # File was split
             if ospath.exists(file_path) and remove:
                 os.remove(file_path)
-            
+
             dir_list = natsorted(os.listdir(Paths.temp_zpath))
             count = 1
-            
+
             for dir_path in dir_list:
                 short_path = ospath.join(Paths.temp_zpath, dir_path)
                 file_name = ospath.basename(short_path)
@@ -121,10 +121,10 @@ async def Leech(folder_path: str, remove: bool):
                     os.rename(short_path, new_path)
                 except OSError as e:
                     logger.warning(f"Rename failed: {e}")
-                
+
                 BotTimes.current_time = time()
                 Messages.status_head = f"**📤 Uploading Split** `{count}/{len(dir_list)}`\n\n`{file_name}`\n"
-                
+
                 try:
                     MSG.status_msg = await MSG.status_msg.edit_text(
                         text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
@@ -132,20 +132,20 @@ async def Leech(folder_path: str, remove: bool):
                     )
                 except Exception as e:
                     logger.info(e)
-                
+
                 await upload_file(new_path, file_name)
                 Transfer.up_bytes.append(os.stat(new_path).st_size)
                 count += 1
-            
+
             shutil.rmtree(Paths.temp_zpath, ignore_errors=True)
-        
+
         else:  # Regular file upload
             if not ospath.exists(Paths.temp_files_dir):
                 makedirs(Paths.temp_files_dir)
-            
+
             if not remove:
                 file_path = shutil.copy(file_path, Paths.temp_files_dir)
-            
+
             file_name = ospath.basename(file_path)
             new_path = shortFileName(file_path)
             try:
@@ -153,10 +153,10 @@ async def Leech(folder_path: str, remove: bool):
             except OSError as e:
                 logger.warning(f"Rename failed: {e}")
                 new_path = file_path
-            
+
             BotTimes.current_time = time()
             Messages.status_head = f"**📤 Uploading**\n\n`{file_name}`\n"
-            
+
             try:
                 MSG.status_msg = await MSG.status_msg.edit_text(
                     text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
@@ -164,11 +164,11 @@ async def Leech(folder_path: str, remove: bool):
                 )
             except Exception as e:
                 logger.error(f"Status update error: {e}")
-            
+
             file_size = os.stat(new_path).st_size
             await upload_file(new_path, file_name)
             Transfer.up_bytes.append(file_size)
-            
+
             if remove:
                 if ospath.exists(new_path):
                     os.remove(new_path)
@@ -178,7 +178,7 @@ async def Leech(folder_path: str, remove: bool):
                         os.remove(ospath.join(Paths.temp_files_dir, file))
                     except OSError:
                         pass
-    
+
     # Cleanup
     if remove and ospath.exists(folder_path):
         shutil.rmtree(folder_path, ignore_errors=True)
@@ -194,16 +194,16 @@ async def Leech(folder_path: str, remove: bool):
 async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
     """
     Handle zip compression of files.
-    
+
     Args:
         down_path: path to file/folder to zip
         is_split: whether to split large archives
         remove: whether to remove original files
     """
     from leechbot.utility.variables import BOT, Messages, MSG, Transfer
-    
+
     Messages.status_head = f"**🗜️ Zipping**\n\n`{Messages.download_name}`\n"
-    
+
     try:
         MSG.status_msg = await MSG.status_msg.edit_text(
             text=Messages.task_msg + Messages.status_head + sysINFO(),
@@ -211,18 +211,18 @@ async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
         )
     except Exception as e:
         logger.error(f"Zip handler error: {e}")
-    
+
     logger.info("Starting zip compression...")
     BotTimes.current_time = time()
-    
+
     if not ospath.exists(Paths.temp_zpath):
         makedirs(Paths.temp_zpath)
-    
+
     await archive(down_path, is_split, remove)
     await sleep(2)
-    
+
     Transfer.total_down_size = getSize(Paths.temp_zpath)
-    
+
     if remove and ospath.exists(down_path):
         shutil.rmtree(down_path, ignore_errors=True)
 
@@ -233,30 +233,30 @@ async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
 async def Unzip_Handler(down_path: str, remove: bool):
     """
     Handle extraction of archive files.
-    
+
     Args:
         down_path: path containing archives
         remove: whether to remove archives after extraction
     """
     from leechbot.utility.variables import MSG, Messages
-    
+
     Messages.status_head = f"\n**📂 Extracting**\n\n`{Messages.download_name}`\n"
-    
+
     MSG.status_msg = await MSG.status_msg.edit_text(
         text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
         reply_markup=keyboard()
     )
-    
+
     filenames = [str(p) for p in pathlib.Path(down_path).glob("**/*") if p.is_file()]
-    
+
     for f in natsorted(filenames):
         short_path = ospath.join(down_path, f)
         if not ospath.exists(Paths.temp_unzip_path):
             makedirs(Paths.temp_unzip_path)
-        
+
         filename = ospath.basename(f).lower()
         _, ext = ospath.splitext(filename)
-        
+
         try:
             if ospath.exists(short_path):
                 if ext in [".7z", ".gz", ".zip", ".rar", ".001", ".tar", ".z01"]:
@@ -265,7 +265,7 @@ async def Unzip_Handler(down_path: str, remove: bool):
                     shutil.copy(short_path, Paths.temp_unzip_path)
         except Exception as e:
             logger.error(f"Unzip handler error: {e}")
-    
+
     if remove:
         shutil.rmtree(down_path, ignore_errors=True)
 

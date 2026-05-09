@@ -18,8 +18,6 @@ real-time progress.
 """
 
 import os
-import json
-import time
 import logging
 import asyncio
 from datetime import datetime

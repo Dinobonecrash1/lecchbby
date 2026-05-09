@@ -20,7 +20,7 @@ from datetime import datetime
 from os import path as ospath
 
 from leechbot import app
-from leechbot.utility.variables import Transfer, Paths, Messages, BotTimes
+from leechbot.utility.variables import Transfer, Paths, Messages
 from leechbot.utility.helper import speedETA, getTime, sizeUnit, status_bar
 
 logger = logging.getLogger(__name__)

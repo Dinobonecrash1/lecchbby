@@ -6,12 +6,12 @@
 #@markdown <div align="center">
 #@markdown   <img src="https://user-images.githubusercontent.com/125879861/255391401-371f3a64-732d-4954-ac0f-4f093a6605e1.png" width="600px">
 #@markdown </div>
-#@markdown 
+#@markdown
 #@markdown **✨ Features**: Secrets Support • Auto-Recovery • GPU Optimization • Health Checks
-#@markdown 
+#@markdown
 #@markdown ---
 #@markdown ## 🔐 **Credentials**
-#@markdown 
+#@markdown
 #@markdown | Field | Secret Key Name | Required |
 #@markdown |-------|----------------|----------|
 #@markdown | API_ID | `LEECHBOT_API_ID` | ✅ |
@@ -42,11 +42,9 @@ REPO_BRANCH = "main"  # @param ["main"]
 #  📦 Imports & Setup
 # =============================================================================
 import subprocess, sys, os, json, time, shutil, signal
-from pathlib import Path
-from IPython.display import clear_output, display, HTML, Markdown, Javascript
-from google.colab import auth, drive, files
-import ipywidgets as widgets
-from tqdm.notebook import tqdm, trange
+from IPython.display import clear_output, display, Markdown
+from google.colab import drive
+from tqdm.notebook import tqdm
 import logging
 
 # Configure logging
@@ -62,7 +60,7 @@ logger = logging.getLogger("LeechBot")
 # =============================================================================
 class ColabUI:
     """Enhanced Colab UI with progress tracking."""
-    
+
     @staticmethod
     def banner():
         return """
@@ -90,18 +88,18 @@ class ColabUI:
 def get_credentials():
     """Load credentials from Colab Secrets (preferred) or fallback inputs."""
     creds = {}
-    
+
     # Try Colab Secrets first [[6]]
     try:
         from google.colab import userdata
         secrets_map = {
             'API_ID': 'LEECHBOT_API_ID',
-            'API_HASH': 'LEECHBOT_API_HASH', 
+            'API_HASH': 'LEECHBOT_API_HASH',
             'BOT_TOKEN': 'LEECHBOT_BOT_TOKEN',
             'USER_ID': 'LEECHBOT_USER_ID',
             'DUMP_ID': 'LEECHBOT_DUMP_ID'
         }
-        
+
         for key, secret_name in secrets_map.items():
             try:
                 value = userdata.get(secret_name)
@@ -111,34 +109,34 @@ def get_credentials():
                 creds[key] = None
     except ImportError:
         ColabUI.status("ℹ️", "Colab Secrets not available; using manual inputs", "info")
-    
+
     # Fallback to manual inputs
     fallbacks = {
         'API_ID': API_ID, 'API_HASH': API_HASH, 'BOT_TOKEN': BOT_TOKEN,
         'USER_ID': USER_ID, 'DUMP_ID': DUMP_ID
     }
-    
+
     for key in creds:
         if creds[key] is None:
             creds[key] = fallbacks.get(key)
-    
+
     return creds
 
 def validate_credentials(creds: dict) -> bool:
     """Validate all required credentials are present."""
     required = ['API_ID', 'API_HASH', 'BOT_TOKEN', 'USER_ID', 'DUMP_ID']
     missing = [k for k in required if not creds.get(k)]
-    
+
     if missing:
         ColabUI.status("❌", f"Missing credentials: {', '.join(missing)}", "error")
         return False
-    
+
     # Format DUMP_ID if needed
     dump_str = str(creds['DUMP_ID'])
     if len(dump_str) == 10 and not dump_str.startswith('-100'):
         creds['DUMP_ID'] = int("-100" + dump_str)
         ColabUI.status("🔄", "Auto-formatted DUMP_ID", "info")
-    
+
     return True
 
 # =============================================================================
@@ -171,12 +169,12 @@ def clone_repo(branch: str = "main") -> bool:
     """Clone repository with branch selection."""
     repo_url = f"https://github.com/Shineii86/LeechBot.git"
     target = "/content/leechbot"
-    
+
     # Clean previous install
     if os.path.exists(target):
         shutil.rmtree(target)
         ColabUI.status("🧹", "Cleaned previous installation")
-    
+
     return run_command(
         f"git clone -b {branch} --depth 1 {repo_url} {target}",
         f"📥 Cloning repo (branch: {branch})"
@@ -190,7 +188,7 @@ def install_dependencies() -> bool:
         "🔧 Installing system packages"
     ):
         return False
-    
+
     # Python packages with cache
     return run_command(
         "pip3 install -q --no-cache-dir -r /content/leechbot/requirements.txt",
@@ -200,14 +198,14 @@ def install_dependencies() -> bool:
 def check_gpu() -> dict:
     """Detect and report GPU availability."""
     info = {"available": False, "name": None, "memory": None}
-    
+
     if not USE_GPU:
         ColabUI.status("ℹ️", "GPU usage disabled by user", "info")
         return info
-    
+
     try:
         # Try nvidia-smi first
-        result = subprocess.run("nvidia-smi --query-gpu=name,memory.total --format=csv,noheader", 
+        result = subprocess.run("nvidia-smi --query-gpu=name,memory.total --format=csv,noheader",
                               shell=True, capture_output=True, text=True, check=True)
         lines = result.stdout.strip().split('\n')
         if lines:
@@ -224,10 +222,10 @@ def check_gpu() -> dict:
                 ColabUI.status("🎮", f"GPU acceleration enabled", "success")
         except ImportError:
             pass
-    
+
     if not info["available"]:
         ColabUI.status("ℹ️", "Using CPU fallback (no GPU detected)", "info")
-    
+
     return info
 
 def save_config(creds: dict, path: str = "/content/leechbot/credentials.json"):
@@ -236,7 +234,7 @@ def save_config(creds: dict, path: str = "/content/leechbot/credentials.json"):
     safe_creds = creds.copy()
     if os.environ.get('COLAB_SECRETS_AVAILABLE'):
         safe_creds['BOT_TOKEN'] = "***REDACTED***"
-    
+
     with open(path, 'w') as f:
         json.dump(safe_creds, f, indent=2)
     os.chmod(path, 0o600)  # Restrict permissions
@@ -249,28 +247,28 @@ def deploy():
     """Main deployment orchestration."""
     clear_output(wait=True)
     print(ColabUI.banner())
-    
+
     # Step 1: Load & validate credentials
     ColabUI.status("🔐", "Loading credentials...")
     creds = get_credentials()
     if not validate_credentials(creds):
         ColabUI.status("❌", "Deployment aborted: invalid credentials", "error")
         return
-    
+
     # Step 2: Clone repository
     if not clone_repo(REPO_BRANCH):
         return
-    
+
     # Step 3: Install dependencies
     if not install_dependencies():
         return
-    
+
     # Step 4: Check hardware
     gpu_info = check_gpu()
-    
+
     # Step 5: Save configuration
     save_config(creds)
-    
+
     # Step 6: Mount Drive if requested
     if MOUNT_DRIVE:
         try:
@@ -279,10 +277,10 @@ def deploy():
             ColabUI.status("☁️", "Google Drive mounted", "success")
         except Exception as e:
             ColabUI.status("⚠️", f"Drive mount failed: {e}", "warning")
-    
+
     # Step 7: Final preparation
     ColabUI.status("✨", "Finalizing setup...")
-    
+
     # Clean old sessions
     session_files = [
         "/content/leechbot/my_bot.session",
@@ -291,11 +289,11 @@ def deploy():
     for sf in session_files:
         if os.path.exists(sf):
             os.remove(sf)
-    
+
     # Display completion message
     clear_output(wait=True)
     print(ColabUI.banner())
-    
+
     display(Markdown("""
 ### ✅ **Deployment Successful!** 🎉
 
@@ -310,19 +308,19 @@ def deploy():
 
 > ⚠️ **Keep this tab open** while the bot runs. Use [ngrok](https://ngrok.com) for 24/7 deployment.
 """))
-    
+
     # Step 8: Launch bot
     ColabUI.status("🚀", "Starting LeechBot...", "success")
-    
+
     # Handle graceful shutdown
     def signal_handler(sig, frame):
         ColabUI.status("🛑", "Received shutdown signal, cleaning up...")
         sys.exit(0)
-    
+
     if AUTO_RESTART:
         signal.signal(signal.SIGTERM, signal_handler)
         signal.signal(signal.SIGINT, signal_handler)
-    
+
     # Execute bot
     os.chdir("/content/leechbot")
     get_ipython().system('python3 -m leechbot')

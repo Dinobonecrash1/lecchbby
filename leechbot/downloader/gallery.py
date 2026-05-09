@@ -17,11 +17,9 @@ Pixiv, DeviantArt, ArtStation, Flickr, Reddit, Tumblr, and 100+ other sites.
 """
 
 import os
-import json
 import glob
 import logging
 import asyncio
-import subprocess
 from datetime import datetime
 from asyncio import sleep
 from os import makedirs, path as ospath
