@@ -93,18 +93,62 @@ async def _resolve_peer(peer_id: int, label: str):
 # =============================================================================
 # Startup — resolve peers, install error reporting, enter idle loop
 # =============================================================================
+async def _register_commands():
+    """
+    Register bot commands with Telegram automatically.
+    No need to set these manually via @BotFather.
+    """
+    from pyrogram.types import BotCommand
+
+    commands = [
+        BotCommand("start", "🚀 Start the bot"),
+        BotCommand("help", "📖 Show help & commands"),
+        BotCommand("tupload", "📥 Upload to Telegram"),
+        BotCommand("gdupload", "♻️ Mirror to Google Drive"),
+        BotCommand("drupload", "📁 Upload local directory"),
+        BotCommand("ytupload", "🏮 Download with YT-DLP"),
+        BotCommand("glupload", "📸 Download image galleries"),
+        BotCommand("settings", "⚙️ Bot settings menu"),
+        BotCommand("setname", "✏️ Set custom filename"),
+        BotCommand("zipaswd", "🔐 Set zip password"),
+        BotCommand("unzipaswd", "🔓 Set unzip password"),
+        BotCommand("format", "🎬 Set YT-DLP quality"),
+        BotCommand("speed", "⚡ Set bandwidth limit"),
+        BotCommand("queue", "📋 View download queue"),
+        BotCommand("cancel", "🚫 Cancel current task"),
+        BotCommand("cancel_all", "🗑️ Cancel & clear queue"),
+        BotCommand("stats", "📊 System statistics"),
+        BotCommand("admin", "👥 Manage allowed users"),
+        BotCommand("broadcast", "📢 Broadcast to chats"),
+        BotCommand("cookies", "🍪 YT-DLP auth status"),
+        BotCommand("setcookies", "📤 Upload cookies.txt"),
+        BotCommand("clearcookies", "🗑️ Delete cookies file"),
+        BotCommand("update", "🔄 Check for updates"),
+    ]
+
+    try:
+        await app.set_bot_commands(commands)
+        logger.info("✅ Registered %d bot commands with Telegram", len(commands))
+    except Exception as e:
+        logger.warning("⚠️ Failed to register commands: %s", e)
+
+
 async def startup():
     """
     Runs once after the bot connects to Telegram.
-    1. Resolves DUMP_ID and OWNER_ID peers
-    2. Installs debug/error reporting to Telegram
-    3. Enters idle loop
+    1. Registers bot commands with Telegram
+    2. Resolves DUMP_ID and OWNER_ID peers
+    3. Installs debug/error reporting to Telegram
+    4. Enters idle loop
     """
     from pyrogram import idle
     from leechbot.debug import setup_error_reporting
 
     # Start the client first (required before resolve_peer)
     await app.start()
+
+    # Register commands with Telegram (replaces @BotFather setup)
+    await _register_commands()
 
     # Resolve critical peers at startup
     await _resolve_peer(config.DUMP_ID, "DUMP_ID")

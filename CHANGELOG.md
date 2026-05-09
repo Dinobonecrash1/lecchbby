@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.0.7] - 2026-05-09
+
+### Added
+- **Auto-register bot commands with Telegram** — `_register_commands()` in `__main__.py` calls `app.set_bot_commands()` on startup with all 23 bot commands; no need to manually set commands via @BotFather
+- Commands are registered with emoji descriptions (e.g. "📥 Upload to Telegram", "♻️ Mirror to Google Drive")
+
+### Changed
+- **Upgraded all message styles** across the entire bot with consistent box-drawing characters (`┏┣┗` borders, `┏━━━━┓` panels)
+- `WELCOME_TEXT` — replaced `───────` separators with `┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓` panels, bullet lists use `┣┗` tree
+- `/help` menu — complete redesign with `┣┗` tree structure for all command categories
+- `/tupload`, `/gdupload`, `/drupload`, `/ytupload`, `/glupload` — all use bordered instruction panels
+- `/setname`, `/zipaswd`, `/unzipaswd` — usage messages use bordered example panels
+- `/queue` — session stats use `┏━━━━ **Session Stats** ━━━━┓` bordered panel
+- `/broadcast` — usage and completion messages use bordered panels
+- `/admin` — command list uses bordered panel, user list uses `┣` tree
+- `/cookies` — status display uses bordered panel, steps use numbered tree
+- `/setcookies` — instructions use bordered panel with numbered steps
+- `sysINFO()` — replaced `⌬─────` with `┏━━━━ **System Info** ━━━━┓` bordered panel
+- `sysINFO_full()` — same bordered panel upgrade with `┣┗` tree items
+- `_strip_sysinfo()` — handles both old (`⌬─────`) and new (`┏━━━━`) formats for backward compatibility
+- Upload type selection message — bordered panel with descriptions
+- All command responses now use consistent `✓` suffixes on success messages
+
+---
+
 ## [3.0.6] - 2026-05-09
 
 ### Added

@@ -397,11 +397,11 @@ def sysINFO() -> str:
 
         return f"""
 
-⌬───── **System Info** ─────⌬
-
-┏🖥️ **CPU:** `{cpu_usage}%`
-┠💽 **RAM:** `{sizeUnit(ram_usage)}`
-┖💾 **Disk:** `{sizeUnit(disk_usage.free)}` free"""
+┏━━━━ **System Info** ━━━━┓
+`┣` 🖥️ **CPU:** `{cpu_usage}%`
+`┣` 💽 **RAM:** `{sizeUnit(ram_usage)}`
+`┗` 💾 **Disk:** `{sizeUnit(disk_usage.free)}` free
+┗━━━━━━━━━━━━━━━━━━━━━━━━━┛"""
     except Exception:
         return ""
 
@@ -417,19 +417,19 @@ def sysINFO_full() -> str:
         cpu_percent = psutil.cpu_percent(interval=0.5, percpu=True)
         net = psutil.net_io_counters()
 
-        core_str = ", ".join(f"{c}%" for c in cpu_percent[:8])  # Limit to 8 cores display
+        core_str = ", ".join(f"{c}%" for c in cpu_percent[:8])
         if len(cpu_percent) > 8:
             core_str += ", ..."
 
         return f"""
 
-⌬───── **System Info (Detailed)** ─────⌬
-
-┏🖥️ **CPU:** `{psutil.cpu_percent()}%` (cores: {core_str})
-┠💽 **RAM:** `{sizeUnit(ram.used)} / {sizeUnit(ram.total)}` ({ram.percent}%)
-┠💾 **Disk:** `{sizeUnit(disk.used)} / {sizeUnit(disk.total)}` ({disk.percent}%)
-┠🌐 **Net:** ↓`{sizeUnit(net.bytes_recv)}` ↑`{sizeUnit(net.bytes_sent)}`
-┗⏱️ **Uptime:** `{getTime(int(time() - psutil.boot_time()))}`"""
+┏━━━━ **System Info (Detailed)** ━━━━┓
+`┣` 🖥️ **CPU:** `{psutil.cpu_percent()}%` (cores: {core_str})
+`┣` 💽 **RAM:** `{sizeUnit(ram.used)} / {sizeUnit(ram.total)}` ({ram.percent}%)
+`┣` 💾 **Disk:** `{sizeUnit(disk.used)} / {sizeUnit(disk.total)}` ({disk.percent}%)
+`┣` 🌐 **Net:** ↓`{sizeUnit(net.bytes_recv)}` ↑`{sizeUnit(net.bytes_sent)}`
+`┗` ⏱️ **Uptime:** `{getTime(int(time() - psutil.boot_time()))}`
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛"""
     except Exception:
         return sysINFO()
 

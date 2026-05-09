@@ -30,46 +30,42 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Welcome Text
 # =============================================================================
-WELCOME_TEXT = """
-**🤖 Leech Bot** — Advanced Telegram File Transloader
+WELCOME_TEXT = """**🤖 Leech Bot** — Advanced Telegram File Transloader
 
 ◈ **💪 Powerful • 🚀 Fast • 🔰 Secure**
 
-───────────────────────────
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 
 **📥 Download From Anywhere**
-`•` Direct Links, Google Drive, Telegram
-`•` YouTube, Facebook, Instagram & 2000+ sites
-`•` Terabox, Mega, Pixeldrain, Mediafire
+`┣` Direct Links, Google Drive, Telegram
+`┣` YouTube, Facebook, Instagram & 2000+ sites
+`┗` Terabox, Mega, Pixeldrain, Mediafire
 
 **📤 Upload To Premium Destination**
-`•` Telegram (Unlimited Storage)
-`•` Google Drive (Mirror Mode)
-`•` Local Directory Leech
+`┣` Telegram (Unlimited Storage)
+`┣` Google Drive (Mirror Mode)
+`┗` Local Directory Leech
 
 **🛠️ Advance Tools**
-`•` Video Converter (GPU Accelerated)
-`•` Archive Extractor (Zip, Rar, 7z)
-`•` Smart Splitting For Large Files
-`•` Custom Thumbnails & Captions
-`•` Download Queue & Bandwidth Control
+`┣` Video Converter (GPU Accelerated)
+`┣` Archive Extractor (Zip, Rar, 7z)
+`┣` Smart Splitting For Large Files
+`┣` Custom Thumbnails & Captions
+`┗` Download Queue & Bandwidth Control
 
-───────────────────────────
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 **📋 Quick Commands**
 `/tupload` — Upload To Telegram
 `/gdupload` — Mirror To Google Drive
-`/ytupload` — Download With Yt‑Dlp
+`/ytupload` — Download With YT-DLP
 `/glupload` — Download Image Galleries
 `/queue` — View Download Queue
 `/format` — Set YT-DLP Quality
 `/speed` — Set Bandwidth Limit
 `/settings` — Configure Bot Preferences
 
-───────────────────────────
-
-**🧑‍💻 Developer:** [Shinei Nouzen](https://t.me/Shineii86)
-"""
+**🧑‍💻 Developer:** [Shinei Nouzen](https://t.me/Shineii86)"""
 
 
 # =============================================================================
@@ -104,8 +100,9 @@ async def telegram_upload_command(client, message):
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
 
-    text = """
-**⚡ Send Download Link(s)** 🔗
+    text = """**⚡ Send Download Link(s)** 🔗
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 
 📋 **Follow The Pattern Below:**
 
@@ -115,12 +112,13 @@ https://example.com/file2.mp4
 {Zip Password}
 (Unzip Password)</code>
 
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 **💡 Tips:**
-• Multiple Links Supported
-• Use [] For Custom Filename
-• Use {} For Zip Password
-• Use () For Extract Password
-"""
+`┣` Multiple Links Supported
+`┣` Use `[ ]` For Custom Filename
+`┣` Use `{ }` For Zip Password
+`┗` Use `( )` For Extract Password"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -135,8 +133,9 @@ async def gdrive_upload_command(client, message):
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
 
-    text = """
-**⚡ Send Download Link(s)** 🔗
+    text = """**♻️ Send Download Link(s)** 🔗
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 
 📋 **Follow The Pattern Below:**
 
@@ -146,11 +145,12 @@ https://example.com/file2.mp4
 {Zip Password}
 (Unzip Password)</code>
 
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 **💡 Tips:**
-• Multiple Links Supported
-• Files Will Be Mirrored To Your Gdrive
-• Make Sure Gdrive Is Mounted
-"""
+`┣` Multiple Links Supported
+`┣` Files Will Be Mirrored To Your GDrive
+`┗` Make Sure GDrive Is Mounted"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -165,17 +165,19 @@ async def directory_upload_command(client, message):
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
 
-    text = """
-**⚡ Send Folder Path** 📁
+    text = """**📁 Send Folder Path**
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 
 📋 **Example:**
 
 <code>/home/user/Downloads/myfolder</code>
 
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 **💡 Note:**
-• Provide Absolute Path To The Folder
-• Ensure The Bot Has Read Permissions
-"""
+`┣` Provide Absolute Path To The Folder
+`┗` Ensure The Bot Has Read Permissions"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -190,8 +192,9 @@ async def ytdl_upload_command(client, message):
     BOT.Mode.ytdl = True
     BOT.Mode.gallery = False
 
-    text = """
-**⚡ Send Yt-Dlp Link(s)** 🔗
+    text = """**🏮 Send YT-DLP Link(s)** 🔗
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 
 📋 **Follow The Pattern Below:**
 
@@ -200,10 +203,12 @@ https://youtu.be/xxxxx
 [Custom Name.mp4]
 {Zip Password}</code>
 
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 **💡 Supported Sites:**
-• Youtube, Facebook, Instagram
-• Twitter, Tiktok, And More...
-"""
+`┣` YouTube, Facebook, Instagram
+`┣` Twitter, TikTok, Vimeo, Dailymotion
+`┗` And 2000+ more sites"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -218,8 +223,9 @@ async def gallery_upload_command(client, message):
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = True
 
-    text = """
-**📸 Send Gallery Link(s)** 🖼️
+    text = """**📸 Send Gallery Link(s)** 🖼️
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 
 📋 **Follow The Pattern Below:**
 
@@ -230,22 +236,19 @@ https://pixiv.net/users/123456
 [Custom Name]
 {Zip Password}</code>
 
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
 **🖼️ Supported Sites:**
-`•` Instagram (Posts, Profiles, Stories)
-`•` Twitter / X (Timelines, Likes, Bookmarks)
-`•` Pinterest (Boards, Pins)
-`•` Pixiv (Artworks, Users)
-`•` DeviantArt, ArtStation, Flickr
-`•` Reddit, Tumblr, Imgur
-`•` TikTok, Bluesky, Newgrounds
-`•` Danbooru, Gelbooru, Yande.re
-`•` And 100+ more gallery sites
+`┣` Instagram, Twitter / X, Pinterest
+`┣` Pixiv, DeviantArt, ArtStation, Flickr
+`┣` Reddit, Tumblr, Imgur, TikTok
+`┣` Bluesky, Newgrounds, Danbooru
+`┗` And 100+ more gallery sites
 
 **💡 Tips:**
-• Multiple Links Supported
-• Use [] For Custom Folder Name
-• Use {} For Zip Password
-"""
+`┣` Multiple Links Supported
+`┣` Use `[ ]` For Custom Folder Name
+`┗` Use `{ }` For Zip Password"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -269,50 +272,51 @@ async def help_command(client, message):
     """Handle the /help command."""
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-    help_text = """
-**📖 Leechbot Help Menu**
+    help_text = """**📖 LeechBot Help Menu**
 
-**📥 Download Commands:**
-/start — Start The Bot
-/tupload — Upload To Telegram
-/gdupload — Mirror To Google Drive
-/drupload — Upload Local Directory
-/ytupload — Download With Yt-Dlp
-/glupload — Download Image Galleries
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 
-**📋 Queue & Control:**
-/queue — View Download Queue
-/cancel — Cancel Current Task
-/cancel_all — Cancel & Clear Queue
+**📥 Download Commands**
+`┣` `/start` — Start the bot
+`┣` `/tupload` — Upload to Telegram
+`┣` `/gdupload` — Mirror to Google Drive
+`┣` `/drupload` — Upload local directory
+`┣` `/ytupload` — Download with YT-DLP
+`┗` `/glupload` — Download image galleries
 
-**⚙️ Settings:**
-/settings — Bot Settings Menu
-/setname — Set Custom Filename
-/zipaswd — Set Zip Password
-/unzipaswd — Set Unzip Password
-/format — Set YT-DLP Quality
-/speed — Set Bandwidth Limit
+**📋 Queue & Control**
+`┣` `/queue` — View download queue
+`┣` `/cancel` — Cancel current task
+`┗` `/cancel_all` — Cancel & clear queue
 
-**🛠️ Admin:**
-/admin — Manage Allowed Users
-/broadcast — Send File To Multiple Chats
-/stats — System Statistics
-/update — Check For Updates
-/help — Show This Help Message
+**⚙️ Settings**
+`┣` `/settings` — Bot settings menu
+`┣` `/setname` — Set custom filename
+`┣` `/zipaswd` — Set zip password
+`┣` `/unzipaswd` — Set unzip password
+`┣` `/format` — Set YT-DLP quality
+`┗` `/speed` — Set bandwidth limit
 
-**🍪 YT-DLP Auth (auto PO tokens + cookie fallback):**
-/cookies — Check auth status & setup guide
-/setcookies — Upload cookies.txt as fallback
-/clearcookies — Delete stored cookies
+**🛠️ Admin**
+`┣` `/admin` — Manage allowed users
+`┣` `/broadcast` — Send file to multiple chats
+`┣` `/stats` — System statistics
+`┣` `/update` — Check for updates
+`┗` `/help` — Show this help message
 
-**🖼️ Thumbnail:**
-Send Any Image To Set It As Thumbnail
+**🍪 YT-DLP Auth**
+`┣` `/cookies` — Check auth status & setup guide
+`┣` `/setcookies` — Upload cookies.txt as fallback
+`┗` `/clearcookies` — Delete stored cookies
+
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+**🖼️ Thumbnail:** Send any image to set as thumbnail
 
 **💡 Supported Sites:**
 Direct Links, Google Drive, Telegram
 YouTube, Facebook, Instagram & 2000+ sites
-Terabox, Mega, Pixeldrain, Mediafire
-"""
+Terabox, Mega, Pixeldrain, Mediafire"""
 
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("📂 GitHub Repository ✨", url="https://github.com/Shineii86/LeechBot")],
@@ -335,13 +339,17 @@ async def setname_command(client, message):
     """Handle the /setname command."""
     if len(message.command) < 2:
         msg = await message.reply_text(
-            "**⚠️ Usage:**\n`/setname <filename.extension>`\n\n**Example:**\n`/setname myvideo.mp4`",
+            "**⚠️ Usage**\n\n"
+            "┏━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+            "`/setname <filename.extension>`\n"
+            "┗━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "**📝 Example:** `/setname myvideo.mp4`",
             quote=True,
         )
     else:
         BOT.Options.custom_name = " ".join(message.command[1:])
         msg = await message.reply_text(
-            f"**✅ Custom Name Set:**\n`{BOT.Options.custom_name}`",
+            f"**✅ Custom Name Set**\n\n`{BOT.Options.custom_name}`",
             quote=True,
         )
     await message_deleter(message, msg)
@@ -355,12 +363,16 @@ async def zipaswd_command(client, message):
     """Handle the /zipaswd command."""
     if len(message.command) != 2:
         msg = await message.reply_text(
-            "**⚠️ Usage:**\n`/zipaswd <password>`\n\n**Example:**\n`/zipaswd mypassword123`",
+            "**⚠️ Usage**\n\n"
+            "┏━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+            "`/zipaswd <password>`\n"
+            "┗━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "**📝 Example:** `/zipaswd mypassword123`",
             quote=True,
         )
     else:
         BOT.Options.zip_pswd = message.command[1]
-        msg = await message.reply_text("**🔐 Zip Password Set Successfully**", quote=True)
+        msg = await message.reply_text("**🔐 Zip Password Set Successfully** ✓", quote=True)
     await message_deleter(message, msg)
 
 
@@ -372,12 +384,16 @@ async def unzipaswd_command(client, message):
     """Handle the /unzipaswd command."""
     if len(message.command) != 2:
         msg = await message.reply_text(
-            "**⚠️ Usage:**\n`/unzipaswd <password>`\n\n**Example:**\n`/unzipaswd mypassword123`",
+            "**⚠️ Usage**\n\n"
+            "┏━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+            "`/unzipaswd <password>`\n"
+            "┗━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "**📝 Example:** `/unzipaswd mypassword123`",
             quote=True,
         )
     else:
         BOT.Options.unzip_pswd = message.command[1]
-        msg = await message.reply_text("**🔓 Unzip Password Set Successfully**", quote=True)
+        msg = await message.reply_text("**🔓 Unzip Password Set Successfully** ✓", quote=True)
     await message_deleter(message, msg)
 
 
@@ -400,9 +416,9 @@ async def cancel_command(client, message):
     """Handle the /cancel command."""
     if BOT.State.task_going:
         await cancelTask("User cancelled the task")
-        msg = await message.reply_text("**🚫 Task Cancelled**", quote=True)
+        msg = await message.reply_text("**🚫 Task Cancelled** ✓", quote=True)
     else:
-        msg = await message.reply_text("**⚠️ No Active Task To Cancel**", quote=True)
+        msg = await message.reply_text("**ℹ️ No Active Task To Cancel**", quote=True)
     await message_deleter(message, msg)
 
 
@@ -420,8 +436,8 @@ async def queue_command(client, message):
 
     text = "**📋 Download Queue**\n\n"
     if current:
-        text += f"**🔄 Active:** `{current.get('name', 'Unknown')}`\n"
-        text += f"**📦 Links:** `{len(current.get('links', []))}`\n\n"
+        text += f"┏🔄 **Active:** `{current.get('name', 'Unknown')}`\n"
+        text += f"┗📦 **Links:** `{len(current.get('links', []))}`\n\n"
     else:
         text += "**🔄 Active:** `None`\n\n"
 
@@ -432,11 +448,12 @@ async def queue_command(client, message):
     else:
         text += "**📭 Queue is empty**"
 
-    stats_text = "\n\n**📈 Session Stats:**\n"
-    stats_text += f"`•` Completed: `{BotStats.total_tasks}`\n"
-    stats_text += f"`•` Failed: `{BotStats.failed_tasks}`\n"
-    stats_text += f"`•` Downloaded: `{BotStats.total_downloaded}`\n"
-    stats_text += f"`•` Uploaded: `{BotStats.total_uploaded}`"
+    stats_text = "\n\n┏━━━━ **Session Stats** ━━━━┓\n"
+    stats_text += f"`┣` Completed: `{BotStats.total_tasks}`\n"
+    stats_text += f"`┣` Failed: `{BotStats.failed_tasks}`\n"
+    stats_text += f"`┣` Downloaded: `{BotStats.total_downloaded}`\n"
+    stats_text += f"`┗` Uploaded: `{BotStats.total_uploaded}`\n"
+    stats_text += "┗━━━━━━━━━━━━━━━━━━━━━━━━━━┛"
 
     msg = await message.reply_text(text + stats_text, quote=True)
     await message_deleter(message, msg)
@@ -530,7 +547,7 @@ async def broadcast_command(client, message):
 
     if not BOT.State.task_going and not Transfer.sent_file:
         msg = await message.reply_text(
-            "**⚠️ No files to broadcast.**\n\nUpload something first with `/tupload`.",
+            "**ℹ️ No files to broadcast.**\n\nUpload something first with `/tupload`.",
             quote=True,
         )
         await message_deleter(message, msg)
@@ -538,9 +555,11 @@ async def broadcast_command(client, message):
 
     if len(message.command) < 2:
         msg = await message.reply_text(
-            "**📢 Broadcast Usage:**\n\n"
-            "`/broadcast chat_id1, chat_id2, ...`\n\n"
-            "**Example:**\n"
+            "**📢 Broadcast Usage**\n\n"
+            "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
+            "`/broadcast chat_id1, chat_id2, ...`\n"
+            "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n\n"
+            "**📝 Example:**\n"
             "`/broadcast -1001234567890, -1009876543210`\n\n"
             "💡 Send the last uploaded file to multiple chats.",
             quote=True,
@@ -582,9 +601,9 @@ async def broadcast_command(client, message):
 
     await msg.edit_text(
         f"**📢 Broadcast Complete**\n\n"
-        f"✅ Success: `{success}`\n"
-        f"❌ Failed: `{failed}`\n"
-        f"📊 Total: `{len(chat_ids)}`"
+        f"┏✅ **Success:** `{success}`\n"
+        f"┣❌ **Failed:** `{failed}`\n"
+        f"┗📊 **Total:** `{len(chat_ids)}`"
     )
 
 
@@ -598,14 +617,15 @@ async def admin_command(client, message):
         return
 
     if len(message.command) < 2:
-        users_list = "\n".join([f"`•` `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
+        users_list = "\n".join([f"`┣` `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
         msg = await message.reply_text(
             f"**👥 Admin Panel**\n\n"
             f"**Allowed Users:**\n{users_list}\n\n"
-            f"**Commands:**\n"
+            f"┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓\n"
             f"`/admin add <user_id>` — Allow a user\n"
             f"`/admin remove <user_id>` — Deny a user\n"
-            f"`/admin list` — Show allowed users",
+            f"`/admin list` — Show allowed users\n"
+            f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛",
             quote=True,
         )
         await message_deleter(message, msg)
@@ -618,25 +638,25 @@ async def admin_command(client, message):
             new_uid = int(message.command[2])
             if new_uid not in config.ALLOWED_USERS:
                 config.ALLOWED_USERS.append(new_uid)
-                msg = await message.reply_text(f"**✅ User `{new_uid}` added to allowed list.**", quote=True)
+                msg = await message.reply_text(f"**✅ User `{new_uid}` added to allowed list** ✓", quote=True)
             else:
-                msg = await message.reply_text(f"**ℹ️ User `{new_uid}` is already allowed.**", quote=True)
+                msg = await message.reply_text(f"**ℹ️ User `{new_uid}` is already allowed**", quote=True)
         except ValueError:
-            msg = await message.reply_text("**⚠️ Invalid user ID.**", quote=True)
+            msg = await message.reply_text("**⚠️ Invalid user ID**", quote=True)
 
     elif action == "remove" and len(message.command) >= 3:
         try:
             rm_uid = int(message.command[2])
             if rm_uid in config.ALLOWED_USERS:
                 config.ALLOWED_USERS.remove(rm_uid)
-                msg = await message.reply_text(f"**✅ User `{rm_uid}` removed from allowed list.**", quote=True)
+                msg = await message.reply_text(f"**✅ User `{rm_uid}` removed from allowed list** ✓", quote=True)
             else:
-                msg = await message.reply_text(f"**ℹ️ User `{rm_uid}` is not in the allowed list.**", quote=True)
+                msg = await message.reply_text(f"**ℹ️ User `{rm_uid}` is not in the allowed list**", quote=True)
         except ValueError:
-            msg = await message.reply_text("**⚠️ Invalid user ID.**", quote=True)
+            msg = await message.reply_text("**⚠️ Invalid user ID**", quote=True)
 
     elif action == "list":
-        users_list = "\n".join([f"`•` `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
+        users_list = "\n".join([f"`┣` `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
         msg = await message.reply_text(f"**👥 Allowed Users:**\n{users_list}", quote=True)
 
     else:
@@ -694,17 +714,21 @@ async def cookies_command(client, message):
 
     text = f"""**🍪 YT-DLP Authentication Status**
 
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+
 {status}
 
-**How it works:**
-1. **PO Token Plugin** (auto) — generates tokens in the background, no user action needed
-2. **Cookies** (manual fallback) — only needed if PO tokens stop working
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-**If YouTube still fails:**
+**How It Works:**
+`┣` **PO Token Plugin** (auto) — generates tokens in background
+`┗` **Cookies** (manual fallback) — only needed if PO tokens fail
+
+**If YouTube Still Fails:**
 Upload a `cookies.txt` file here as a backup:
-1. Install [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) (Chrome)
-2. Go to `youtube.com` → click extension → **Export**
-3. Send the file here
+`1.` Install [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
+`2.` Go to `youtube.com` → click extension → **Export**
+`3.` Send the file here
 
 📖 [PO Token Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide)"""
 
@@ -725,18 +749,20 @@ async def setcookies_command(client, message):
 
 Send me your `cookies.txt` file **as a document** (not as text).
 
-**How to get it:**
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 
 **Chrome / Edge / Brave:**
-1. Install extension: [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
-2. Go to `https://www.youtube.com` (make sure you're logged in)
-3. Click the extension icon → **Export** → saves `cookies.txt`
-4. Upload that file here
+`1.` Install [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
+`2.` Go to `youtube.com` (make sure you're logged in)
+`3.` Click extension icon → **Export** → saves `cookies.txt`
+`4.` Upload that file here
 
 **Firefox:**
-1. Install extension: [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
-2. Go to `https://www.youtube.com` (logged in)
-3. Click extension → **Export** → upload here
+`1.` Install [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
+`2.` Go to `youtube.com` (logged in)
+`3.` Click extension → **Export** → upload here
+
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
 ⚠️ **Security:** Cookies contain your session tokens. The bot stores them locally and never shares them. Delete with `/clearcookies` if needed."""
 

@@ -135,8 +135,7 @@ async def handle_callback(client, callback_query):
 
         elif data == "toggle_autodelete":
             BOT.Setting.auto_delete = not BOT.Setting.auto_delete
-            callback_query.data = "autodelete"
-            await handle_callback(client, callback_query)
+            await _handle_autodelete_menu(client, callback_query)
             await callback_query.answer(f"Auto-delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}")
 
         elif data == "set_autodelete_delay":
@@ -405,21 +404,22 @@ async def _handle_photo_mode_menu(client, callback_query):
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
     current = BOT.Setting.photo_mode
+    group_kwargs = {"callback_data": "photo-group"}
+    single_kwargs = {"callback_data": "photo-single"}
+    if current == "Group":
+        group_kwargs["style"] = "success"
+    else:
+        single_kwargs["style"] = "success"
+
     keyboard = InlineKeyboardMarkup([
-        [
-            InlineKeyboardButton(
-                f"{'✅ ' if current == 'Group' else ''}📦 Group (batch of 10)",
-                callback_data="photo-group",
-                style="success" if current == "Group" else None,
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                f"{'✅ ' if current == 'Single' else ''}📷 Single (one by one)",
-                callback_data="photo-single",
-                style="success" if current == "Single" else None,
-            ),
-        ],
+        [InlineKeyboardButton(
+            f"{'✅ ' if current == 'Group' else ''}📦 Group (batch of 10)",
+            **group_kwargs,
+        )],
+        [InlineKeyboardButton(
+            f"{'✅ ' if current == 'Single' else ''}📷 Single (one by one)",
+            **single_kwargs,
+        )],
         [InlineKeyboardButton("❰ Back", callback_data="back", style="primary")],
     ])
     await callback_query.message.edit_text(
@@ -509,8 +509,12 @@ async def _handle_do_update(client, callback_query):
 # =============================================================================
 def _strip_sysinfo(text: str) -> str:
     """Strip existing system info block from message text."""
-    parts = text.split("⌬─────")
-    return parts[0].rstrip() if len(parts) >= 2 else text
+    # Handle both old (⌬─────) and new (┏━━━━) formats
+    for separator in ("┏━━━━ **System Info", "⌬─────"):
+        parts = text.split(separator)
+        if len(parts) >= 2:
+            return parts[0].rstrip()
+    return text
 
 
 async def _handle_sys_refresh(client, callback_query):
