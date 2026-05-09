@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.15] - 2026-05-10
+
+### Fixed
+- **Colab notebook libtorrent install order** — notebook tried `conda install` first, but Google Colab does not have conda installed, causing `/bin/sh: 1: conda not found` error and setup failure. Reordered to try `apt-get install python3-libtorrent` first (works on Colab), then conda as fallback. This fixes the libtorrent install on Colab without breaking other environments.
+- **Colab runtime disconnects on Deploy cell** — the Deploy cell (cell 3) used a bloated JS keep-alive approach with character-by-character encoding that was too heavy, causing Colab's idle detection to trigger and disconnect the runtime. Simplified the JS keep-alive to a clean compact function and reduced monitor loop overhead. The cell now uses a lean daemon thread + `clear_output` pattern that reliably keeps Colab alive.
+- **Notebook cell count mismatch** — header claimed 5 cells but only had 2 code cells. Updated header to reflect actual 2-cell structure (Setup → Deploy).
+- **Notebook version badge** — updated from 3.1.5 to 3.1.15.
+
+### Changed
+- **Notebook Deploy cell streamlined** — removed redundant imports, consolidated UI helpers, reduced total cell size by ~60% while preserving all functionality (bot launch, keep-alive, auto-restart, status monitoring).
+
+---
+
 ## [3.1.14] - 2026-05-10
 
 ### Added
