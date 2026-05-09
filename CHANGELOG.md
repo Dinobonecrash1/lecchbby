@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file.
 
 ## [3.1.12] - 2026-05-10
 
+### Changed
+- **Dockerfile overhaul** — improved reliability, smaller image, proper signal handling:
+  - Added `python3-libtorrent` via apt — torrent/magnet downloads now work out of the box in Docker
+  - Added `tini` as PID 1 entrypoint — `docker stop` now sends SIGTERM correctly for graceful shutdown instead of hard-killing after 10s timeout
+  - Megatools install: apt-first with source-build fallback (was fragile `||` chain that could leave partial builds)
+  - Added `apt-get clean` before `rm -rf /var/lib/apt/lists/*` for smaller layer size
+  - Added `DEBIAN_FRONTEND=noninteractive` to suppress interactive apt prompts
+  - Added `--start-period=15s` to healthcheck — gives the bot time to start before first probe
+  - Added `LABEL` metadata (maintainer, description, version)
+  - Removed dead `chmod +x main.py` (container runs via `python3 -m leechbot`, not direct execution)
+
 ### Fixed
 - **IndentationError in Colab notebook** — `Setup LeechBot` cell had credential backup/restore code at wrong indentation level inside `if os.path.exists("/content/leechbot"):` block, causing `IndentationError: expected an indented block after 'if'` on line 138. Fixed indentation so backup, cleanup, and clone logic are properly nested.
 - **`python-libtorrent` not on PyPI** — `requirements.txt` listed `python-libtorrent>=2.0.0` which doesn't exist on PyPI, breaking `pip install` in Colab and all deployment platforms. Removed from pip requirements; now documented as a system package install (`apt install python3-libtorrent`, `conda install libtorrent`).
