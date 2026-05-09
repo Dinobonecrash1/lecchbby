@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.0.3] - 2026-05-09
+
+### Fixed
+- **Critical:** `upload_photos_batch()` used wrong parameter name `media_group` for Pyrogram's `reply_media_group()` — changed to `media` (the correct Pyrogram API parameter)
+- **Critical:** Batch photo retry logic used `i -= batch_size` inside a `for` loop which had no effect — refactored to `while` loop with manual index control for proper FloodWait retries
+- **Critical:** Batch-uploaded photos were never cleaned up when `remove=True` — added `os.remove()` cleanup after successful batch upload
+- Missing `Transfer.up_bytes` tracking in batch photo mode — upload progress now accurately reflects batch uploads
+- `upload_photos_batch` was not exported from `leechbot.uploader.__init__` — added to `__all__`
+
+### Changed
+- `upload_photos_batch()` now accepts `remove` parameter to match `upload_file()` cleanup behavior
+- Added `import os` to `telegram.py` for file cleanup support
+
+---
+
 ## [3.0.2] - 2026-05-09
 
 ### Fixed

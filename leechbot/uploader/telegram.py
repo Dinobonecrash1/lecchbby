@@ -13,6 +13,7 @@ Telegram uploader module.
 Handles uploading files to Telegram with progress tracking.
 """
 
+import os
 import logging
 from PIL import Image
 from asyncio import sleep
@@ -158,65 +159,83 @@ async def upload_file(file_path: str, real_name: str):
 # =============================================================================
 # Batch Photo Upload (New) 29-04-2026
 # =============================================================================
-async def upload_photos_batch(photo_paths: list):
+async def upload_photos_batch(photo_paths: list, remove: bool = False):
     """
     Upload multiple photos in batches of 10 using media groups.
-    
+
     Args:
         photo_paths: list of absolute paths to photo files
+        remove: whether to remove files after successful upload
     """
-    global Transfer, MSG, BOT
-    
     if not photo_paths:
         return
-    
+
     total_photos = len(photo_paths)
     batch_size = 10
     processed = 0
-    
-    for i in range(0, total_photos, batch_size):
+    i = 0
+
+    while i < total_photos:
         batch = photo_paths[i:i + batch_size]
         media_group = []
         batch_names = []
-        
+
         for idx, file_path in enumerate(batch):
             real_name = ospath.basename(file_path)
             batch_names.append(real_name)
-            
+
             # Caption only on first photo of each group
             if idx == 0:
                 caption = f"<{BOT.Options.caption}>{BOT.Setting.prefix} {real_name} {BOT.Setting.suffix}</{BOT.Options.caption}>"
             else:
                 caption = None  # No caption for subsequent photos per Telegram API
-            
+
             media_group.append(
                 InputMediaPhoto(
                     media=file_path,
                     caption=caption
                 )
             )
-        
+
         try:
             # Send the media group as reply to current sent_msg
             messages = await MSG.sent_msg.reply_media_group(
-                media_group=media_group,
+                media=media_group,
                 reply_to_message_id=MSG.sent_msg.id
             )
-            
+
             # Update the chaining message to the first of this group
             MSG.sent_msg = messages[0]
-            
+
             # Track sent files
             Transfer.sent_file.extend(messages)
             Transfer.sent_file_names.extend(batch_names)
-            
+
+            # Track upload bytes for progress
+            for file_path in batch:
+                try:
+                    Transfer.up_bytes.append(os.stat(file_path).st_size)
+                except OSError:
+                    pass
+
+            # Clean up uploaded files if requested
+            if remove:
+                for file_path in batch:
+                    try:
+                        if ospath.exists(file_path):
+                            os.remove(file_path)
+                    except OSError as e:
+                        logger.warning(f"Failed to remove {file_path}: {e}")
+
             processed += len(batch)
             logger.info(f"Uploaded photo batch {processed}/{total_photos}")
-            
+            i += batch_size  # Advance to next batch only on success
+
         except FloodWait as e:
             logger.warning(f"Flood wait: waiting {e.value} seconds")
             await sleep(e.value)
-            # Retry the same batch
-            i -= batch_size  # This will retry the current batch on next loop iteration
+            # Do NOT advance i — retry the same batch
+
         except Exception as e:
             logger.error(f"Batch photo upload error: {e}")
+            i += batch_size  # Skip failed batch to avoid infinite loop

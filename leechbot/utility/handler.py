@@ -80,7 +80,7 @@ async def Leech(folder_path: str, remove: bool):
             except Exception as e:
                 logger.error(f"Status update error: {e}")
 
-            await upload_photos_batch(photo_files)
+            await upload_photos_batch(photo_files, remove=remove)
         else:
             # Single mode: upload each photo individually
             for idx, photo_path in enumerate(photo_files, 1):
