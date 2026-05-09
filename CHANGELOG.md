@@ -6,6 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## [3.1.13] - 2026-05-10
 
+### Added
+- **Mega.nz folder support** — folder links (`/folder/...`, `/#F!...`) now download all files recursively with per-file progress tracking and file count in status bar.
+- **Mega.nz link type detection** — auto-detects file vs folder links, shows "Folder 📁" or "Mega 💾" in status bar.
+- **Mega.nz error extraction** — megadl error messages (invalid link, file not found, auth failures) are parsed from output and shown cleanly instead of raw stderr dumps.
+- **Mega.nz recursive file collection** — `_collect_downloaded()` walks the save directory tree to find all files from multi-file/folder downloads.
+- **Mega.nz stderr capture** — errors from stderr are now parsed alongside stdout for complete error reporting.
+
 ### Fixed
 - **Mega.nz downloader blocks event loop** — `mega.py` used synchronous `subprocess.Popen` which froze the entire bot during Mega downloads. Replaced with `asyncio.create_subprocess_exec` for non-blocking async execution.
 - **Mega.nz fragile progress parsing** — hardcoded index positions in megadl output broke on different file names or sizes. Replaced with regex-based parser (`_PROGRESS_RE`) that handles any output format.
