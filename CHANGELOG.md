@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.6] - 2026-05-10
+
+### Fixed
+- **`SyntaxError: no binding for nonlocal` in Deploy cell** — `nonlocal` doesn't work at cell/module level in Colab's IPython kernel. Changed to `global` for `restart_count` and `bot_proc` variables used by the `restart_bot()` inner function.
+
+---
+
 ## [3.1.5] - 2026-05-10
 
 ### Fixed
