@@ -4,6 +4,40 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.5] - 2026-05-10
+
+### Fixed
+- **Colab runtime disconnects despite keep-alive** — Root cause: the monolithic Deploy cell's `while/sleep` loop + single `setInterval` JS hack wasn't reliable against Colab's browser-side idle detection. Complete notebook restructure:
+  - Split monolithic Deployer cell (400 lines) into **3 focused cells**: Setup → Launch → Keep-Alive Monitor
+  - Each cell completes quickly — no long-running blocking code in the setup/launch cells
+  - Keep-Alive Monitor cell runs independently with multi-strategy anti-idle defense
+
+### Added
+- **📡 Keep-Alive Monitor cell** — dedicated cell with 3 anti-idle strategies:
+  - **Strategy 1:** Click runtime connect indicators (main button + shadow DOM)
+  - **Strategy 2:** Simulate DOM activity (scroll, mousemove, keydown events)
+  - **Strategy 3:** Focus/blur cycle to reset idle timer
+  - All strategies run every 30 seconds via JS `setInterval`
+  - Python heartbeat prints status every 15 seconds (timestamp, PID, last log line)
+  - Visual uptime counter confirms the monitor is alive
+- **Auto-restart watchdog** — if the bot process crashes, the monitor automatically restarts it (up to 5 attempts)
+- **🌐 Dashboard Tunnel cell** — extracted from deployer into its own optional cell (ngrok / cloudflared)
+- **📋 Cell Order table** in notebook header — clear guide for which cells to run and in what order
+
+### Changed
+- **Notebook restructured** from 5 cells to 8 cells:
+  1. Header (markdown)
+  2. ♻️ Google Drive Setup
+  3. 📦 Setup LeechBot (clone + install + configure)
+  4. 🚀 Launch Bot (start background process)
+  5. 📡 Keep-Alive Monitor (anti-idle + auto-restart)
+  6. 🌐 Dashboard Tunnel (optional)
+  7. 🔄 Update LeechBot
+  8. 🔍 Health Check
+- Version badge updated to 3.1.5
+
+---
+
 ## [3.1.4] - 2026-05-10
 
 ### Fixed
