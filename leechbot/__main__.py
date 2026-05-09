@@ -97,10 +97,8 @@ async def _register_commands():
     """
     Register bot commands with Telegram automatically.
     No need to set these manually via @BotFather.
-    Compatible with all Pyrogram versions.
     """
     from pyrogram.types import BotCommand
-    from leechbot.utility.compat import safe_set_bot_commands
 
     commands = [
         BotCommand("start", "🚀 Start the bot"),
@@ -128,7 +126,11 @@ async def _register_commands():
         BotCommand("update", "🔄 Check for updates"),
     ]
 
-    await safe_set_bot_commands(app, commands)
+    try:
+        await app.set_bot_commands(commands)
+        logger.info("✅ Registered %d bot commands with Telegram", len(commands))
+    except Exception as e:
+        logger.warning("⚠️ Failed to register commands: %s", e)
 
 
 async def startup():

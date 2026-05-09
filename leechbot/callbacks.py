@@ -32,7 +32,6 @@ from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
-from leechbot.utility.compat import InlineButton  # noqa: E402
 import config
 
 logger = logging.getLogger(__name__)
@@ -144,7 +143,7 @@ async def handle_callback(client, callback_query):
             await callback_query.message.edit_text(
                 "**⏱️ Send the delay in seconds**\n\nReply to this message with a number between 5 and 300.",
                 reply_markup=InlineKeyboardMarkup(
-                    [[InlineButton("❰ Back", callback_data="autodelete", style="primary")]]
+                    [[InlineKeyboardButton("❰ Back", callback_data="autodelete")]]
                 ),
             )
             BOT.State.setting_autodelete_delay = True
@@ -248,7 +247,7 @@ async def _handle_upload_type(client, callback_query, data: str):
         chat_id=OWNER,
         text=f"**🚀 Starting {type_labels.get(data, data)} Upload...**\n\nPlease wait while I prepare your download",
         reply_markup=InlineKeyboardMarkup(
-            [[InlineButton("🚫 Cancel", callback_data="cancel", style="danger")]]
+            [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
         ),
     )
 
@@ -288,7 +287,7 @@ async def _handle_video_settings(client, callback_query):
             InlineKeyboardButton("👍 High Quality", callback_data="q-High"),
             InlineKeyboardButton("Low Quality 👎", callback_data="q-Low"),
         ],
-        [InlineButton("❰ Back", callback_data="back", style="primary")],
+        [InlineKeyboardButton("❰ Back", callback_data="back")],
     ])
 
     await callback_query.message.edit_text(
@@ -320,7 +319,7 @@ async def _handle_caption_settings(client, callback_query):
             InlineKeyboardButton("Underline", callback_data="u-Underlined"),
         ],
         [InlineKeyboardButton("Regular", callback_data="p-Regular")],
-        [InlineButton("❰ Back", callback_data="back", style="primary")],
+        [InlineKeyboardButton("❰ Back", callback_data="back")],
     ])
 
     await callback_query.message.edit_text(
@@ -344,8 +343,8 @@ async def _handle_thumb_settings(client, callback_query):
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
     keyboard = InlineKeyboardMarkup([
-        [InlineButton("🗑️ Delete Thumbnail", callback_data="del-thumb", style="danger")],
-        [InlineButton("❰ Back", callback_data="back", style="primary")],
+        [InlineKeyboardButton("🗑️ Delete Thumbnail", callback_data="del-thumb")],
+        [InlineKeyboardButton("❰ Back", callback_data="back")],
     ])
 
     thmb_status = "✅ Set" if BOT.Setting.thumbnail else "🚫 None"
@@ -378,14 +377,13 @@ async def _handle_autodelete_menu(client, callback_query):
     toggle_style = "success" if BOT.Setting.auto_delete else "danger"
     keyboard = InlineKeyboardMarkup([
         [
-            InlineButton(
+            InlineKeyboardButton(
                 f"✅ Auto-Delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}",
                 callback_data="toggle_autodelete",
-                style=toggle_style,
             )
         ],
         [InlineKeyboardButton("⏱️ Set Delay", callback_data="set_autodelete_delay")],
-        [InlineButton("❰ Back", callback_data="back", style="primary")],
+        [InlineKeyboardButton("❰ Back", callback_data="back")],
     ])
     await callback_query.message.edit_text(
         f"**⏳ Auto-Delete Messages**\n\n"
@@ -405,23 +403,16 @@ async def _handle_photo_mode_menu(client, callback_query):
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
     current = BOT.Setting.photo_mode
-    group_kwargs = {"callback_data": "photo-group"}
-    single_kwargs = {"callback_data": "photo-single"}
-    if current == "Group":
-        group_kwargs["style"] = "success"
-    else:
-        single_kwargs["style"] = "success"
-
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton(
             f"{'✅ ' if current == 'Group' else ''}📦 Group (batch of 10)",
-            **group_kwargs,
+            callback_data="photo-group",
         )],
         [InlineKeyboardButton(
             f"{'✅ ' if current == 'Single' else ''}📷 Single (one by one)",
-            **single_kwargs,
+            callback_data="photo-single",
         )],
-        [InlineButton("❰ Back", callback_data="back", style="primary")],
+        [InlineKeyboardButton("❰ Back", callback_data="back")],
     ])
     await callback_query.message.edit_text(
         f"**📸 Photo Upload Mode**\n\n"
@@ -453,7 +444,7 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
         chat_id=OWNER,
         text="**🚀 Initializing YT-DLP Download...**\n\nPlease wait while I prepare your download",
         reply_markup=InlineKeyboardMarkup(
-            [[InlineButton("🚫 Cancel", callback_data="cancel", style="danger")]]
+            [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
         ),
     )
 

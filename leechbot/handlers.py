@@ -15,7 +15,6 @@ Message handlers for replies, URLs, photos, and text input.
 
 import logging
 from pyrogram import filters
-from leechbot.utility.compat import InlineButton  # noqa: E402
 
 from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, Paths, MSG, BotTimes
@@ -103,7 +102,7 @@ async def handle_url(client, message):
                 chat_id=OWNER,
                 text="**🚀 Initializing Gallery Download...**\n\nPlease Wait While I Prepare Your Download",
                 reply_markup=InlineKeyboardMarkup(
-                    [[InlineButton("🚫 Cancel", callback_data="cancel", style="danger")]]
+                    [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
                 ),
             )
 
@@ -121,7 +120,7 @@ async def handle_url(client, message):
             return
 
         keyboard = InlineKeyboardMarkup([
-            [InlineButton("📄 Regular ✨", callback_data="normal", style="success")],
+            [InlineKeyboardButton("📄 Regular ✨", callback_data="normal")],
             [
                 InlineKeyboardButton("🗜️ Compress", callback_data="zip"),
                 InlineKeyboardButton("Extract 📂", callback_data="unzip"),
