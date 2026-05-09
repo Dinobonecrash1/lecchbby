@@ -123,7 +123,8 @@ async def gofile_download(link: str, num: int):
 
     for idx, file_info in enumerate(file_list, 1):
         filename = file_info.get("name", f"gofile_{idx}")
-        file_url = f"https://{server}.gofile.io/contents/download/{content_id}/{filename}"
+        file_id = file_info.get("id", filename)
+        file_url = f"https://{server}.gofile.io/contents/download/{content_id}/{file_id}"
         dest = ospath.join(Paths.down_path, filename)
 
         os.makedirs(Paths.down_path, exist_ok=True)

@@ -161,7 +161,7 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
 # =============================================================================
 # Batch Photo Upload (New) 29-04-2026
 # =============================================================================
-async def _upload_photo_with_progress(file_path: str, caption: Optional[str], photo_idx: int, total_photos: int, processed: int):
+async def _upload_photo_with_progress(file_path: str, caption: Optional[str], photo_idx: int, total_photos: int, processed: int, _retry_depth: int = 0):
     """
     Upload a single photo with progress tracking and return its file_id.
 
@@ -207,9 +207,12 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
         return file_id
 
     except FloodWait as e:
-        logger.warning(f"Flood wait: waiting {e.value} seconds")
+        if _retry_depth >= 10:
+            logger.error(f"FloodWait max retries (10) reached for photo upload")
+            return None
+        logger.warning(f"Flood wait: waiting {e.value} seconds (retry {_retry_depth + 1}/10)")
         await sleep(e.value)
-        return await _upload_photo_with_progress(file_path, caption, photo_idx, total_photos, processed)
+        return await _upload_photo_with_progress(file_path, caption, photo_idx, total_photos, processed, _retry_depth + 1)
 
     except Exception as e:
         logger.error(f"Photo upload error ({real_name}): {e}")

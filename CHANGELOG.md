@@ -7,16 +7,28 @@ All notable changes to this project will be documented in this file.
 ## [3.1.15] - 2026-05-10
 
 ### Fixed
-- **Colab notebook libtorrent install order** — notebook tried `conda install` first, but Google Colab does not have conda installed, causing `/bin/sh: 1: conda not found` error and setup failure. Reordered to try `apt-get install python3-libtorrent` first (works on Colab), then conda as fallback. This fixes the libtorrent install on Colab without breaking other environments.
-- **Colab runtime disconnects on Deploy cell** — the Deploy cell (cell 3) used a bloated JS keep-alive approach with character-by-character encoding that was too heavy, causing Colab's idle detection to trigger and disconnect the runtime. Simplified the JS keep-alive to a clean compact function and reduced monitor loop overhead. The cell now uses a lean daemon thread + `clear_output` pattern that reliably keeps Colab alive.
+- **Bot completely unresponsive** — `__main__.py` never imported `leechbot.commands`, `leechbot.callbacks`, `leechbot.handlers`. Without these imports, no `@app.on_message()` or `@app.on_callback_query()` decorators registered. Bot started but responded to nothing.
+- **Colab notebook libtorrent install order** — notebook tried `conda install` first, but Google Colab does not have conda installed, causing `/bin/sh: 1: conda not found` error and setup failure. Reordered to try `apt-get install python3-libtorrent` first (works on Colab), then conda as fallback.
+- **Colab runtime disconnects on Deploy cell** — the Deploy cell (cell 3) used a bloated JS keep-alive approach with character-by-character encoding that was too heavy, causing Colab's idle detection to trigger and disconnect the runtime. Simplified the JS keep-alive to a clean compact function and reduced monitor loop overhead.
 - **`info()` NameError in torrent fallback** — `manager.py` called `info()` (a notebook-only UI function) when libtorrent falls back to aria2c, causing `NameError` crash at runtime. Replaced with `logger.warning()`.
 - **Wrong Colab install instruction in `_check_libtorrent()`** — `torrent.py` error message still told Colab users `!conda install -y -c conda-forge libtorrent` (conda doesn't exist on Colab). Fixed to `!apt-get install -y python3-libtorrent`.
 - **Wrong Colab install instruction in FAQ** — `.github/discussions/faq.md` had same conda instruction for Colab. Fixed to apt-get.
-- **Notebook cell count mismatch** — header claimed 5 cells but only had 2 code cells. Updated header to reflect actual 2-cell structure (Setup → Deploy).
-- **Notebook version badge** — updated from 3.1.5 to 3.1.15.
+- **`Transfer.total_down_size` not reset between tasks** — progress bar used stale size from previous task, showing wrong percentage and ETA. Added reset to 0 at task start.
+- **`Paths.down_path` persists across tasks** — class variable mutation caused next task to use stale/wrong download path. Reset to default at task start.
+- **`BotStats` counters never incremented** — `total_tasks`, `total_downloaded`, `total_uploaded` always showed 0. Added increments at task start and completion.
+- **Shell injection risk in `converters.py`** — `subprocess.Popen(cmd, shell=True)` with f-string file paths enabled command injection via crafted filenames. Replaced all 4 instances with list-based args.
+- **`asyncio.get_event_loop()` deprecated** — used in `callbacks.py`, `handlers.py`, `gdrive.py`, `helper.py`, `mega.py`, `debug.py`. Replaced with `asyncio.get_running_loop()` (works in async context, Python 3.12+ safe).
+- **GoFile downloads 404** — URL used `filename` instead of `file_id`. GoFile API requires file ID in the download path.
+- **`_upload_photo_with_progress` infinite recursion on FloodWait** — recursive call with no depth limit could stack overflow on repeated waits. Added max 10 retries.
+- **Dead `_download()` function in `gdrive.py`** — generator function with `yield` never called (incomplete refactoring leftover). Removed.
+- **Duplicate cookie config in `config.py`** — `YTDL_COOKIES_FILE` and `YTDL_BROWSER_COOKIES` defined twice. Second block silently overwrote first. Removed duplicate.
+- **Bare `except:` in notebook** — caught `SystemExit`, `KeyboardInterrupt`, `MemoryError`. Changed all to `except Exception:`.
+- **Unclosed file handles in notebook Deploy cell** — `log_fh` and restart handles leaked. Added tracking list `_open_handles` and cleanup on exit.
+- **`isLink` filter uses `__` parameter** — shadowed Python dunder convention. Changed to `client`.
+- **`MyLogger.debug` inconsistent with `warning`/`error`** — `debug` was instance method while others were `@staticmethod`. Made all `@staticmethod`.
 
 ### Changed
-- **Notebook Deploy cell streamlined** — removed redundant imports, consolidated UI helpers, reduced total cell size by ~60% while preserving all functionality (bot launch, keep-alive, auto-restart, status monitoring).
+- **Notebook Deploy cell streamlined** — removed redundant imports, consolidated UI helpers, reduced total cell size by ~60% while preserving all functionality.
 
 ---
 

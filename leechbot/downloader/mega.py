@@ -254,7 +254,7 @@ async def megadl(link: str, num: int):
                 if is_folder and files_completed > 0:
                     extra = f"{source_label} | {files_completed} files done"
 
-                now = asyncio.get_event_loop().time()
+                now = asyncio.get_running_loop().time()
                 if now - last_update >= 2:  # throttle UI updates
                     await status_bar(
                         Messages.status_head,

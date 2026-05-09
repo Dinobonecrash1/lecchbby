@@ -17,7 +17,7 @@ import logging
 from pyrogram import filters
 
 from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, Paths, MSG, BotTimes
+from leechbot.utility.variables import BOT, Paths, MSG, BotTimes, BotStats
 from leechbot.utility.helper import (
     isLink, setThumbnail, message_deleter, send_settings,
 )
@@ -93,7 +93,7 @@ async def handle_url(client, message):
         # Gallery mode: skip type selection, go straight to download
         if BOT.Mode.gallery:
             from datetime import datetime
-            from asyncio import get_event_loop
+            from asyncio import get_running_loop
             from leechbot.utility.task_manager import taskScheduler
 
             BOT.Mode.type = "normal"
@@ -111,7 +111,8 @@ async def handle_url(client, message):
             BOT.State.started = False
             BotTimes.start_time = datetime.now()
 
-            event_loop = get_event_loop()
+            event_loop = get_running_loop()
+            BotStats.total_tasks += 1
             BOT.TASK = event_loop.create_task(taskScheduler())
             try:
                 await BOT.TASK

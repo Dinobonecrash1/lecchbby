@@ -20,7 +20,7 @@ import os
 import sys
 import logging
 from datetime import datetime
-from asyncio import get_event_loop
+from asyncio import get_running_loop
 
 from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
@@ -249,7 +249,7 @@ async def _handle_upload_type(client, callback_query, data: str):
     BOT.State.started = False
     BotTimes.start_time = datetime.now()
 
-    event_loop = get_event_loop()
+    event_loop = get_running_loop()
     BOT.TASK = event_loop.create_task(taskScheduler())
     try:
         await BOT.TASK
@@ -445,7 +445,7 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
     BOT.State.started = False
     BotTimes.start_time = datetime.now()
 
-    event_loop = get_event_loop()
+    event_loop = get_running_loop()
     BOT.TASK = event_loop.create_task(taskScheduler())
     try:
         await BOT.TASK

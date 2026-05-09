@@ -41,7 +41,12 @@ logger = logging.getLogger(__name__)
 
 # =============================================================================
 # Import handlers to register them with Pyrogram
+# These imports trigger the @app.on_message() and @app.on_callback_query()
+# decorators in each module. Without these, the bot is unresponsive.
 # =============================================================================
+import leechbot.commands
+import leechbot.callbacks
+import leechbot.handlers
 
 
 # =============================================================================

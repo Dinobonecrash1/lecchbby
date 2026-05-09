@@ -76,7 +76,7 @@ class TelegramLogHandler(logging.Handler):
 
     async def start(self):
         """Start the background sender task."""
-        self._loop = asyncio.get_event_loop()
+        self._loop = asyncio.get_running_loop()
         self._running = True
         asyncio.create_task(self._sender())
 
@@ -182,7 +182,7 @@ async def setup_error_reporting(client, dump_id: int, owner_id: int):
     logger.info("✅ Telegram error reporting enabled → %s", dump_id)
 
     # 2. Asyncio exception handler
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     async_handler = AsyncExceptionHandler(client, dump_id)
     loop.set_exception_handler(async_handler.handle)
     logger.info("✅ Asyncio exception handler installed")

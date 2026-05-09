@@ -123,20 +123,6 @@ YTDL_COOKIES_FILE = os.getenv("YTDL_COOKIES_FILE", "")
 YTDL_BROWSER_COOKIES = os.getenv("YTDL_BROWSER_COOKIES", "")
 
 # =============================================================================
-# YT-DLP Cookie Authentication
-# =============================================================================
-# Option 1: Path to a Netscape-format cookies.txt file
-#   Export from your browser using a cookies editor extension.
-#   Set env: YTDL_COOKIES_FILE=/path/to/cookies.txt
-YTDL_COOKIES_FILE = os.getenv("YTDL_COOKIES_FILE", "")
-
-# Option 2: Extract cookies directly from a browser (yt-dlp built-in)
-#   Supported values: brave, chrome, chromium, edge, firefox, opera, safari, vivaldi, whale
-#   The browser must be installed and not running (or use a locked-profile workaround).
-#   Set env: YTDL_BROWSER_COOKIES=chrome
-YTDL_BROWSER_COOKIES = os.getenv("YTDL_BROWSER_COOKIES", "")
-
-# =============================================================================
 # Multi-User Support
 # =============================================================================
 ALLOWED_USERS = [

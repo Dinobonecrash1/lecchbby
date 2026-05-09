@@ -41,7 +41,7 @@ MAX_FOLDER_DEPTH = 50
 # =============================================================================
 async def _run_sync(func, *args, **kwargs):
     """Run a synchronous function in a thread pool to avoid blocking the event loop."""
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(None, partial(func, *args, **kwargs))
 
 
@@ -304,32 +304,8 @@ async def gDownloadFile(file_id: str, path: str):
         file_size = int(file.get("size", 0))
         file_path = ospath.join(path, file_name)
 
-        def _download():
-            file_contents = io.BytesIO()
-            request = Gdrive.service.files().get_media(
-                fileId=file_id, supportsAllDrives=True
-            )
-            downloader = MediaIoBaseDownload(
-                file_contents, request, chunksize=70 * 1024 * 1024
-            )
-
-            done = False
-            while not done:
-                status, done = downloader.next_chunk()
-                file_contents.seek(0)
-                with open(file_path, "ab") as f:
-                    f.write(file_contents.getvalue())
-                file_contents.seek(0)
-                file_contents.truncate()
-
-                # Progress callback
-                if file_size > 0:
-                    progress = status.progress()
-                    downloaded = int(progress * file_size)
-                    yield downloaded, file_size
-
         # Run download in thread pool with progress reporting
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         def _run_download():
             file_contents = io.BytesIO()

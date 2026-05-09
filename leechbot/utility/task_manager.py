@@ -18,13 +18,15 @@ import logging
 import asyncio
 from time import time
 from datetime import datetime
+
+import config
 from asyncio import sleep
 from os import makedirs, path as ospath
 from leechbot import OWNER, app, DUMP_ID
 from leechbot.downloader.manager import calDownSize, get_d_name, downloadManager
 from leechbot.utility.helper import getSize, applyCustomName, keyboard, sysINFO, is_google_drive, is_telegram, is_ytdl_link, is_mega, is_terabox, is_torrent
 from leechbot.utility.handler import Leech, Unzip_Handler, Zip_Handler, SendLogs, cancelTask
-from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Aria2c, Transfer, TaskError
+from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Aria2c, Transfer, TaskError, BotStats
 
 logger = logging.getLogger(__name__)
 
@@ -80,10 +82,13 @@ async def taskScheduler():
     mode_label = "Gallery" if is_gallery else BOT.Mode.mode.capitalize()
     Messages.dump_task = Messages.task_msg + f"`{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}`\n\n**🔗 Sources:**"
 
+    # Reset transfer state
+    Paths.down_path = str(config.DOWNLOADS_PATH)
     Transfer.sent_file = []
     Transfer.sent_file_names = []
     Transfer.down_bytes = [0, 0]
     Transfer.up_bytes = [0, 0]
+    Transfer.total_down_size = 0
     Messages.download_name = ""
     Messages.task_msg = ""
     Messages.status_head = "**📥 Downloading**\n"
@@ -259,6 +264,8 @@ async def Do_Leech(source, is_dir: bool, is_ytdl: bool, is_zip: bool, is_unzip: 
             await Leech(Paths.down_path, True)
 
     await SendLogs(True)
+    BotStats.total_downloaded += Transfer.down_bytes[0]
+    BotStats.total_uploaded += Transfer.up_bytes[0]
 
 
 # =============================================================================
@@ -301,3 +308,4 @@ async def Do_Mirror(source, is_ytdl: bool, is_zip: bool, is_unzip: bool, is_dual
         shutil.copytree(Paths.down_path, Paths.mirror_dir, dirs_exist_ok=True)
 
     await SendLogs(False)
+    BotStats.total_downloaded += Transfer.down_bytes[0]

@@ -86,20 +86,20 @@ async def videoConverter(file: str) -> str:
     gpu_available = len(GPUtil.getAvailable()) > 0
 
     # Quality settings
-    quality = "-preset slow -qp 0" if BOT.Options.convert_quality else "-preset fast"
+    quality = ["-preset", "slow", "-qp", "0"] if BOT.Options.convert_quality else ["-preset", "fast"]
 
-    # Build ffmpeg command
+    # Build ffmpeg command as list to avoid shell injection
     if gpu_available:
-        cmd = f"ffmpeg -y -i '{file}' {quality} -c:v h264_nvenc -c:a copy '{out_file}'"
+        cmd = ["ffmpeg", "-y", "-i", file] + quality + ["-c:v", "h264_nvenc", "-c:a", "copy", out_file]
         core = "GPU"
     else:
-        cmd = f"ffmpeg -y -i '{file}' {quality} -c:v libx264 -c:a copy '{out_file}'"
+        cmd = ["ffmpeg", "-y", "-i", file] + quality + ["-c:v", "libx264", "-c:a", "copy", out_file]
         core = "CPU"
 
     mtext = f"**🎬 Converting Video**\n\n`{ospath.basename(file)}`\n"
 
     # Run ffmpeg
-    proc = subprocess.Popen(cmd, shell=True)
+    proc = subprocess.Popen(cmd)
     counter = 0
 
     while proc.poll() is None:
@@ -207,13 +207,13 @@ async def archive(path: str, is_split: bool, remove: bool):
     Messages.download_name = f"{name}.zip"
     BotTimes.task_start = datetime.now()
 
-    # Build command
+    # Build command as list to avoid shell injection
     if not BOT.Options.zip_pswd:
-        cmd = f'cd "{dir_p}" && zip {recursive} {split} -0 "{Paths.temp_zpath}/{name}.zip" "{p_name}"'
+        cmd = ["bash", "-c", f'cd "{dir_p}" && zip {recursive} {split} -0 "{Paths.temp_zpath}/{name}.zip" "{p_name}"']
     else:
-        cmd = f'7z a -mx=0 -tzip -p{BOT.Options.zip_pswd} {split} "{Paths.temp_zpath}/{name}.zip" {path}'
+        cmd = ["7z", "a", "-mx=0", "-tzip", f"-p{BOT.Options.zip_pswd}"] + split.split() + [f"{Paths.temp_zpath}/{name}.zip", path]
 
-    proc = subprocess.Popen(cmd, shell=True)
+    proc = subprocess.Popen(cmd)
     total_size = getSize(path)
 
     while proc.poll() is None:
@@ -263,19 +263,19 @@ async def extract(zip_filepath: str, remove: bool):
     file_pattern = ""
     real_name = name
 
-    # Determine extraction method
+    # Determine extraction method (use list args to avoid shell injection)
     if ext == ".rar":
         if "part" in name:
-            cmd = f"unrar x -kb -idq {password} '{zip_filepath}' {Paths.temp_unzip_path}"
+            cmd = ["unrar", "x", "-kb", "-idq"] + ([f"-p{BOT.Options.unzip_pswd}"] if BOT.Options.unzip_pswd else []) + [zip_filepath, Paths.temp_unzip_path]
             file_pattern = "rar"
         else:
-            cmd = f"unrar x {password} '{zip_filepath}' {Paths.temp_unzip_path}"
+            cmd = ["unrar", "x"] + ([f"-p{BOT.Options.unzip_pswd}"] if BOT.Options.unzip_pswd else []) + [zip_filepath, Paths.temp_unzip_path]
     elif ext == ".tar":
-        cmd = f"tar -xvf '{zip_filepath}' -C {Paths.temp_unzip_path}"
+        cmd = ["tar", "-xvf", zip_filepath, "-C", Paths.temp_unzip_path]
     elif ext == ".gz":
-        cmd = f"tar -zxvf '{zip_filepath}' -C {Paths.temp_unzip_path}"
+        cmd = ["tar", "-zxvf", zip_filepath, "-C", Paths.temp_unzip_path]
     else:
-        cmd = f"7z x {password} '{zip_filepath}' -o{Paths.temp_unzip_path}"
+        cmd = ["7z", "x"] + ([f"-p{BOT.Options.unzip_pswd}"] if BOT.Options.unzip_pswd else []) + [zip_filepath, f"-o{Paths.temp_unzip_path}"]
         if ext == ".001":
             file_pattern = "7z"
         elif ext == ".z01":
@@ -288,7 +288,7 @@ async def extract(zip_filepath: str, remove: bool):
         real_name, total = multipartArchive(zip_filepath, file_pattern, False)
 
     BotTimes.task_start = datetime.now()
-    proc = subprocess.Popen(cmd, shell=True)
+    proc = subprocess.Popen(cmd)
 
     while proc.poll() is None:
         speed_string, eta, percentage = speedETA(
@@ -395,12 +395,12 @@ async def splitVideo(file_path: str, max_size: int, remove: bool):
     target_bits = max_size * 8 * 1024 * 1024
     duration = int(target_bits / bitrate)
 
-    cmd = f'ffmpeg -i "{file_path}" -c copy -f segment -segment_time {duration} -reset_timestamps 1 "{Paths.temp_zpath}/{just_name}.part%03d{extension}"'
+    cmd = ["ffmpeg", "-i", file_path, "-c", "copy", "-f", "segment", "-segment_time", str(duration), "-reset_timestamps", "1", f"{Paths.temp_zpath}/{just_name}.part%03d{extension}"]
 
     Messages.status_head = f"**✂️ Splitting Video**\n\n`{filename}`\n"
     BotTimes.task_start = datetime.now()
 
-    proc = subprocess.Popen(cmd, shell=True)
+    proc = subprocess.Popen(cmd)
     total_size = getSize(file_path)
 
     while proc.poll() is None:

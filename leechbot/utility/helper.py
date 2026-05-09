@@ -22,7 +22,7 @@ from time import time
 from os import path as ospath
 from datetime import datetime
 from urllib.parse import urlparse
-from asyncio import get_event_loop, sleep
+from asyncio import get_running_loop, sleep
 
 from leechbot import app
 from pyrogram.errors import BadRequest
@@ -51,7 +51,7 @@ MPD_PATTERN = re.compile(r'https?://[^\s<>\"\']+\.mpd[^\s<>\"\']*', re.IGNORECAS
 # =============================================================================
 # Link Validation
 # =============================================================================
-def isLink(_, __, update):
+def isLink(_, client, update):
     """
     Validate if the message contains a valid download link.
 
@@ -409,7 +409,7 @@ async def setThumbnail(message) -> bool:
         if ospath.exists(Paths.THMB_PATH):
             os.remove(Paths.THMB_PATH)
 
-        event_loop = get_event_loop()
+        event_loop = get_running_loop()
         await event_loop.create_task(
             message.download(file_name=Paths.THMB_PATH)
         )

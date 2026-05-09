@@ -137,7 +137,8 @@ async def YTDL_Status(link: str, num: int):
 class MyLogger:
     """Custom logger for yt-dlp that updates the YTDL status object."""
 
-    def debug(self, msg):
+    @staticmethod
+    def debug(msg):
         if "item" in str(msg):
             msgs = msg.split(" ")
             YTDL.header = f"\n⏳ `Getting Info {msgs[-3]} of {msgs[-1]}`"
