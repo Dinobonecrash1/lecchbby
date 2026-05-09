@@ -171,15 +171,25 @@ async def taskScheduler():
     # Update status message
     await MSG.status_msg.delete()
     img = Paths.THMB_PATH if ospath.exists(Paths.THMB_PATH) else Paths.HERO_IMAGE
+    logger.info("Status image: %s (exists: %s)", img, ospath.exists(img) if img else False)
     caption = Messages.task_msg + Messages.status_head + "\n📝 Initializing..." + sysINFO()
 
     if img and ospath.exists(img):
-        MSG.status_msg = await app.send_photo(
-            chat_id=OWNER,
-            photo=img,
-            caption=caption,
-            reply_markup=keyboard()
-        )
+        try:
+            MSG.status_msg = await app.send_photo(
+                chat_id=OWNER,
+                photo=img,
+                caption=caption,
+                reply_markup=keyboard()
+            )
+        except Exception as e:
+            logger.error("send_photo failed: %s — falling back to text", e)
+            MSG.status_msg = await app.send_message(
+                chat_id=OWNER,
+                text=caption,
+                reply_markup=keyboard(),
+                disable_web_page_preview=True
+            )
     else:
         MSG.status_msg = await app.send_message(
             chat_id=OWNER,

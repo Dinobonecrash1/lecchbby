@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - **Link previews in status messages** — added `disable_web_page_preview=True` to all `send_message` calls (task_manager, handlers, callbacks, handler) to prevent unwanted link previews cluttering bot messages.
 - **UserBot freezing after OTP** — `verify_code` and `verify_2fa` didn't check if client was connected before calling `sign_in`/`check_password`. Connection could drop between auth steps. Added reconnection check, 30s timeout wrapper, FloodWait handling, and 1s post-auth delay for Telegram to finalize.
 - **YouTube thumbnail generation failing** — moviepy not installed caused `thumbMaintainer` to return hero image with duration=0. Replaced moviepy with ffmpeg/ffprobe for both duration detection and frame extraction. moviepy now optional in converters.py (graceful fallback).
+- **Hero images silently failing** — `send_photo` could crash without fallback. Added try/except around `send_photo` to fall back to text message with error logging. Added debug logging for image path resolution.
 
 ### Changed
 - **Cleaner status bar** — removed box-drawing clutter from progress messages. Status bar now uses compact inline layout instead of `┏┠┗` borders. System info condensed to single line.
