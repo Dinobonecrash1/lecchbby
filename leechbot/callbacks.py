@@ -14,12 +14,6 @@ All inline keyboard callback query handlers.
 
 Each callback category is handled by a dedicated async function
 for clarity, testability, and maintainability.
-
-Button Color Scheme (Bot API 9.4+):
-  🔴 danger  — Cancel, Delete, Close, destructive actions
-  🟢 success — Confirm, OK, positive/complete actions
-  🔵 primary — Main actions, navigation, settings
-  ⚪ default — Secondary options, informational toggles
 """
 
 import os
@@ -374,7 +368,6 @@ async def _handle_autodelete_menu(client, callback_query):
     """Show auto-delete settings submenu."""
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-    toggle_style = "success" if BOT.Setting.auto_delete else "danger"
     keyboard = InlineKeyboardMarkup([
         [
             InlineKeyboardButton(
