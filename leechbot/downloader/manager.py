@@ -183,8 +183,15 @@ async def downloadManager(sources: list, is_ytdl: bool):
                     await _with_retry(lambda l=link, n=i+1: mediafire_download(l, n), link)
 
                 elif is_torrent(link):
-                    from leechbot.downloader.torrent import torrent_download
-                    await _with_retry(lambda l=link, n=i+1: torrent_download(l, n), link)
+                    try:
+                        from leechbot.downloader.torrent import torrent_download
+                        await _with_retry(lambda l=link, n=i+1: torrent_download(l, n), link)
+                    except ImportError:
+                        # libtorrent not installed — fall back to aria2c
+                        logger.warning("libtorrent not available, falling back to aria2c for torrent/magnet")
+                        info("⚠️ libtorrent not installed — using aria2c fallback")
+                        Aria2c.link_info = False
+                        await _with_retry(lambda l=link, n=i+1: aria2_Download(l, n), link)
 
                 else:
                     # Default: aria2c (HTTP/FTP/torrent)
@@ -274,8 +281,11 @@ async def get_d_name(link: str):
     elif is_hls_stream(link):
         Messages.download_name = await get_YT_Name(link)
     elif is_torrent(link):
-        from leechbot.downloader.torrent import get_torrent_name
-        Messages.download_name = await get_torrent_name(link)
+        try:
+            from leechbot.downloader.torrent import get_torrent_name
+            Messages.download_name = await get_torrent_name(link)
+        except ImportError:
+            Messages.download_name = "Torrent/Magnet (aria2c)"
 
     elif is_mega(link):
         Messages.download_name = "Mega Download"

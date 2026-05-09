@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [3.1.14] - 2026-05-10
 
+### Added
+- **Torrent/magnet aria2c fallback** — if libtorrent isn't installed, magnet and torrent links now fall back to aria2c instead of failing. User sees a warning but download proceeds. This means torrent support works out-of-the-box on every platform, just slower without DHT/peer exchange.
+
 ### Changed
 - **Colab notebook consolidated: 6 cells → 3** — merged Google Drive Setup + Health Check into Setup cell, merged Update into Deploy cell as ACTION dropdown ("Start Bot" / "Update & Restart" / "Stop Bot"). Cleaner flow: Setup → Deploy.
 
