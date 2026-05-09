@@ -11,6 +11,7 @@ Everything you need to set up, configure, and use LeechBot from scratch.
 - [Installation](#-installation)
 - [Configuration](#-configuration)
 - [Running the Bot](#-running-the-bot)
+- [Web Dashboard](#-web-dashboard)
 - [Commands Reference](#-commands-reference)
 - [Settings Menu](#-settings-menu)
 - [Supported Sites](#-supported-sites)
@@ -249,6 +250,97 @@ sudo systemctl enable leechbot
 sudo systemctl start leechbot
 sudo systemctl status leechbot
 sudo journalctl -u leechbot -f
+```
+
+---
+
+## 🌐 Web Dashboard
+
+LeechBot includes a **real-time web dashboard** that runs alongside the bot. Monitor queue, stats, settings, and active tasks from your browser.
+
+### How It Works
+
+```
+Bot (Pyrogram) ←→ Web Server (aiohttp) ←→ Browser Dashboard
+     ↕                    ↕
+  Telegram API        REST + WebSocket
+```
+
+The dashboard starts automatically when the bot starts. You'll see this in the logs:
+
+```
+🌐 Web dashboard running on http://0.0.0.0:8080
+📊 Dashboard URL: http://0.0.0.0:8080/dashboard
+🔑 Dashboard token: xK9f2mNp...
+```
+
+### Access the Dashboard
+
+**On Google Colab:**
+
+1. Start the bot — the dashboard runs on port 8080
+2. Use Colab's built-in URL or set up an ngrok tunnel:
+   ```python
+   # Add this to your Colab notebook after the bot starts
+   !ngrok http 8080
+   ```
+3. Copy the ngrok `https://xxx.ngrok.io` URL
+4. Open it in your browser
+5. Enter the token from the bot logs
+
+**On VPS/Local:**
+
+1. Start the bot
+2. Open `http://your-server-ip:8080` in your browser
+3. Enter the token from the bot logs
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WEB_PORT` | `8080` | Port for the web dashboard |
+| `WEB_TOKEN` | Auto-generated | Auth token for dashboard access |
+
+Set them in your `.env` file or environment:
+
+```bash
+WEB_PORT=8080
+WEB_TOKEN=my_secret_token_here
+```
+
+### Dashboard Features
+
+| Feature | Description |
+|---------|-------------|
+| 🔐 **Login** | Token-based auth (saved in browser localStorage) |
+| 📊 **Status Cards** | Idle/active, total downloads, uploads, task count |
+| 🔄 **Active Task** | Progress bar, speed, ETA, elapsed, current file |
+| 📋 **Queue** | View pending downloads, clear queue |
+| ⚙️ **Settings** | View current bot settings |
+| 💻 **System** | CPU, RAM, disk usage bars |
+| 📁 **Files** | Recent uploaded files list |
+| 🟢 **WebSocket** | Real-time updates every 3 seconds |
+
+### API Endpoints
+
+For advanced users or custom integrations:
+
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/health` | GET | No | Health check |
+| `/api/status` | GET | Yes | Full bot state |
+| `/api/queue` | GET | Yes | Queue details |
+| `/api/stats` | GET | Yes | Statistics + system |
+| `/api/settings` | GET | Yes | Current settings |
+| `/api/cancel` | POST | Yes | Cancel current task |
+| `/api/queue/clear` | POST | Yes | Clear queue |
+| `/ws` | WebSocket | Yes | Real-time updates |
+
+**Auth:** Pass token as `Authorization: Bearer <token>` header or `?token=<token>` query param.
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 ```
 
 ---
