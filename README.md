@@ -40,39 +40,6 @@
 
 ## ✨ What's New in v3
 
-This is a **major rewrite** with focus on **configurability, new download sources, and queue management**.
-
-- 🔧 **`.env` Configuration** — No more hardcoded paths. All settings via environment variables with sensible defaults.
-- 📋 **Download Queue** — Queue multiple links and process them sequentially with `/queue` command.
-- 🎬 **YT-DLP Format Selection** — Choose quality (Best/1080p/720p/480p/Audio) via `/format` command.
-- ⚡ **Bandwidth Limiter** — Set max download speed via `/speed` to avoid saturating your connection.
-- 📂 **Pixeldrain Support** — Download from pixeldrain.com (single files and lists).
-- 🔥 **Mediafire Support** — Download from mediafire.com with automatic direct link extraction.
-- 📢 **Broadcast** — Send uploaded files to multiple chats with `/broadcast`.
-- 👥 **Admin Panel** — Multi-user management with `/admin add|remove|list`.
-- 🔄 **Auto-Retry** — Failed downloads automatically retry up to 3 times.
-- 🎬 **YouTube PO Tokens** — Auto-generated via `bgutil-ytdlp-pot-provider` plugin, no manual cookie setup.
-- 📸 **Photo Upload Mode** — Choose Group (batch of 10) or Single (one by one) via `/settings`.
-- 🐛 **Bug Fixes** — Fixed hardcoded paths, missing imports, uninitialized globals, and more.
-
-### 🔧 v3.0.1 — Codebase Overhaul
-
-- 🏗️ **Modularized `__main__.py`** — Split 1,149-line monolith into focused modules: `commands.py`, `callbacks.py`, `handlers.py`
-- 🐛 **Fixed 9 critical bugs** — Runtime crashes, blocking async calls, incorrect `global` declarations, `moviepy` 2.x compatibility
-- 🔒 **Security** — Expanded `.gitignore` with proper patterns for `.env`, sessions, credentials, IDE files
-- ⚡ **Async fix** — Replaced blocking `os.system()` with `asyncio.create_subprocess_exec()` in task manager
-- 📝 **CHANGELOG.md** — All changes now tracked at the repository root
-
-### 🔧 v3.0.2 — YouTube Fix, Photo Mode & Gallery-dl
-
-- 🎬 **YouTube bot detection fix** — Added `bgutil-ytdlp-pot-provider` for automatic PO Token generation, no manual setup needed
-- 🍪 **Cookie authentication** — Fallback support via `YTDL_COOKIES_FILE` or `YTDL_BROWSER_COOKIES` env vars
-- 📸 **gallery-dl integration** — Download photo galleries from Instagram, Twitter, Pinterest, Pixiv, DeviantArt, ArtStation, Flickr, Reddit, Tumblr, and 100+ sites
-- 📸 **Photo upload mode** — Choose between Group (batch of 10) or Single (one by one) via `/settings`
-- 📋 **New commands** — `/cookies`, `/setcookies`, `/clearcookies` for YouTube auth management
-- 🐛 **Format fix** — Removed `mweb` client restriction for full format availability
-- 📓 **Notebook redesign** — 5-cell layout with Health Check and Update cells
-
 ### 🔧 v3.0.3 — Gallery Command & Batch Photo Fix
 
 - 📸 **`/glupload` command** — Dedicated gallery-dl download mode with site-specific instructions, skips zip/unzip selection since galleries are images only
@@ -80,6 +47,8 @@ This is a **major rewrite** with focus on **configurability, new download source
 - 🐛 **Batch photo retry fix** — FloodWait retries now actually work (was using `for` loop with no effect)
 - 🐛 **Batch photo cleanup** — Uploaded photos are now properly deleted when `remove=True`
 - 📊 **Progress tracking** — `Transfer.up_bytes` now tracked in batch photo mode
+
+> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
