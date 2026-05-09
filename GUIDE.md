@@ -31,7 +31,7 @@ Before you start, make sure you have:
 | **Python 3.10+** | Runtime environment |
 | **Telegram Account** | To create a bot and get API keys |
 | **A Server or VPS** | To run the bot 24/7 (or use Google Colab) |
-| **aria2** | HTTP/FTP/torrent downloader |
+| **libtorrent** | Magnet/torrent downloads (DHT, resume) |
 | **ffmpeg** | Video/audio processing |
 | **7zip / p7zip** | Archive handling |
 | **unrar** | RAR extraction |
@@ -471,7 +471,14 @@ Example: Set prefix to `🎬` → caption becomes `🎬 filename.mp4`
 Any HTTP/FTP link works. Examples:
 - Direct file URLs: `https://example.com/file.zip`
 - FTP links: `ftp://files.example.com/data.tar.gz`
-- Torrent files and magnet links (if `ENABLE_TORRENTS=true`)
+
+### Torrent / Magnet Links (libtorrent)
+Full torrent support via python-libtorrent:
+- Magnet links: `magnet:?xt=urn:btih:...`
+- Torrent files: `.torrent` uploads
+- DHT peer discovery with 15 built-in trackers
+- Resume data persists across restarts
+- Real-time progress: speed, ETA, peers, seeds
 
 ### HLS / DASH Streams
 Live and on-demand streaming protocols are fully supported via yt-dlp:
@@ -1493,7 +1500,8 @@ LeechBot/
 │   ├── updater.py          # Auto-update from GitHub
 │   ├── debug.py            # Error reporting to Telegram
 │   ├── downloader/
-│   │   ├── aria2.py        # HTTP/FTP/torrent downloads
+│   │   ├── aria2.py        # HTTP/FTP downloads
+│   │   ├── torrent.py      # Magnet/torrent (libtorrent)
 │   │   ├── gallery.py      # Photo galleries (gallery-dl)
 │   │   ├── gdrive.py       # Google Drive downloads
 │   │   ├── manager.py      # Download router & orchestrator

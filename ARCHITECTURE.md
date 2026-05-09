@@ -218,7 +218,7 @@ downloader/manager.py::downloadManager()
   ├─ is_pixeldrain()     → pixeldrain.py   (API)
   ├─ is_mediafire()      → mediafire.py    (scraping)
   ├─ is_gallery()        → gallery.py      (gallery-dl, 100+ sites)
-  ├─ is_torrent()        → aria2.py        (magnet/torrent)
+  ├─ is_torrent()        → torrent.py      (magnet/libtorrent)
   └─ default             → aria2.py        (HTTP/FTP direct)
 ```
 

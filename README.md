@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.5-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.7-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -38,7 +38,14 @@
 
 ---
 
-## ✨ What's New in v3.1.5
+## ✨ What's New in v3.1.7
+
+### 🧲 libtorrent Magnet/Torrent Downloader
+- **New downloader** using python-libtorrent for magnet links and .torrent files
+- Fast metadata retrieval via DHT with 15 built-in trackers
+- Real-time progress: speed, ETA, peers, seeds, downloaded/total
+- Resume data persistence — interrupted downloads continue where they left off
+- Sequential download, bandwidth limit, multi-file support
 
 ### 🔧 Colab Notebook Fix — Runtime No Longer Disconnects
 - **Root cause:** monolithic Deploy cell + browser-side idle detection killed sessions
@@ -117,7 +124,7 @@
 | Source | Method | Status |
 |--------|--------|--------|
 | Direct HTTP/HTTPS/FTP | aria2c | ✅ Full — resume supported |
-| Torrent / Magnet | aria2c | ✅ Optional (`ENABLE_TORRENTS=true`) |
+| Torrent / Magnet | libtorrent | ✅ Full — DHT, resume, progress |
 | HLS / DASH (`.m3u8` / `.mpd`) | yt-dlp | ✅ Full — live + VOD |
 | YouTube, Facebook, Instagram | yt-dlp | ✅ 2000+ sites |
 | Kick, Rumble, Bilibili, Twitch | yt-dlp | ✅ |
@@ -332,7 +339,8 @@ LeechBot/
 │   ├── debug.py             # Error reporting
 │   ├── updater.py           # Auto-update
 │   ├── downloader/
-│   │   ├── aria2.py         # HTTP/FTP/torrent
+│   │   ├── aria2.py         # HTTP/FTP downloads
+│   │   ├── torrent.py       # Magnet/torrent (libtorrent)
 │   │   ├── ytdl.py          # YouTube, 2000+ sites
 │   │   ├── gallery.py       # Photo galleries (100+ sites)
 │   │   ├── gdrive.py        # Google Drive
