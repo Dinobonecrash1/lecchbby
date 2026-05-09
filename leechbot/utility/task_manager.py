@@ -143,15 +143,8 @@ async def taskScheduler():
 
     Messages.link_p = str(DUMP_ID)[4:]
 
-    # Download hero image
-    try:
-        proc = await asyncio.create_subprocess_exec(
-            "aria2c", "-d", str(Paths.WORK_PATH), "-o", "Hero.jpg", Aria2c.pic_dwn_url,
-            stdout=asyncio.subprocess.DEVNULL,
-            stderr=asyncio.subprocess.DEVNULL,
-        )
-        await asyncio.wait_for(proc.wait(), timeout=30)
-    except Exception:
+    # Use local hero image from assets/images/
+    if not ospath.exists(Paths.HERO_IMAGE):
         Paths.HERO_IMAGE = Paths.DEFAULT_HERO
 
     # Send task log

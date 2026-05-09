@@ -238,8 +238,8 @@ class Paths:
     # Thumbnail paths
     THMB_PATH: str = str(config.THUMBNAIL_PATH / "Thumbnail.jpg")
     VIDEO_FRAME: str = str(config.TEMP_PATH / "video_frame.jpg")
-    HERO_IMAGE: str = str(config.WORK_PATH / "Hero.jpg")
-    DEFAULT_HERO: str = str(config.THUMBNAIL_PATH / "default_hero.jpg")
+    HERO_IMAGE: str = str(config.BASE_DIR / "assets" / "images" / "hero.jpg")
+    DEFAULT_HERO: str = str(config.BASE_DIR / "assets" / "images" / "hero.jpg")
 
     # Google Drive mount point
     MOUNTED_DRIVE: str = "/content/drive"
