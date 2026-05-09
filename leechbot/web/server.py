@@ -36,10 +36,25 @@ _auth_token: str = ""
 
 def _get_bot_state() -> dict:
     """Collect current bot state for API responses."""
-    from leechbot.utility.variables import (
-        BOT, Queue, BotTimes, Messages, Transfer, BotStats, Paths
-    )
-    from leechbot.utility.helper import getSize, sizeUnit, getTime
+    try:
+        from leechbot.utility.variables import (
+            BOT, Queue, BotTimes, Messages, Transfer, BotStats, Paths
+        )
+        from leechbot.utility.helper import getSize, sizeUnit, getTime
+    except ImportError:
+        # Bot modules not loaded — return minimal state
+        return {
+            "status": "starting",
+            "task": {"active": False},
+            "queue": {"pending": 0, "current": False, "items": []},
+            "transfer": {"total_down_size": 0, "files_sent": 0, "files_sent_names": []},
+            "stats": {"total_tasks": 0, "total_downloaded": 0, "total_uploaded": 0,
+                      "failed_tasks": 0, "uptime": 0, "uptime_human": "0s"},
+            "system": {"cpu": 0, "ram_used": 0, "ram_total": 0, "ram_percent": 0,
+                       "disk_free": 0, "disk_total": 0},
+            "settings": {},
+            "timestamp": datetime.now().isoformat(),
+        }
 
     # Current task info
     task_active = BOT.State.task_going
@@ -187,13 +202,16 @@ async def handle_cancel(request):
     if not _check_auth(request):
         return web.json_response({"error": "Unauthorized"}, status=401)
 
-    from leechbot.utility.handler import cancelTask
-    from leechbot.utility.variables import BOT
+    try:
+        from leechbot.utility.handler import cancelTask
+        from leechbot.utility.variables import BOT
 
-    if BOT.State.task_going:
-        await cancelTask("Cancelled via web dashboard")
-        return web.json_response({"ok": True, "message": "Task cancelled"})
-    return web.json_response({"ok": False, "message": "No active task"})
+        if BOT.State.task_going:
+            await cancelTask("Cancelled via web dashboard")
+            return web.json_response({"ok": True, "message": "Task cancelled"})
+        return web.json_response({"ok": False, "message": "No active task"})
+    except ImportError:
+        return web.json_response({"ok": False, "message": "Bot not ready"})
 
 
 async def handle_queue_clear(request):
@@ -201,9 +219,12 @@ async def handle_queue_clear(request):
     if not _check_auth(request):
         return web.json_response({"error": "Unauthorized"}, status=401)
 
-    from leechbot.utility.variables import Queue
-    Queue.clear()
-    return web.json_response({"ok": True, "message": "Queue cleared"})
+    try:
+        from leechbot.utility.variables import Queue
+        Queue.clear()
+        return web.json_response({"ok": True, "message": "Queue cleared"})
+    except ImportError:
+        return web.json_response({"ok": False, "message": "Bot not ready"})
 
 
 async def handle_health(request):
