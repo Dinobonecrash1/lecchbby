@@ -199,7 +199,6 @@ def YouTubeDL(url: str):
         "subtitleslangs": ["en", "en-US", "en-GB"],
         "extractor_args": {
             "subtitlesformat": "srt",
-            "youtube": {"player_client": ["mweb"]},
         },
         "logger": MyLogger(),
         "user_agent": (
