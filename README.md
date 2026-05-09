@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.8-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.9-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -38,7 +38,15 @@
 
 ---
 
-## ✨ What's New in v3.1.8
+## ✨ What's New in v3.1.9
+
+### 🐳 Multi-Platform Deployment
+- **Docker** — `Dockerfile` + `docker-compose.yml`, all deps included
+- **Railway** — one-click deploy button
+- **Fly.io** — `fly.toml` config
+- **Render** — `render.yaml` Blueprint
+- **Heroku** — `Procfile`
+- **8 deployment methods** documented: Colab, Docker, Railway, Fly.io, Render, VPS, Oracle Cloud, Heroku
 
 ### 🧹 Notebook Cleanup
 - **Dashboard tunnel removed** — ngrok/cloudflared tunnel setup removed from notebook. Colab users interact 100% via Telegram. VPS users still get the web dashboard on `:8080`.
@@ -222,7 +230,45 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 2. Run **📦 Setup** then **🚀 Deploy** — bot starts with keep-alive
 3. Bot starts, send `/start` on Telegram
 
-### 2️⃣ VPS / Local
+### 2️⃣ Docker
+
+```bash
+git clone https://github.com/Shineii86/LeechBot.git
+cd LeechBot
+
+# Create .env with your credentials
+cp .env.example .env
+nano .env
+
+# Build and run
+docker compose up -d
+```
+
+### 3️⃣ Railway (One-Click)
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https://github.com/Shineii86/LeechBot)
+
+1. Click the button above → set environment variables → deploy
+2. Bot starts automatically, web dashboard on port 8080
+
+### 4️⃣ Fly.io
+
+```bash
+# Install flyctl: https://fly.io/docs/hands-on/install-flyctl/
+fly launch --copy-config --name leechbot
+fly secrets set API_ID=xxx API_HASH=xxx BOT_TOKEN=xxx OWNER_ID=xxx DUMP_ID=xxx
+fly scale memory 512
+fly deploy
+```
+
+### 5️⃣ Render
+
+1. Push repo to GitHub
+2. Go to [render.com](https://render.com) → New → Blueprint Instance
+3. Select your repo → it auto-detects `render.yaml`
+4. Add environment variables → Deploy
+
+### 6️⃣ VPS / Local
 
 ```bash
 git clone https://github.com/Shineii86/LeechBot.git
@@ -236,15 +282,34 @@ nano .env
 python3 -m leechbot
 ```
 
-### 3️⃣ System Dependencies
+### 7️⃣ Oracle Cloud Free Tier (Free Forever)
+
+1. Create a free ARM instance at [cloud.oracle.com](https://cloud.oracle.com) (4 cores, 24GB RAM)
+2. SSH into the instance
+3. Follow the **VPS / Local** steps above
+4. Run with `screen` or `tmux` to keep it alive
+
+### 8️⃣ Heroku
+
+```bash
+heroku create leechbot
+heroku buildpacks:add heroku/python
+heroku config:set API_ID=xxx API_HASH=xxx BOT_TOKEN=xxx OWNER_ID=xxx DUMP_ID=xxx
+git push heroku main
+heroku ps:scale worker=1
+```
+
+### System Dependencies
 
 ```bash
 # Ubuntu/Debian
-sudo apt install -y ffmpeg aria2 p7zip-full unzip
+sudo apt install -y ffmpeg aria2 p7zip-full unrar unzip
 
 # macOS
 brew install ffmpeg aria2 p7zip
 ```
+
+> 💡 Docker users: all dependencies are included in the image — no manual install needed.
 
 📖 [Full setup guide](GUIDE.md#-installation)
 

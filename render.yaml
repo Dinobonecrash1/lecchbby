@@ -1,0 +1,13 @@
+# render.yaml — Render Blueprint for LeechBot
+# Deploy: push to GitHub → New Blueprint Instance → select repo
+
+services:
+  - type: web
+    name: leechbot
+    runtime: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    autoDeploy: true

@@ -1,0 +1,20 @@
+services:
+  leechbot:
+    build: .
+    container_name: leechbot
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./sessions:/app/sessions
+      - ./downloads:/app/downloads
+      - ./thumbnails:/app/thumbnails
+    ports:
+      - "8080:8080"
+    # Uncomment for GPU support (NVIDIA):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]

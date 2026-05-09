@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.9] - 2026-05-10
+
+### Added
+- **Docker support** — `Dockerfile` + `docker-compose.yml` for universal deployment
+  - Multi-stage build, all system deps included (ffmpeg, aria2, megatools, p7zip, unrar)
+  - Health check on `/api/health`
+  - Volume mounts for sessions, downloads, thumbnails
+  - GPU support (uncomment for NVIDIA)
+- **Railway** — `railway.json` one-click deploy config
+- **Fly.io** — `fly.toml` config with auto-restart, shared CPU, 512MB
+- **Render** — `render.yaml` Blueprint auto-deploy
+- **Heroku** — `Procfile` for worker dyno
+- **`.dockerignore`** — clean build context
+- **8 deployment methods** documented in README: Colab, Docker, Railway, Fly.io, Render, VPS, Oracle Cloud Free Tier, Heroku
+
+### Changed
+- README deployment section expanded with platform-specific instructions for all 8 methods
+
+---
+
 ## [3.1.8] - 2026-05-10
 
 ### Removed
