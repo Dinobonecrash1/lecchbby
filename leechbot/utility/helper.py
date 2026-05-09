@@ -44,6 +44,8 @@ LINK_PATTERNS = [
 PIXELDRAIN_PATTERN = re.compile(r'https?://pixeldrain\.com/[^\s]+', re.IGNORECASE)
 MEDIAFIRE_PATTERN = re.compile(r'https?://(?:www\.)?mediafire\.com/[^\s]+', re.IGNORECASE)
 STREAMTAPE_PATTERN = re.compile(r'https?://(?:www\.)?(?:streamtape|stape)\.[^\s]+', re.IGNORECASE)
+M3U8_PATTERN = re.compile(r'https?://[^\s<>\"\']+\.m3u8[^\s<>\"\']*', re.IGNORECASE)
+MPD_PATTERN = re.compile(r'https?://[^\s<>\"\']+\.mpd[^\s<>\"\']*', re.IGNORECASE)
 
 
 # =============================================================================
@@ -91,12 +93,38 @@ def is_terabox(link: str) -> bool:
 
 def is_ytdl_link(link: str) -> bool:
     """Check if link is supported by yt-dlp (YouTube, social media, etc.)."""
+    lower = link.lower()
     ytdl_domains = [
-        "youtube.com", "youtu.be", "facebook.com", "fb.watch",
-        "instagram.com", "twitter.com", "x.com", "tiktok.com",
-        "vimeo.com", "dailymotion.com", "twitch.tv",
+        # Video platforms
+        "youtube.com", "youtu.be", "youtube-nocookie.com",
+        "facebook.com", "fb.watch", "fb.com",
+        "instagram.com", "twitter.com", "x.com",
+        "tiktok.com", "vimeo.com", "dailymotion.com",
+        "twitch.tv", "kick.com", "rumble.com",
+        "reddit.com", "redd.it", "v.redd.it",
+        "streamable.com", "gfycat.com", "imgur.com",
+        # Music
+        "soundcloud.com", "spotify.com", "bandcamp.com",
+        "music.youtube.com", "audiomack.com",
+        # News / media
+        "bilibili.com", "b23.tv", "nicovideo.jp",
+        "niconico.com", "odysee.com", "lbry.tv",
+        "peertube", "rutube.ru", "vk.com", "vk.ru",
+        # Adult (commonly requested)
+        "pornhub.com", "xvideos.com", "xnxx.com",
+        "xhamster.com", "redtube.com", "youporn.com",
+        "spankbang.com", "eporner.com",
+        # Other platforms
+        "archive.org", "slideshare.net", "mixcloud.com",
+        "coub.com", "9gag.com", "ifunny.co",
+        "izlesene.com", "southpark.cc.com", "medaltv",
+        "tv.youtube.com", "tubitv.com", "crunchyroll.com",
+        "funimation.com", "crackle.com",
+        # Chinese platforms
+        "bilibili.com", "youku.com", "iqiyi.com",
+        "acfun.cn", "douyin.com", "kuaishou.com",
     ]
-    return any(domain in link.lower() for domain in ytdl_domains)
+    return any(domain in lower for domain in ytdl_domains)
 
 def is_telegram(link: str) -> bool:
     return "t.me" in link or "telegram.me" in link
@@ -112,6 +140,37 @@ def is_mediafire(link: str) -> bool:
 
 def is_streamtape(link: str) -> bool:
     return "streamtape" in link or "stape." in link
+
+def is_hls_stream(link: str) -> bool:
+    """Check if link is an HLS/DASH stream (.m3u8 or .mpd)."""
+    lower = link.lower()
+    return ".m3u8" in lower or ".mpd" in lower
+
+def is_gofile(link: str) -> bool:
+    return "gofile.io" in link.lower()
+
+def is_bunkr(link: str) -> bool:
+    lower = link.lower()
+    return any(d in lower for d in ["bunkr.la", "bunkr.ru", "bunkr.si", "bunkr.is", "bunkr.black"])
+
+def is_catbox(link: str) -> bool:
+    lower = link.lower()
+    return "catbox.moe" in lower or "litterbox.moe" in lower
+
+def is_direct_link(link: str) -> bool:
+    """Check if link looks like a direct file download (has file extension)."""
+    lower = link.lower().split("?")[0].split("#")[0]
+    direct_exts = [
+        ".mp4", ".mkv", ".avi", ".webm", ".mov", ".flv", ".wmv",
+        ".mp3", ".flac", ".wav", ".aac", ".ogg", ".m4a",
+        ".zip", ".rar", ".7z", ".tar", ".gz", ".bz2",
+        ".iso", ".img", ".dmg",
+        ".pdf", ".epub", ".mobi",
+        ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp",
+        ".exe", ".apk", ".deb", ".rpm", ".msi",
+        ".torrent",
+    ]
+    return any(lower.endswith(ext) for ext in direct_exts)
 
 def is_gallery(link: str) -> bool:
     """Check if link is a photo gallery site (Instagram, Twitter, Pinterest, etc.)."""
@@ -129,6 +188,16 @@ def detect_link_type(link: str) -> str:
         return "🧲 Torrent"
     elif is_gallery(link):
         return "📸 Gallery"
+    elif is_hls_stream(link):
+        return "📡 HLS/DASH Stream"
+    elif is_gofile(link):
+        return "📁 GoFile"
+    elif is_bunkr(link):
+        return "🖼️ Bunkr"
+    elif is_catbox(link):
+        return "📦 Catbox"
+    elif is_streamtape(link):
+        return "🎬 StreamTape"
     elif is_ytdl_link(link):
         return "🏮 YT-DLP"
     elif is_terabox(link):
@@ -139,6 +208,10 @@ def detect_link_type(link: str) -> str:
         return "📁 Pixeldrain"
     elif is_mediafire(link):
         return "📂 Mediafire"
+    elif is_direct_link(link):
+        return "🔗 Direct Link"
+    else:
+        return "🌐 Web Link"
     elif is_streamtape(link):
         return "🎬 Streamtape"
     else:

@@ -1,0 +1,44 @@
+# Cline Rules for LeechBot
+
+## Project
+Telegram file transloader bot. Pyrogram 2.0.106, Python 3.10+, asyncio.
+
+## Before Making Changes
+1. Read `AGENTS.md` for architecture overview
+2. Read `ARCHITECTURE.md` for technical details
+3. Check `leechbot/utility/variables.py` for existing state
+4. Check `config.py` for existing configuration
+
+## Code Conventions
+- Async/await everywhere
+- `logger = logging.getLogger(__name__)` at module top
+- Standard file header (project, developer, GitHub, Telegram, license)
+- No linter — follow existing patterns
+- Import state from `variables.py`, mutate directly
+
+## State Management
+ALL mutable state lives in `leechbot/utility/variables.py`. Classes:
+- `BOT.Setting` (persistent), `BOT.Options` (per-task), `BOT.Mode`, `BOT.State`
+- `Queue` (download queue), `Transfer` (transfer stats), `BotStats` (cumulative)
+- `Messages` (dynamic text), `MSG` (message refs), `Paths` (file paths)
+
+## Adding Commands
+1. Handler in `leechbot/commands.py` with `@app.on_message(filters.command("cmd"))`
+2. Register in `__main__.py` `_register_commands()`
+3. Update `GUIDE.md`
+
+## Adding Downloaders
+1. New file in `leechbot/downloader/`
+2. Link detection in `leechbot/utility/helper.py`
+3. Routing in `leechbot/downloader/manager.py`
+
+## Known Issues
+- `reply_media_group()` has no `progress` param — use per-photo upload + file_id
+- Pyrogram 2.0.106: no `style` on `InlineKeyboardButton`
+- Telegram: 2GB limit, media group max 10
+
+## Changelog
+Every change → new entry at top of `CHANGELOG.md` with Version, Date, Description.
+
+## Testing
+No test suite. Test manually with real Telegram bot.

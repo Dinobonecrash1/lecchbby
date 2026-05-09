@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.0-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.1-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -23,34 +23,52 @@
 ## 📑 **Table of Contents**
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
-- [✨ What's New?](#-whats-new-in-v3)
+- [✨ What's New?](#-whats-new-in-v311)
 - [🚀 Features](#-features)
-- [⚙️ Configuration](#-configuration)
-- [🔗 Supported Links](#-supported-links)
-- [💡 Benefits](#-benefits)
-- [🛠️ Technology Stack](#️-technology-stack)
+- [🔗 Supported Sources](#-supported-sources)
+- [👤 UserBot — Private Channels](#-userbot--private-channels)
+- [🌐 Web Dashboard](#-web-dashboard)
 - [📥 How to Deploy](#-how-to-deploy)
-- [📋 Commands & Usage](#-commands--usage)
-- [🆚 Changelog – Old vs New](#-changelog--old-vs-new)
+- [📋 Commands](#-commands)
+- [🛠️ Technology Stack](#️-technology-stack)
 - [🙏 Acknowledgements](#-acknowledgements)
-- [📄 License & Disclaimer](#-license--disclaimer)
+- [📄 License](#-license)
 - [🫂 Updates & Support](#-updates--support)
 - [👤 Developer & Credits](#-developer--credits)
 
 ---
 
-## ✨ What's New in v3.X.X
+## ✨ What's New in v3.1.1
 
-### 🌐 v3.1.0 — Web Dashboard
+### 👤 UserBot — Private Channel Access
+- **Download from private channels/groups** without adding the bot as a member
+- Login with your own Telegram account via `/userbot` (OTP + 2FA)
+- Session saved locally, auto-fallback to bot client
 
-- **Web Dashboard** — real-time browser dashboard for monitoring and controlling the bot
-- **Live stats** — CPU, RAM, disk, speed, uptime, download/upload totals
-- **Queue management** — view pending downloads, clear queue from browser
-- **Active task monitoring** — real-time progress bar with speed, ETA, elapsed time
-- **Settings viewer** — view current bot settings from the dashboard
-- **WebSocket** — real-time updates pushed to browser every 3 seconds
-- **Token auth** — secure access via `WEB_TOKEN` environment variable
-- **Runs on Colab** — dashboard accessible via Colab's public URL or ngrok tunnel
+### 📡 HLS / DASH Streaming
+- Direct `.m3u8` and `.mpd` stream URLs now work natively
+- Live streams, authenticated URLs, token-based streams
+- Segments merged into single mp4, uploaded with streaming support
+
+### 📁 4 New Downloaders
+- **GoFile.io** — API-based, folders, multi-file, password-protected
+- **Bunkr** — Album + single file (la/ru/si/is/black)
+- **Catbox.moe** — Direct file downloads (catbox + litterbox)
+- **StreamTape** — Video extraction with aria2c download
+
+### 🎯 Expanded Coverage
+- **yt-dlp: 50+ domains** (was 11) — Kick, Rumble, Bilibili, SoundCloud, Spotify, Crunchyroll, Reddit, VK, Odysee, and more
+- **Direct link detection** — URLs with file extensions (mp4, zip, pdf, apk) auto-detected
+
+### 🌐 Dashboard Upgrade
+- Active task details: mode, engine, speed, progress, total size
+- Commands tab + Files tab
+- Visual polish, version display, WS fallback
+
+### 🤖 Agent Toolkit
+- `AGENTS.md`, `ARCHITECTURE.md`, `CONTRIBUTING.md`
+- GitHub Copilot, Cursor, Cline, Windsurf rules
+- `pyproject.toml`, `.editorconfig`
 
 > 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md)
 
@@ -62,12 +80,14 @@
 |---------|-------------|
 | 📤 **Telegram Upload** | Upload any file/folder to Telegram (video, audio, document, photo) |
 | ☁️ **Google Drive Mirror** | Mirror downloads directly to Google Drive |
+| 👤 **UserBot Session** | Access private channels via your own Telegram account |
+| 📡 **HLS/DASH Streams** | Download `.m3u8` and `.mpd` streaming URLs |
 | 📁 **Directory Leech** | Upload entire local directories recursively |
 | 🎬 **Video Converter** | Convert to MP4/MKV with FFmpeg (GPU accelerated) |
 | ✂️ **Smart Splitting** | Split files >2GB into chunks |
 | 🗜️ **Archive Handling** | Create/extract ZIP, RAR, 7z, TAR, GZ with password support |
 | 🖼️ **Auto Thumbnail** | Generate from video or use custom images |
-| 📸 **Photo Upload Mode** | Group (batch of 10) or Single (one by one) via `/settings` |
+| 📸 **Photo Upload Mode** | Group (batch of 10) or Single (one by one) |
 | 📋 **Download Queue** | Queue multiple downloads, process sequentially |
 | 🎬 **Format Selection** | Choose YT-DLP quality per-session |
 | ⚡ **Bandwidth Control** | Limit download speed |
@@ -77,244 +97,95 @@
 | 🔒 **Password Protection** | ZIP/unzip passwords |
 | 🏷️ **Custom Filename** | `/setname` or inline `[name]` syntax |
 | ⏳ **Auto-Delete** | Configurable auto-delete for bot messages |
-| 🎬 **YouTube PO Tokens** | Auto-generated via plugin — no manual cookie setup |
-| 📸 **Photo Galleries** | Instagram, Twitter, Pinterest, Pixiv, DeviantArt via gallery-dl |
-| 🌐 **Web Dashboard** | ⚡ `BETA` Real-time browser dashboard — monitor queue, stats, settings, active tasks via WebSocket |
+| 🎬 **YouTube PO Tokens** | Auto-generated — no manual cookie setup |
+| 📸 **Photo Galleries** | Instagram, Twitter, Pinterest, Pixiv via gallery-dl |
+| 🌐 **Web Dashboard** | Real-time browser monitoring and control |
 
 ---
 
-## ⚙️ Configuration
+## 🔗 Supported Sources
 
-All settings are configured via **environment variables** or a `.env` file:
+### 📥 Download From
+
+| Source | Method | Status |
+|--------|--------|--------|
+| Direct HTTP/HTTPS/FTP | aria2c | ✅ Full — resume supported |
+| Torrent / Magnet | aria2c | ✅ Optional (`ENABLE_TORRENTS=true`) |
+| HLS / DASH (`.m3u8` / `.mpd`) | yt-dlp | ✅ Full — live + VOD |
+| YouTube, Facebook, Instagram | yt-dlp | ✅ 2000+ sites |
+| Kick, Rumble, Bilibili, Twitch | yt-dlp | ✅ |
+| SoundCloud, Spotify, Bandcamp | yt-dlp | ✅ |
+| Crunchyroll, TubiTV, Odysee | yt-dlp | ✅ |
+| Reddit, VK, Dailymotion, Vimeo | yt-dlp | ✅ |
+| Google Drive | GDrive API | ✅ Files, folders, shared drives |
+| Telegram (public + private) | Pyrogram | ✅ With UserBot support |
+| Instagram, Twitter, Pinterest | gallery-dl | ✅ 100+ gallery sites |
+| Pixiv, DeviantArt, ArtStation | gallery-dl | ✅ Art galleries |
+| Mega.nz | megatools | ✅ |
+| Terabox | API | ✅ |
+| Pixeldrain | API | ✅ Single files + lists |
+| Mediafire | Scraping | ✅ Auto-extracted direct links |
+| GoFile.io | API | ✅ **NEW** — folders, multi-file |
+| Bunkr (la/ru/si/is) | Scraping | ✅ **NEW** — albums + single |
+| Catbox.moe / Litterbox | Direct | ✅ **NEW** — direct download |
+| StreamTape | Extraction | ✅ **NEW** — video links |
+
+### 📤 Upload To
+
+| Destination | Method |
+|-------------|--------|
+| Telegram | Pyrogram (single + batch photo) |
+| Google Drive | GDrive API |
+
+---
+
+## 👤 UserBot — Private Channels
+
+Download from private Telegram channels/groups **without adding the bot as a member**.
+
+```
+Normal:  Bot → Private Channel → ❌ not a member
+UserBot: Bot → Your Account → Private Channel → ✅ you're a member
+```
+
+### Setup (one-time)
+1. Send `/userbot` to the bot
+2. Enter your phone number (`+1234567890`)
+3. Enter the OTP code from Telegram
+4. Enter 2FA password if enabled
+5. Done! Session saved locally
+
+### Commands
+| Command | Description |
+|---------|-------------|
+| `/userbot` | Start login flow |
+| `/userbot_status` | Check session status |
+| `/userbot_logout` | Disconnect and remove session |
+
+📖 [Full UserBot guide](GUIDE.md#-userbot-setup-for-private-channels)
+
+---
+
+## 🌐 Web Dashboard
+
+Real-time browser dashboard runs alongside the bot on port `8080`.
+
+| Feature | Description |
+|---------|-------------|
+| 📊 Status Cards | Idle/active, downloads, uploads, tasks |
+| 🔄 Active Task | Mode, engine, progress, speed, ETA, total size |
+| 📋 Queue | View pending, clear queue |
+| 📁 Files | Recent uploads list |
+| ⚙️ Settings | Current bot configuration |
+| 💻 System | CPU, RAM, disk usage |
+| 📖 Commands | Quick reference for all 26 commands |
+| 🟢 WebSocket | Real-time updates every 3s |
 
 ```bash
-# Telegram Credentials (REQUIRED)
-API_ID=12345
-API_HASH=your_api_hash
-BOT_TOKEN=your_bot_token
-OWNER_ID=123456789
-DUMP_ID=-1001234567890
-
-# Paths (optional - defaults to /tmp/leechbot)
-LEECHBOT_BASE_DIR=/tmp/leechbot
-
-# Features
-MAX_CONCURRENT_DOWNLOADS=3
-AUTO_RETRY_COUNT=3
-DEFAULT_UPLOAD_MODE=media
-ENABLE_TORRENTS=false
-BANDWIDTH_LIMIT=
-
-# Google Drive
-GDRIVE_ENABLED=false
-TOKEN_PICKLE_PATH=
-
-# YT-DLP Cookie Authentication (optional fallback)
-# YTDL_COOKIES_FILE=/path/to/cookies.txt
-# YTDL_BROWSER_COOKIES=chrome
-
-# Multi-user (comma-separated user IDs)
-ALLOWED_USERS=123456789,987654321
-
-# Web Dashboard (BETA)
-WEB_PORT=8080
-WEB_TOKEN=your_secret_token
-```
-
-## 🔗 Supported Links
-
-| Source | Status | Notes |
-|--------|--------|-------|
-| Direct HTTP/HTTPS | ✅ Full | Resume supported via aria2c |
-| Google Drive | ✅ Full | Files, folders, shared drives |
-| Telegram | ✅ Full | Public/private channel messages |
-| YouTube / YT-DLP | ✅ Full | 2000+ sites with PO Token auto-auth |
-| Instagram | ✅ **NEW** | Posts, carousels via gallery-dl |
-| Twitter / X | ✅ **NEW** | Media timelines via gallery-dl |
-| Pinterest | ✅ **NEW** | Boards, pins via gallery-dl |
-| Pixiv / DeviantArt | ✅ **NEW** | Art galleries via gallery-dl |
-| Terabox | ✅ Full | Using third-party API |
-| Mega.nz | ✅ Full | Using megatools |
-| Pixeldrain | ✅ Full | Single files and lists |
-| Mediafire | ✅ Full | Auto-extracted direct links |
-| Reddit / Flickr / Tumblr | ✅ **NEW** | Image galleries via gallery-dl |
-| Torrent / Magnet | ⚙️ Optional | Enable via `ENABLE_TORRENTS=true` |
-
----
-
-## 💡 **Benefits**
-
-- ☁️ **No VPS Needed** – Runs entirely on **Google Colab** free tier.
-- 🌐 **Blazing Speeds** – Google’s backbone delivers up to **200 MiB/s download** and **30 MiB/s upload**.
-- ♾️ **Unlimited Storage** – Telegram provides free, unlimited cloud storage.
-- 🔧 **Easy Setup** – One‑click Colab notebook, no complex configurations.
-- 🎯 **User‑Friendly** – Fully interactive with buttons, menus, and clear progress messages.
-
----
-
-## 🛠️ **Technology Stack**
-
-| Component           | Technology                                                              |
-| ------------------- | ----------------------------------------------------------------------- |
-| Bot Framework       | [Pyrogram](https://docs.pyrogram.org/) (MTProto API)                    |
-| Download Manager    | [aria2c](https://aria2.github.io/) + [yt‑dlp](https://github.com/yt-dlp/yt-dlp) |
-| YouTube Auth        | [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) (PO Token auto-gen) |
-| Photo Galleries     | [gallery-dl](https://github.com/mikf/gallery-dl) (Instagram, Twitter, Pinterest, 100+ sites) |
-| Video Processing    | FFmpeg, MoviePy, GPUtil (GPU acceleration)                              |
-| Archive Handling    | 7z, unrar, zip, tar                                                    |
-| Cloud Environment   | Google Colab (Python 3.10+, Ubuntu 22.04)                               |
-| Google Drive API    | google‑api‑python‑client                                                |
-| Thumbnail Generator | PIL / Pillow                                                            |
-
-### 📁 Project Structure
-
-```
-leechbot/
-├── __init__.py          # Pyrogram client initialization
-├── __main__.py          # Entry point (imports handlers, runs bot, registers commands)
-├── commands.py          # All /command handlers
-├── callbacks.py         # Inline keyboard callback handlers (split into focused functions)
-├── debug.py             # Error reporting & debug logging to Telegram
-├── handlers.py          # Message handlers (URL, photo, text, reply)
-├── updater.py           # Auto-update from GitHub
-├── downloader/
-│   ├── aria2.py         # HTTP/FTP/torrent via aria2c
-│   ├── gallery.py       # Photo galleries via gallery-dl (with progress bar)
-│   ├── gdrive.py        # Google Drive downloads
-│   ├── manager.py       # Download router & retry logic
-│   ├── mediafire.py     # Mediafire downloads
-│   ├── mega.py          # Mega.nz downloads
-│   ├── pixeldrain.py    # Pixeldrain downloads
-│   ├── telegram.py      # Telegram message downloads
-│   ├── terabox.py       # Terabox downloads
-│   └── ytdl.py          # YT-DLP (YouTube, 2000+ sites)
-├── uploader/
-│   └── telegram.py      # Telegram upload with progress (including batch photo)
-├── web/
-│   ├── server.py        # Web dashboard server (REST API + WebSocket)
-│   └── __init__.py
-└── utility/
-    ├── converters.py    # Video conversion, archive/extract
-    ├── handler.py       # Task handlers (Leech, Zip, Unzip, SendLogs, cancelTask)
-    ├── helper.py        # Formatting, link detection, UI helpers
-    ├── style.py         # Unicode small caps styling
-    ├── task_manager.py  # Task scheduler & orchestrator
-    └── variables.py     # Global state & configuration classes
-```
-
----
-
-## 📥 **How to Deploy**
-
-### 1️⃣ **One‑Click Colab**
-
-<a href="https://colab.research.google.com/github/Shineii86/LeechBot/blob/main/notebooks/LeechBot.ipynb">
-  <img src="https://user-images.githubusercontent.com/125879861/255389999-a0d261cf-893a-46a7-9a3d-2bb52811b997.png" alt="Open In Colab" width="200px">
-</a>
-
-### 2️⃣ **Manual Setup (Local / VPS)**
-
-```bash
-git clone https://github.com/Shineii86/LeechBot.git
-cd LeechBot
-pip install -r requirements.txt
-```
-
-Create a `credentials.json` file with your API details:
-
-```json
-{
-  "API_ID": 12345,
-  "API_HASH": "your_api_hash",
-  "BOT_TOKEN": "your_bot_token",
-  "USER_ID": 123456789,
-  "DUMP_ID": -1001234567890
-}
-```
-
-Run the bot:
-
-```bash
-python -m leechbot
-```
-
-### 3️⃣ **Detailed Instructions**
-
-- 📘 [Full Deployment Guide](https://github.com/XronTrix10/Telegram-Leecher/wiki/INSTRUCTIONS) (original base)
-- 📖 [Complete User Guide](GUIDE.md) — credentials, setup, commands, troubleshooting
-- 🎥 [YouTube Tutorial](https://www.youtube.com/watch?v=6LvYd-oO3U0)
-
----
-
-## 📋 Commands & Usage
-
-### 📥 Download Commands
-| Command | Description |
-|---------|-------------|
-| `/start` | Show welcome message and main menu |
-| `/tupload` | Leech files/folders to Telegram |
-| `/gdupload` | Mirror files/folders to Google Drive |
-| `/drupload` | Upload a local directory |
-| `/ytupload` | Download using YT-DLP |
-| `/glupload` | Download image galleries via gallery-dl |
-
-### 📋 Queue & Control
-| Command | Description |
-|---------|-------------|
-| `/queue` | View download queue and session stats |
-| `/cancel` | Cancel current running task |
-| `/cancel_all` | Cancel task and clear queue |
-
-### ⚙️ Settings
-| Command | Description |
-|---------|-------------|
-| `/settings` | Open interactive settings menu |
-| `/setname` | Set custom filename |
-| `/zipaswd` | Set ZIP password |
-| `/unzipaswd` | Set extraction password |
-| `/format` | Set YT-DLP quality (Best/1080p/720p/480p/Audio) |
-| `/speed` | Set bandwidth limit |
-
-### 🛠️ Admin
-| Command | Description |
-|---------|-------------|
-| `/admin` | Manage allowed users |
-| `/stats` | System resource usage |
-| `/help` | Display all commands |
-
-### 🍪 YouTube Auth
-| Command | Description |
-|---------|-------------|
-| `/cookies` | Check YouTube authentication status |
-| `/setcookies` | Upload cookies.txt for YouTube fallback |
-| `/clearcookies` | Delete stored cookies file |
-
-### 💡 Inline Options
-When sending links, append:
-- `[custom_name.mp4]` → Override filename
-- `{zip_password}` → Password for ZIP creation
-- `(unzip_password)` → Password for archive extraction
-
-### 🌐 Web Dashboard `BETA`
-
-The bot starts a web dashboard automatically on port `8080`.
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/dashboard` | GET | Browser dashboard UI |
-| `/api/status` | GET | Full bot state (JSON) |
-| `/api/queue` | GET | Queue details |
-| `/api/stats` | GET | Statistics + system resources |
-| `/api/settings` | GET | Current bot settings |
-| `/api/cancel` | POST | Cancel active task |
-| `/api/queue/clear` | POST | Clear download queue |
-| `/ws` | WebSocket | Real-time updates |
-
-```bash
-# Access via browser
+# Access
 http://your-server:8080/dashboard
 
-# API call example
+# API
 curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 ```
 
@@ -322,70 +193,208 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 
 ---
 
-## 🆚 **Changelog – Old vs New**
+## 📥 How to Deploy
 
-| **Aspect**             | **Telegram Leecher**                 | **LeechBot**                                         |
-| ---------------------- | ------------------------------------ | ---------------------------------------------------- |
-| **UI / UX**            | Plain text messages                  | Box-drawing panels (`┏┣┗`), clean Markdown with inline menus |
-| **Auto‑Delete**        | None                                 | Configurable auto‑delete for bot messages            |
-| **Batch Photo Upload** | One‑by‑one photos                    | Media groups of 10 with live progress bar            |
-| **Code Structure**     | Monolithic, less documented          | Modular (`commands` / `callbacks` / `handlers`), split callbacks, fully typed, clean docstrings |
-| **Video Converter**    | Basic FFmpeg                         | GPU‑accelerated FFmpeg + MoviePy fallback            |
-| **Archive Support**    | Limited to ZIP                       | Full 7z, RAR, TAR, GZ, multipart extraction          |
-| **Settings Menu**      | None                                 | Interactive inline menu with toggle switches         |
-| **Thumbnail**          | Manual only                          | Auto‑generate from video, YT‑DLP thumb support       |
-| **Link Support**       | HTTP, GDrive, YT, Telegram           | Added Terabox, Mediafire, Pixeldrain, Mega, gallery-dl (100+ sites) |
-| **Progress Updates**   | Basic text                           | Real‑time speed, ETA, percentage, system stats for ALL engines |
-| **Commands**           | Manual via @BotFather                | Auto-registered on startup (23 commands)             |
-| **Error Handling**     | Single try/except                    | Individual try/except per operation, robust cancellation |
-| **Web Dashboard**      | None                                 | Real-time browser dashboard with queue, stats, settings (BETA) |
-| **License**            | GPL‑3.0                              | MIT (more permissive)                                |
+### 1️⃣ One‑Click Colab
+
+<a href="https://colab.research.google.com/github/Shineii86/LeechBot/blob/main/notebooks/LeechBot.ipynb">
+  <img src="https://user-images.githubusercontent.com/125879861/255389999-a0d261cf-893a-46a7-9a3d-2bb52811b997.png" alt="Open In Colab" width="200px">
+</a>
+
+1. Open notebook → fill credentials (or use Colab Secrets)
+2. Runtime → Run all
+3. Bot starts, send `/start` on Telegram
+4. Optional: Run the **Dashboard Tunnel** cell for remote access
+
+### 2️⃣ VPS / Local
+
+```bash
+git clone https://github.com/Shineii86/LeechBot.git
+cd LeechBot
+pip install -r requirements.txt
+
+# Create .env with your credentials
+cp .env.example .env
+nano .env
+
+python3 -m leechbot
+```
+
+### 3️⃣ System Dependencies
+
+```bash
+# Ubuntu/Debian
+sudo apt install -y ffmpeg aria2 p7zip-full unzip
+
+# macOS
+brew install ffmpeg aria2 p7zip
+```
+
+📖 [Full setup guide](GUIDE.md#-installation)
 
 ---
 
-## 🙏 **Acknowledgements**
+## 📋 Commands
 
-This project stands on the shoulders of giants:
+### 📥 Downloads
+| Command | Description |
+|---------|-------------|
+| `/start` | Welcome message |
+| `/tupload` | Leech to Telegram |
+| `/gdupload` | Mirror to Google Drive |
+| `/ytupload` | YouTube / yt-dlp |
+| `/glupload` | Photo galleries |
+| `/drupload` | Local directory |
 
-- **Original Base:** [XronTrix10/Telegram‑Leecher](https://github.com/XronTrix10/Telegram-Leecher)  
-- **Minor Fixes & Enhancements:** [kjeymax/Telegram‑Leecher](https://github.com/kjeymax/Telegram-Leecher)  
-- **Forked Inspiration:** [ehraz786/tgdl](https://github.com/ehraz786/tgdl)  
+### 👤 UserBot
+| Command | Description |
+|---------|-------------|
+| `/userbot` | Login for private channel access |
+| `/userbot_status` | Check session |
+| `/userbot_logout` | Disconnect |
+
+### ⚙️ Settings
+| Command | Description |
+|---------|-------------|
+| `/settings` | Bot preferences |
+| `/setname` | Custom filename |
+| `/zipaswd` | Zip password |
+| `/unzipaswd` | Extract password |
+| `/format` | YT-DLP quality |
+| `/speed` | Bandwidth limit |
+
+### 📋 Control
+| Command | Description |
+|---------|-------------|
+| `/queue` | View queue |
+| `/cancel` | Cancel task |
+| `/cancel_all` | Cancel + clear |
+
+### 🛠️ Admin
+| Command | Description |
+|---------|-------------|
+| `/admin` | Manage users |
+| `/stats` | System stats |
+| `/broadcast` | Send to multiple chats |
+| `/update` | Check for updates |
+| `/cookies` | YouTube auth status |
+| `/setcookies` | Upload cookies.txt |
+| `/clearcookies` | Delete cookies |
+| `/help` | All commands |
+
+---
+
+## 🛠️ Technology Stack
+
+| Component | Technology |
+|-----------|------------|
+| Framework | [Pyrogram](https://docs.pyrogram.org/) 2.0.106 |
+| Downloads | [aria2c](https://aria2.github.io/) + [yt-dlp](https://github.com/yt-dlp/yt-dlp) + [gallery-dl](https://github.com/mikf/gallery-dl) |
+| YouTube Auth | [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) |
+| Video Processing | FFmpeg, MoviePy, GPUtil |
+| Archives | 7z, unrar, zip, tar |
+| Cloud | Google Colab / VPS |
+| Dashboard | aiohttp (REST + WebSocket) + Tailwind CSS |
+| Google Drive | google-api-python-client |
+| Images | PIL / Pillow |
+
+### 📁 Project Structure
+
+```
+LeechBot/
+├── main.py                  # Colab deployer
+├── config.py                # Configuration (env vars, paths)
+├── requirements.txt         # Dependencies
+├── AGENTS.md                # AI agent instructions
+├── ARCHITECTURE.md          # Technical deep dive
+├── CONTRIBUTING.md          # Contribution guide
+├── GUIDE.md                 # Complete user guide
+├── CHANGELOG.md             # Version history
+├── .github/
+│   └── copilot-instructions.md
+├── .cursorrules / .clinerules / .windsurfrules
+├── pyproject.toml           # Tooling config
+├── .editorconfig            # Formatting rules
+├── leechbot/
+│   ├── __init__.py          # Pyrogram client
+│   ├── __main__.py          # Entry point
+│   ├── commands.py          # /command handlers (26 commands)
+│   ├── callbacks.py         # Button callbacks
+│   ├── handlers.py          # Message handlers
+│   ├── userbot.py           # UserBot session manager
+│   ├── debug.py             # Error reporting
+│   ├── updater.py           # Auto-update
+│   ├── downloader/
+│   │   ├── aria2.py         # HTTP/FTP/torrent
+│   │   ├── ytdl.py          # YouTube, 2000+ sites
+│   │   ├── gallery.py       # Photo galleries (100+ sites)
+│   │   ├── gdrive.py        # Google Drive
+│   │   ├── telegram.py      # Telegram file downloads
+│   │   ├── mega.py          # Mega.nz
+│   │   ├── terabox.py       # Terabox
+│   │   ├── pixeldrain.py    # Pixeldrain
+│   │   ├── mediafire.py     # Mediafire
+│   │   ├── gofile.py        # GoFile.io        ← NEW
+│   │   ├── bunkr.py         # Bunkr            ← NEW
+│   │   ├── catbox.py        # Catbox.moe       ← NEW
+│   │   ├── streamtape.py    # StreamTape       ← NEW
+│   │   └── manager.py       # Download router
+│   ├── uploader/
+│   │   └── telegram.py      # Upload with progress
+│   ├── web/
+│   │   └── server.py        # Dashboard API + WebSocket
+│   ├── utility/
+│   │   ├── variables.py     # Global state
+│   │   ├── handler.py       # Task handlers
+│   │   ├── helper.py        # UI, links, formatting
+│   │   ├── converters.py    # Video/archive conversion
+│   │   ├── task_manager.py  # Task orchestrator
+│   │   └── style.py         # Text styling
+│   └── public/
+│       └── index.html        # Dashboard frontend
+└── notebooks/
+    └── LeechBot.ipynb        # Colab notebook
+```
+
+---
+
+## 🙏 Acknowledgements
+
+- **Original Base:** [XronTrix10/Telegram‑Leecher](https://github.com/XronTrix10/Telegram-Leecher)
+- **Minor Fixes:** [kjeymax/Telegram‑Leecher](https://github.com/kjeymax/Telegram-Leecher)
+- **Forked Inspiration:** [ehraz786/tgdl](https://github.com/ehraz786/tgdl)
 
 > [!NOTE]
-> Special thanks to the developers of **Pyrogram**, **aria2**, **yt‑dlp**, and **Google Colab** for making this possible.
-> This project is a community‑driven enhancement of the original Telegram Leecher.
+> Special thanks to **Pyrogram**, **aria2**, **yt-dlp**, **gallery-dl**, and **Google Colab**.
 
 ---
 
-## 📄 **License & Disclaimer**
+## 📄 License
 
-This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
-> [!IMPORTANT]  
-> Using this bot for downloading copyrighted content without permission may violate laws.  
-> **You should NOT use it in a way that goes against Google Colab's Terms of Service**, such as running torrents, hosting web services, or engaging in bulk compute.  
+> [!IMPORTANT]
+> Using this bot for downloading copyrighted content without permission may violate laws.
+> Do not violate Google Colab's Terms of Service.
 > The developer assumes no liability for misuse.
 
 ---
 
-## **Updates & Support**
+## 🫂 Updates & Support
 
 <div align="center">
-  
-##### **Updates Channel**
 
+##### Updates Channel
 <a href="https://t.me/MaximXBots"><img src="https://telegramcard.vercel.app/?username=MaximXBots&theme=light" alt="Channel"></a>
 
-##### **Support Group**
-
-<a href="https://t.me/MaximXGroup"><img src="https://telegramcard.vercel.app/?username=MaximxGroup&theme=light&theme=light" alt="Group"></a>
+##### Support Group
+<a href="https://t.me/MaximXGroup"><img src="https://telegramcard.vercel.app/?username=MaximxGroup&theme=light" alt="Group"></a>
 
 </div>
 
 ## 💕 Loved My Work?
 
 🚨 [Follow me on GitHub](https://github.com/Shineii86)
-
 ⭐ [Give a star to this project](https://github.com/Shineii86/LeechBot)
 
 <div align="center">
@@ -393,15 +402,15 @@ This project is licensed under the **MIT License** – see the [LICENSE](LICENSE
 <a href="https://github.com/Shineii86/LeechBot">
 <img src="https://github.com/Shineii86/AniPay/blob/main/Source/Banner6.png" alt="Banner">
 </a>
-  
-  *For inquiries or collaborations*
-     
+
+*For inquiries or collaborations*
+
 [![Telegram Badge](https://img.shields.io/badge/-Telegram-2CA5E0?style=flat&logo=Telegram&logoColor=white)](https://telegram.me/Shineii86 "Contact on Telegram")
 [![Instagram Badge](https://img.shields.io/badge/-Instagram-C13584?style=flat&logo=Instagram&logoColor=white)](https://instagram.com/ikx7.a "Follow on Instagram")
 [![Pinterest Badge](https://img.shields.io/badge/-Pinterest-E60023?style=flat&logo=Pinterest&logoColor=white)](https://pinterest.com/ikx7a "Follow on Pinterest")
 [![Gmail Badge](https://img.shields.io/badge/-Gmail-D14836?style=flat&logo=Gmail&logoColor=white)](mailto:ikx7a@hotmail.com "Send an Email")
 
-  <sup><b>Copyright © 2026 <a href="https://telegram.me/Shineii86">Shinei Nouzen</a> All Rights Reserved</b></sup>
+<sup><b>Copyright © 2026 <a href="https://telegram.me/Shineii86">Shinei Nouzen</a> All Rights Reserved</b></sup>
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
 

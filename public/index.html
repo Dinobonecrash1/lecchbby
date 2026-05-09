@@ -21,8 +21,12 @@
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: #111827; }
   ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
-  .log-line { animation: fadeIn 0.3s ease-out; }
   @keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+  .fade-in { animation: fadeIn 0.3s ease-out; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .spinner { animation: spin 1s linear infinite; }
+  .stat-card { transition: transform 0.2s, box-shadow 0.2s; }
+  .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99,102,241,0.15); }
 </style>
 </head>
 <body class="min-h-screen">
@@ -30,26 +34,25 @@
 <!-- Login Screen -->
 <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
   <div class="glass rounded-2xl p-8 max-w-md w-full text-center">
-    <div class="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center">
-      <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="w-20 h-20 mx-auto mb-5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+      <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
       </svg>
     </div>
-    <h1 class="text-2xl font-bold glow mb-2">LeechBot Dashboard</h1>
-    <p class="text-gray-400 text-sm mb-6">Enter your dashboard token to connect</p>
-    <input id="tokenInput" type="password" placeholder="Enter token..."
+    <h1 class="text-2xl font-bold glow mb-1">LeechBot</h1>
+    <p class="text-gray-500 text-xs mb-6">Dashboard v3.1.1</p>
+    <input id="tokenInput" type="password" placeholder="Dashboard token"
+      class="w-full px-4 py-3 rounded-lg text-white font-mono text-sm mb-3 text-center"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <input id="serverUrl" type="text" placeholder="Server URL (e.g. http://ip:8080)"
       class="w-full px-4 py-3 rounded-lg text-white font-mono text-sm mb-4 text-center"
       onkeydown="if(event.key==='Enter')doLogin()">
-    <div id="serverUrlGroup" class="mb-4">
-      <input id="serverUrl" type="text" placeholder="Server URL (e.g. https://xxx.ngrok.io)"
-        class="w-full px-4 py-3 rounded-lg text-white font-mono text-sm text-center"
-        onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
     <button onclick="doLogin()" id="loginBtn"
       class="w-full py-3 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium hover:opacity-90 transition">
       Connect
     </button>
     <p id="loginError" class="text-red-400 text-sm mt-3 hidden"></p>
+    <p class="text-gray-600 text-xs mt-4">Token is printed in bot logs on startup</p>
   </div>
 </div>
 
@@ -73,7 +76,7 @@
       <div class="flex items-center space-x-3">
         <span id="wsIndicator" class="w-2 h-2 rounded-full bg-red-500"></span>
         <span id="uptime" class="text-xs text-gray-400 font-mono">--:--</span>
-        <button onclick="doDisconnect()" class="text-xs text-gray-500 hover:text-red-400 transition">Logout</button>
+        <button onclick="doDisconnect()" class="text-xs text-gray-500 hover:text-red-400 transition px-2 py-1 rounded hover:bg-red-500/10">Logout</button>
       </div>
     </div>
   </header>
@@ -82,67 +85,82 @@
 
     <!-- Status Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="glass rounded-xl p-4">
+      <div class="glass rounded-xl p-4 stat-card">
         <p class="text-xs text-gray-500 mb-1">Status</p>
         <p id="cardStatus" class="text-lg font-bold text-gray-400">Idle</p>
       </div>
-      <div class="glass rounded-xl p-4">
-        <p class="text-xs text-gray-500 mb-1">Downloads</p>
+      <div class="glass rounded-xl p-4 stat-card">
+        <p class="text-xs text-gray-500 mb-1">Downloaded</p>
         <p id="cardDownloaded" class="text-lg font-bold text-indigo-400 font-mono">0 B</p>
       </div>
-      <div class="glass rounded-xl p-4">
+      <div class="glass rounded-xl p-4 stat-card">
         <p class="text-xs text-gray-500 mb-1">Uploaded</p>
         <p id="cardUploaded" class="text-lg font-bold text-green-400 font-mono">0 B</p>
       </div>
-      <div class="glass rounded-xl p-4">
-        <p class="text-xs text-gray-500 mb-1">Tasks</p>
+      <div class="glass rounded-xl p-4 stat-card">
+        <p class="text-xs text-gray-500 mb-1">Tasks Done</p>
         <p id="cardTasks" class="text-lg font-bold text-purple-400 font-mono">0</p>
       </div>
     </div>
 
     <!-- Active Task -->
-    <div id="activeTaskCard" class="glass rounded-xl p-5 hidden">
+    <div id="activeTaskCard" class="glass rounded-xl p-5 hidden fade-in">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center space-x-2">
           <div class="w-2 h-2 rounded-full bg-yellow-400 status-pulse"></div>
-          <h2 class="font-semibold" id="taskTitle">Downloading...</h2>
+          <h2 class="font-semibold" id="taskTitle">Processing...</h2>
         </div>
         <button onclick="cancelTask()" class="px-3 py-1 text-xs rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition">
           Cancel
         </button>
       </div>
-      <div class="mb-3">
+
+      <!-- Progress bar -->
+      <div class="mb-4">
         <div class="flex justify-between text-xs text-gray-400 mb-1">
           <span id="taskEngine">--</span>
           <span id="taskPercent">0%</span>
         </div>
-        <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+        <div class="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
           <div id="taskBar" class="progress-shimmer h-full rounded-full transition-all duration-500" style="width:0%"></div>
         </div>
       </div>
-      <div class="grid grid-cols-3 gap-4 text-center text-xs">
-        <div>
-          <p class="text-gray-500">Speed</p>
-          <p id="taskSpeed" class="font-mono text-white">--</p>
+
+      <!-- Stats grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs">
+        <div class="bg-gray-800/40 rounded-lg p-2">
+          <p class="text-gray-500 mb-1">Speed</p>
+          <p id="taskSpeed" class="font-mono text-white text-sm">--</p>
         </div>
-        <div>
-          <p class="text-gray-500">Done</p>
-          <p id="taskDone" class="font-mono text-white">--</p>
+        <div class="bg-gray-800/40 rounded-lg p-2">
+          <p class="text-gray-500 mb-1">Downloaded</p>
+          <p id="taskDone" class="font-mono text-white text-sm">--</p>
         </div>
-        <div>
-          <p class="text-gray-500">Elapsed</p>
-          <p id="taskElapsed" class="font-mono text-white">--</p>
+        <div class="bg-gray-800/40 rounded-lg p-2">
+          <p class="text-gray-500 mb-1">Total Size</p>
+          <p id="taskTotal" class="font-mono text-white text-sm">--</p>
+        </div>
+        <div class="bg-gray-800/40 rounded-lg p-2">
+          <p class="text-gray-500 mb-1">Elapsed</p>
+          <p id="taskElapsed" class="font-mono text-white text-sm">--</p>
         </div>
       </div>
-      <p id="taskFile" class="text-xs text-gray-500 mt-3 truncate"></p>
+
+      <!-- Current file -->
+      <div class="mt-3 flex items-center space-x-2 text-xs text-gray-500">
+        <span>📄</span>
+        <span id="taskFile" class="truncate"></span>
+      </div>
     </div>
 
     <!-- Tabs -->
     <div class="border-b border-gray-800">
-      <div class="flex space-x-6">
-        <button onclick="switchTab('queue')" class="tab-btn tab-active pb-2 text-sm" data-tab="queue">Queue</button>
-        <button onclick="switchTab('settings')" class="tab-btn pb-2 text-sm text-gray-500" data-tab="settings">Settings</button>
-        <button onclick="switchTab('system')" class="tab-btn pb-2 text-sm text-gray-500" data-tab="system">System</button>
+      <div class="flex space-x-6 overflow-x-auto">
+        <button onclick="switchTab('queue')" class="tab-btn tab-active pb-2 text-sm whitespace-nowrap" data-tab="queue">Queue</button>
+        <button onclick="switchTab('files')" class="tab-btn pb-2 text-sm text-gray-500 whitespace-nowrap" data-tab="files">Files</button>
+        <button onclick="switchTab('settings')" class="tab-btn pb-2 text-sm text-gray-500 whitespace-nowrap" data-tab="settings">Settings</button>
+        <button onclick="switchTab('system')" class="tab-btn pb-2 text-sm text-gray-500 whitespace-nowrap" data-tab="system">System</button>
+        <button onclick="switchTab('commands')" class="tab-btn pb-2 text-sm text-gray-500 whitespace-nowrap" data-tab="commands">Commands</button>
       </div>
     </div>
 
@@ -159,9 +177,11 @@
           <p class="text-gray-500 text-sm text-center py-4">Queue is empty</p>
         </div>
       </div>
+    </div>
 
-      <!-- Recent Files -->
-      <div class="glass rounded-xl p-5 mt-4">
+    <!-- Files Tab -->
+    <div id="tab-files" class="tab-content hidden">
+      <div class="glass rounded-xl p-5">
         <h3 class="font-semibold mb-3">Recent Files</h3>
         <div id="filesList" class="space-y-1">
           <p class="text-gray-500 text-sm text-center py-4">No files yet</p>
@@ -173,7 +193,7 @@
     <div id="tab-settings" class="tab-content hidden">
       <div class="glass rounded-xl p-5">
         <h3 class="font-semibold mb-4">Bot Settings</h3>
-        <div id="settingsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div id="settingsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <!-- Filled by JS -->
         </div>
       </div>
@@ -186,24 +206,76 @@
         <div class="space-y-4">
           <div>
             <div class="flex justify-between text-sm mb-1">
-              <span>CPU</span>
+              <span class="flex items-center space-x-2"><span>🖥️</span><span>CPU</span></span>
               <span id="cpuVal" class="font-mono">0%</span>
             </div>
-            <div class="w-full bg-gray-800 rounded-full h-2"><div id="cpuBar" class="bg-indigo-500 h-full rounded-full transition-all" style="width:0%"></div></div>
+            <div class="w-full bg-gray-800 rounded-full h-2.5"><div id="cpuBar" class="bg-indigo-500 h-full rounded-full transition-all" style="width:0%"></div></div>
           </div>
           <div>
             <div class="flex justify-between text-sm mb-1">
-              <span>RAM</span>
+              <span class="flex items-center space-x-2"><span>📊</span><span>RAM</span></span>
               <span id="ramVal" class="font-mono">0%</span>
             </div>
-            <div class="w-full bg-gray-800 rounded-full h-2"><div id="ramBar" class="bg-purple-500 h-full rounded-full transition-all" style="width:0%"></div></div>
+            <div class="w-full bg-gray-800 rounded-full h-2.5"><div id="ramBar" class="bg-purple-500 h-full rounded-full transition-all" style="width:0%"></div></div>
           </div>
           <div>
             <div class="flex justify-between text-sm mb-1">
-              <span>Disk</span>
+              <span class="flex items-center space-x-2"><span>💾</span><span>Disk</span></span>
               <span id="diskVal" class="font-mono">--</span>
             </div>
-            <div class="w-full bg-gray-800 rounded-full h-2"><div id="diskBar" class="bg-green-500 h-full rounded-full transition-all" style="width:0%"></div></div>
+            <div class="w-full bg-gray-800 rounded-full h-2.5"><div id="diskBar" class="bg-green-500 h-full rounded-full transition-all" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Commands Tab -->
+    <div id="tab-commands" class="tab-content hidden">
+      <div class="glass rounded-xl p-5">
+        <h3 class="font-semibold mb-4">Quick Reference</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="commandsGrid">
+          <div class="bg-gray-800/50 rounded-lg p-3">
+            <h4 class="text-indigo-400 font-medium text-sm mb-2">📥 Downloads</h4>
+            <div class="space-y-1 text-xs">
+              <div class="flex justify-between"><span class="text-gray-400">/start</span><span>Initialize bot</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/tupload</span><span>Leech to Telegram</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/gdupload</span><span>Mirror to GDrive</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/ytupload</span><span>YouTube / yt-dlp</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/glupload</span><span>Photo galleries</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/drupload</span><span>Local directory</span></div>
+            </div>
+          </div>
+          <div class="bg-gray-800/50 rounded-lg p-3">
+            <h4 class="text-green-400 font-medium text-sm mb-2">⚙️ Control</h4>
+            <div class="space-y-1 text-xs">
+              <div class="flex justify-between"><span class="text-gray-400">/settings</span><span>Bot preferences</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/queue</span><span>View queue</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/cancel</span><span>Cancel task</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/cancel_all</span><span>Cancel + clear</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/format</span><span>YT-DLP quality</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/speed</span><span>Bandwidth limit</span></div>
+            </div>
+          </div>
+          <div class="bg-gray-800/50 rounded-lg p-3">
+            <h4 class="text-purple-400 font-medium text-sm mb-2">🔧 Setup</h4>
+            <div class="space-y-1 text-xs">
+              <div class="flex justify-between"><span class="text-gray-400">/cookies</span><span>YouTube auth</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/setcookies</span><span>Upload cookies</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/setname</span><span>Custom filename</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/zipaswd</span><span>Zip password</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/admin</span><span>Manage users</span></div>
+              <div class="flex justify-between"><span class="text-gray-400">/stats</span><span>System stats</span></div>
+            </div>
+          </div>
+          <div class="bg-gray-800/50 rounded-lg p-3">
+            <h4 class="text-yellow-400 font-medium text-sm mb-2">💡 Tips</h4>
+            <div class="space-y-1 text-xs text-gray-400">
+              <p>• Send links after a command to start downloading</p>
+              <p>• Use <code class="bg-gray-700 px-1 rounded">[name]</code> for custom filename</p>
+              <p>• Use <code class="bg-gray-700 px-1 rounded">{pass}</code> for zip password</p>
+              <p>• Multiple links = queued automatically</p>
+              <p>• Send a photo to set as thumbnail</p>
+            </div>
           </div>
         </div>
       </div>
@@ -212,7 +284,7 @@
   </main>
 
   <footer class="border-t border-gray-800 py-4 text-center text-xs text-gray-600">
-    LeechBot Dashboard · <a href="https://github.com/Shineii86/LeechBot" class="text-indigo-500 hover:underline" target="_blank">GitHub</a>
+    LeechBot Dashboard v3.1.1 · <a href="https://github.com/Shineii86/LeechBot" class="text-indigo-500 hover:underline" target="_blank">GitHub</a> · <a href="https://t.me/Shineii86" class="text-indigo-500 hover:underline" target="_blank">@Shineii86</a>
   </footer>
 </div>
 
@@ -224,6 +296,7 @@ let ws = null;
 let serverUrl = '';
 let authToken = '';
 let reconnectTimer = null;
+let lastData = null;
 
 // =============================================================================
 // Login
@@ -240,8 +313,10 @@ function doLogin() {
   authToken = token;
   serverUrl = url.replace(/\/+$/, '');
 
-  // Test connection
-  fetch(serverUrl + '/api/health')
+  document.getElementById('loginBtn').textContent = 'Connecting...';
+  document.getElementById('loginBtn').disabled = true;
+
+  fetch(serverUrl + '/api/health', { signal: AbortSignal.timeout(10000) })
     .then(r => {
       if (!r.ok) throw new Error('Server returned ' + r.status);
       return r.json();
@@ -253,6 +328,8 @@ function doLogin() {
     })
     .catch(e => {
       showLoginError('Cannot reach server: ' + e.message);
+      document.getElementById('loginBtn').textContent = 'Connect';
+      document.getElementById('loginBtn').disabled = false;
     });
 }
 
@@ -262,6 +339,8 @@ function doDisconnect() {
   if (ws) ws.close();
   document.getElementById('dashboard').classList.add('hidden');
   document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginBtn').textContent = 'Connect';
+  document.getElementById('loginBtn').disabled = false;
 }
 
 function showLoginError(msg) {
@@ -320,7 +399,7 @@ async function fetchFullState() {
 // WebSocket
 // =============================================================================
 function connectWebSocket() {
-  if (ws) ws.close();
+  if (ws) { try { ws.close(); } catch(e) {} }
 
   const wsUrl = serverUrl.replace(/^http/, 'ws') + '/ws';
   ws = new WebSocket(wsUrl);
@@ -328,9 +407,7 @@ function connectWebSocket() {
   ws.onopen = () => {
     document.getElementById('wsIndicator').className = 'w-2 h-2 rounded-full bg-green-500 status-pulse';
     document.getElementById('headerStatus').textContent = 'Connected';
-    // Send auth
     ws.send(JSON.stringify({ auth: authToken }));
-    // Request status
     ws.send('status');
   };
 
@@ -345,6 +422,7 @@ function connectWebSocket() {
   ws.onclose = () => {
     document.getElementById('wsIndicator').className = 'w-2 h-2 rounded-full bg-red-500';
     document.getElementById('headerStatus').textContent = 'Reconnecting...';
+    clearTimeout(reconnectTimer);
     reconnectTimer = setTimeout(connectWebSocket, 3000);
   };
 
@@ -352,7 +430,7 @@ function connectWebSocket() {
 }
 
 // =============================================================================
-// UI Update
+// Helpers
 // =============================================================================
 function sizeUnit(b) {
   if (!b || b <= 0) return '0 B';
@@ -370,15 +448,25 @@ function getTime(s) {
   return `${sec}s`;
 }
 
+function calcSpeed(bytes, elapsed) {
+  if (!bytes || !elapsed || elapsed <= 0) return null;
+  return bytes / elapsed;
+}
+
+// =============================================================================
+// UI Update
+// =============================================================================
 function updateUI(data) {
+  lastData = data;
+
   // Status cards
   const status = data.status || 'idle';
   const statusEl = document.getElementById('cardStatus');
   if (status === 'active') {
-    statusEl.textContent = 'Active';
+    statusEl.innerHTML = '<span class="inline-flex items-center"><span class="w-2 h-2 rounded-full bg-yellow-400 mr-2 status-pulse"></span>Active</span>';
     statusEl.className = 'text-lg font-bold text-yellow-400';
   } else {
-    statusEl.textContent = 'Idle';
+    statusEl.innerHTML = '<span class="inline-flex items-center"><span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>Idle</span>';
     statusEl.className = 'text-lg font-bold text-green-400';
   }
 
@@ -391,10 +479,33 @@ function updateUI(data) {
   const taskCard = document.getElementById('activeTaskCard');
   if (data.task?.active) {
     taskCard.classList.remove('hidden');
-    const mode = data.task.gallery ? 'Gallery' : data.task.mode === 'mirror' ? 'Mirror' : 'Leech';
+
+    // Title with mode
+    const mode = data.task.gallery ? '📸 Gallery' : data.task.mode === 'mirror' ? '☁️ Mirror' : '📥 Leech';
     document.getElementById('taskTitle').textContent = `${mode} — ${data.task.download_name || 'Processing...'}`;
+
+    // Engine label
+    const engine = data.task.gallery ? 'gallery-dl' : data.task.ytdl ? 'yt-dlp' : data.task.mode === 'mirror' ? 'GDrive' : 'aria2c';
+    document.getElementById('taskEngine').textContent = engine;
+
+    // Progress from transfer data
+    const downSize = data.task.down_size || 0;
+    const totalSize = data.transfer?.total_down_size || 0;
+    const pct = totalSize > 0 ? Math.min((downSize / totalSize) * 100, 100) : 0;
+    document.getElementById('taskPercent').textContent = pct.toFixed(1) + '%';
+    document.getElementById('taskBar').style.width = pct + '%';
+
+    // Speed calculation
+    const elapsed = data.task.elapsed || 0;
+    const speed = calcSpeed(downSize, elapsed);
+    document.getElementById('taskSpeed').textContent = speed ? sizeUnit(speed) + '/s' : '--';
+    document.getElementById('taskDone').textContent = sizeUnit(downSize);
+    document.getElementById('taskTotal').textContent = sizeUnit(totalSize);
     document.getElementById('taskElapsed').textContent = data.task.elapsed_human || '--';
-    document.getElementById('taskFile').textContent = data.transfer?.files_sent_names?.slice(-1)[0] || '';
+
+    // Current file
+    const files = data.transfer?.files_sent_names || [];
+    document.getElementById('taskFile').textContent = files.length > 0 ? files[files.length - 1] : (data.task.download_name || '');
   } else {
     taskCard.classList.add('hidden');
   }
@@ -404,38 +515,37 @@ function updateUI(data) {
   const ql = document.getElementById('queueList');
   if (q?.pending > 0 || q?.current) {
     let html = '';
-    if (q.current) html += `<div class="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-sm">🔄 Active task running</div>`;
+    if (q.current) html += `<div class="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-sm flex items-center"><span class="w-2 h-2 rounded-full bg-yellow-400 mr-2 status-pulse"></span>Active task running</div>`;
     q.items?.forEach(item => {
-      html += `<div class="p-3 rounded-lg bg-gray-800/50 text-sm flex justify-between">
-        <span class="truncate">${item.first_link}...</span>
-        <span class="text-gray-500 text-xs">${item.links} links</span>
+      html += `<div class="p-3 rounded-lg bg-gray-800/50 text-sm flex justify-between items-center fade-in">
+        <span class="truncate mr-3">${escapeHtml(item.first_link)}${item.links > 1 ? '...' : ''}</span>
+        <span class="text-gray-500 text-xs bg-gray-700/50 px-2 py-0.5 rounded-full whitespace-nowrap">${item.links} link${item.links > 1 ? 's' : ''}</span>
       </div>`;
     });
     ql.innerHTML = html;
   } else {
-    ql.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Queue is empty</p>';
+    ql.innerHTML = '<p class="text-gray-500 text-sm text-center py-6">Queue is empty</p>';
   }
 
   // Recent files
   const fl = document.getElementById('filesList');
   if (data.transfer?.files_sent_names?.length > 0) {
-    fl.innerHTML = data.transfer.files_sent_names.map(f =>
-      `<div class="text-sm font-mono text-gray-300 truncate">📄 ${f}</div>`
+    fl.innerHTML = data.transfer.files_sent_names.map((f, i) =>
+      `<div class="text-sm font-mono text-gray-300 truncate py-1 px-2 rounded hover:bg-gray-800/50 fade-in" style="animation-delay:${i*50}ms">📄 ${escapeHtml(f)}</div>`
     ).join('');
+  } else {
+    fl.innerHTML = '<p class="text-gray-500 text-sm text-center py-6">No files yet</p>';
   }
 
   // System
   if (data.system) {
     const cpu = data.system.cpu || 0;
     const ram = data.system.ram_percent || 0;
-    document.getElementById('cpuVal').textContent = cpu.toFixed(1) + '%';
-    document.getElementById('cpuBar').style.width = cpu + '%';
-    document.getElementById('ramVal').textContent = ram.toFixed(1) + '%';
-    document.getElementById('ramBar').style.width = ram + '%';
+    setBar('cpu', cpu, cpu.toFixed(1) + '%');
+    setBar('ram', ram, ram.toFixed(1) + '%');
     if (data.system.disk_total > 0) {
       const diskUsed = ((data.system.disk_total - data.system.disk_free) / data.system.disk_total * 100);
-      document.getElementById('diskVal').textContent = sizeUnit(data.system.disk_free) + ' free';
-      document.getElementById('diskBar').style.width = diskUsed.toFixed(1) + '%';
+      setBar('disk', diskUsed, sizeUnit(data.system.disk_free) + ' free');
     }
   }
 
@@ -443,25 +553,36 @@ function updateUI(data) {
   if (data.settings) {
     const s = data.settings;
     const grid = document.getElementById('settingsGrid');
-    grid.innerHTML = `
-      ${settingRow('Upload Mode', s.stream_upload)}
-      ${settingRow('Convert Video', s.convert_video)}
-      ${settingRow('Split Video', s.split_video)}
-      ${settingRow('Caption Style', s.caption)}
-      ${settingRow('Prefix', s.prefix ? 'Set' : 'None')}
-      ${settingRow('Suffix', s.suffix ? 'Set' : 'None')}
-      ${settingRow('Thumbnail', s.thumbnail ? 'Set' : 'None')}
-      ${settingRow('Photo Mode', s.photo_mode)}
-      ${settingRow('Auto-Delete', s.auto_delete ? 'ON ('+s.auto_delete_delay+'s)' : 'OFF')}
-    `;
+    grid.innerHTML = [
+      settingRow('📤 Upload Mode', s.stream_upload ? 'Media' : 'Document'),
+      settingRow('🔄 Convert Video', s.convert_video),
+      settingRow('✂️ Split Video', s.split_video),
+      settingRow('📝 Caption Style', s.caption),
+      settingRow('➕ Prefix', s.prefix ? 'Set' : 'None'),
+      settingRow('➕ Suffix', s.suffix ? 'Set' : 'None'),
+      settingRow('🖼️ Thumbnail', s.thumbnail ? 'Set' : 'None'),
+      settingRow('📸 Photo Mode', s.photo_mode),
+      settingRow('⏳ Auto-Delete', s.auto_delete ? `ON (${s.auto_delete_delay}s)` : 'OFF'),
+    ].join('');
   }
 }
 
+function setBar(prefix, pct, text) {
+  document.getElementById(prefix + 'Val').textContent = text;
+  document.getElementById(prefix + 'Bar').style.width = Math.min(pct, 100) + '%';
+}
+
 function settingRow(label, value) {
-  return `<div class="flex justify-between p-3 rounded-lg bg-gray-800/50">
+  return `<div class="flex justify-between items-center p-3 rounded-lg bg-gray-800/50">
     <span class="text-sm text-gray-400">${label}</span>
     <span class="text-sm font-medium">${value}</span>
   </div>`;
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
 }
 
 // =============================================================================
@@ -492,9 +613,11 @@ function switchTab(name) {
 }
 
 // =============================================================================
-// Periodic refresh
+// Periodic refresh (fallback when WS is down)
 // =============================================================================
-setInterval(fetchFullState, 5000);
+setInterval(() => {
+  if (!ws || ws.readyState !== WebSocket.OPEN) fetchFullState();
+}, 5000);
 </script>
 </body>
 </html>

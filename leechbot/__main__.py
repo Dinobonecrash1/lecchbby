@@ -125,6 +125,9 @@ async def _register_commands():
         BotCommand("setcookies", "📤 Upload cookies.txt"),
         BotCommand("clearcookies", "🗑️ Delete cookies file"),
         BotCommand("update", "🔄 Check for updates"),
+        BotCommand("userbot", "👤 Login for private channel access"),
+        BotCommand("userbot_logout", "🔓 Disconnect user session"),
+        BotCommand("userbot_status", "👤 Check user session status"),
     ]
 
     try:
@@ -175,6 +178,16 @@ async def startup():
         logger.info("🔑 Dashboard token: %s", web_token)
     except Exception as e:
         logger.warning("⚠️ Web dashboard failed to start: %s", e)
+
+    # Check for existing UserBot session
+    try:
+        from leechbot.userbot import check_user_session
+        if await check_user_session():
+            logger.info("👤 UserBot session: active (private channel access enabled)")
+        else:
+            logger.info("👤 UserBot session: not set (send /userbot to enable)")
+    except Exception as e:
+        logger.debug("UserBot check: %s", e)
 
     logger.info("=" * 60)
 

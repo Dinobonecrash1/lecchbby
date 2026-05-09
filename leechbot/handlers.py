@@ -198,10 +198,41 @@ async def handle_document(client, message):
     "settings", "help", "setname", "zipaswd", "unzipaswd",
     "stats", "cancel", "cancel_all", "queue", "format",
     "speed", "broadcast", "admin", "cookies", "setcookies",
-    "clearcookies", "update",
+    "clearcookies", "update", "userbot", "userbot_logout", "userbot_status",
 ]))
 async def handle_text_input(client, message):
-    """Handle text inputs for setting auto-delete delay."""
+    """Handle text inputs for settings and UserBot auth flow."""
+    from leechbot.userbot import start_auth_flow, verify_code, verify_2fa
+
+    # UserBot auth flow
+    if getattr(BOT.State, "userbot_waiting", ""):
+        step = BOT.State.userbot_waiting
+        text = message.text.strip()
+
+        if step == "phone":
+            BOT.State.userbot_waiting = ""
+            result = await start_auth_flow(text)
+            await message.reply_text(result)
+            await message.delete()
+            return
+
+        elif step == "code":
+            BOT.State.userbot_waiting = ""
+            result = await verify_code(text)
+            if "2FA" in result or "cloud password" in result.lower():
+                BOT.State.userbot_waiting = "2fa"
+            await message.reply_text(result)
+            await message.delete()
+            return
+
+        elif step == "2fa":
+            BOT.State.userbot_waiting = ""
+            result = await verify_2fa(text)
+            await message.reply_text(result)
+            await message.delete()
+            return
+
+    # Auto-delete delay
     if getattr(BOT.State, "setting_autodelete_delay", False):
         try:
             delay = int(message.text.strip())

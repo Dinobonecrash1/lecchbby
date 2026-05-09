@@ -26,6 +26,7 @@ from leechbot.utility.variables import (
 from leechbot.utility.helper import (
     is_google_drive, is_telegram, is_ytdl_link, is_mega,
     is_terabox, is_pixeldrain, is_mediafire, is_gallery,
+    is_hls_stream, is_gofile, is_bunkr, is_catbox, is_streamtape,
     isYtdlComplete, keyboard, sysINFO, detect_link_type,
 )
 import config
@@ -124,6 +125,35 @@ async def downloadManager(sources: list, is_ytdl: bool):
 
                 elif is_gallery(link):
                     await _with_retry(lambda l=link, n=i+1: gallery_download(l, n), link)
+
+                elif is_hls_stream(link):
+                    # HLS (.m3u8) and DASH (.mpd) streams → yt-dlp handles natively
+                    await _with_retry(lambda l=link, n=i+1: YTDL_Status(l, n), link)
+                    try:
+                        await MSG.status_msg.edit_text(
+                            text=Messages.task_msg + Messages.status_head + merge_msg + sysINFO(),
+                            reply_markup=keyboard()
+                        )
+                    except Exception:
+                        pass
+                    while not isYtdlComplete():
+                        await sleep(2)
+
+                elif is_gofile(link):
+                    from leechbot.downloader.gofile import gofile_download
+                    await _with_retry(lambda l=link, n=i+1: gofile_download(l, n), link)
+
+                elif is_bunkr(link):
+                    from leechbot.downloader.bunkr import bunkr_download
+                    await _with_retry(lambda l=link, n=i+1: bunkr_download(l, n), link)
+
+                elif is_catbox(link):
+                    from leechbot.downloader.catbox import catbox_download
+                    await _with_retry(lambda l=link, n=i+1: catbox_download(l, n), link)
+
+                elif is_streamtape(link):
+                    from leechbot.downloader.streamtape import streamtape_download
+                    await _with_retry(lambda l=link, n=i+1: streamtape_download(l, n), link)
 
                 elif is_ytdl_link(link):
                     await _with_retry(lambda l=link, n=i+1: YTDL_Status(l, n), link)
@@ -236,6 +266,8 @@ async def get_d_name(link: str):
         from leechbot.downloader.gallery import get_gallery_name
         Messages.download_name = await get_gallery_name(link)
     elif is_ytdl_link(link):
+        Messages.download_name = await get_YT_Name(link)
+    elif is_hls_stream(link):
         Messages.download_name = await get_YT_Name(link)
     elif is_mega(link):
         Messages.download_name = "Mega Download"

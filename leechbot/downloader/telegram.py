@@ -38,7 +38,9 @@ async def media_Identifier(link: str):
 
     Supports:
       - Public:  https://t.me/USERNAME/MSG_ID  (no membership needed)
-      - Private: https://t.me/c/CHAT_ID/MSG_ID (bot must be a member)
+      - Private: https://t.me/c/CHAT_ID/MSG_ID
+        → Uses UserBot session if available (user's own account)
+        → Falls back to bot client (requires bot to be a member)
 
     Args:
         link: Telegram message link
@@ -57,7 +59,21 @@ async def media_Identifier(link: str):
             # Public channel: t.me/USERNAME/MSG_ID
             chat_id = parts[4]
 
-        message = await app.get_messages(chat_id, message_id)
+        # For private channels, try UserBot session first
+        message = None
+        if "/c/" in link:
+            from leechbot.userbot import get_user_messages, check_user_session
+            if await check_user_session():
+                try:
+                    message = await get_user_messages(chat_id, message_id)
+                    if message and not message.empty:
+                        logger.info("Fetched message via UserBot session")
+                except Exception as e:
+                    logger.warning(f"UserBot fetch failed, falling back to bot: {e}")
+
+        # Fallback to bot client
+        if message is None or message.empty:
+            message = await app.get_messages(chat_id, message_id)
 
         if message is None or message.empty:
             logger.error(f"Message not found: {link}")
@@ -71,8 +87,10 @@ async def media_Identifier(link: str):
         error_text = str(e).lower()
         if "peer" in error_text or "channel" in error_text or "chat" in error_text:
             logger.error(
-                f"Cannot access message. For private channels, the bot must be a member. "
-                f"Public channels work without membership. Error: {e}"
+                f"Cannot access private channel. Options:\n"
+                f"1. Send /userbot to login with your Telegram account\n"
+                f"2. Add the bot as a member of the channel\n"
+                f"Error: {e}"
             )
         else:
             logger.error(f"Telegram message fetch error: {e}")

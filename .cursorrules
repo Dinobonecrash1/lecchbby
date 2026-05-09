@@ -1,0 +1,68 @@
+# Cursor Rules for LeechBot
+
+## Overview
+LeechBot — Pyrogram 2.0.106 Telegram bot for file transloading. Python 3.10+, asyncio.
+
+## Code Style
+- Async/await everywhere (asyncio application)
+- `logger = logging.getLogger(__name__)` at module top
+- Standard file header block (project, developer, license)
+- No linter configured — follow existing patterns
+- Type hints on function signatures preferred but not required
+- Direct state mutation via `leechbot/utility/variables.py` classes
+
+## Key Imports
+```python
+from leechbot import app, OWNER, DUMP_ID
+from leechbot.utility.variables import BOT, MSG, Transfer, BotTimes, Messages, Paths
+from leechbot.utility.helper import sizeUnit, status_bar, keyboard, sysINFO
+```
+
+## Commands
+Handlers in `leechbot/commands.py`:
+```python
+@app.on_message(filters.command("cmdname"))
+async def handler(client, message):
+    ...
+```
+
+## Callbacks
+All in `leechbot/callbacks.py`:
+```python
+@app.on_callback_query()
+async def handle_callback(client, callback_query):
+    data = callback_query.data
+    if data == "action": ...
+```
+
+## Downloaders
+- One file per source in `leechbot/downloader/`
+- Link detection patterns in `leechbot/utility/helper.py`
+- Routing in `leechbot/downloader/manager.py`
+
+## Upload
+- `upload_file(file_path, real_name)` — single file with progress
+- `upload_photos_batch(photo_paths, remove)` — batch via file_id grouping
+- `reply_media_group()` does NOT support progress — use per-photo upload workaround
+
+## State
+All mutable state in `leechbot/utility/variables.py`:
+- `BOT.Setting` — persistent preferences
+- `BOT.Options` — per-task options (reset each task)
+- `BOT.Mode` — current task mode
+- `BOT.State` — control flags
+- `Queue` — download queue (deque)
+- `Transfer` — file transfer stats
+- `BotStats` — cumulative stats
+
+## Constraints
+- Pyrogram 2.0.106: no `style` on buttons, no `progress` on media groups
+- Telegram 2GB limit, media group max 10
+- No test suite — test manually
+- Changelog: every change adds entry at top of `CHANGELOG.md`
+
+## Files to Read First
+1. `AGENTS.md` — full agent instructions
+2. `ARCHITECTURE.md` — technical deep dive
+3. `config.py` — all configuration
+4. `leechbot/utility/variables.py` — all state

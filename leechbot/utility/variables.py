@@ -80,6 +80,7 @@ class BOT:
         prefix: bool = False
         suffix: bool = False
         setting_autodelete_delay: bool = False
+        userbot_waiting: str = ""  # "phone" | "code" | "2fa" | ""
 
 
 # =============================================================================

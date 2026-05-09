@@ -15,6 +15,7 @@ Handles uploading files to Telegram with progress tracking.
 
 import os
 import logging
+from typing import Optional
 from PIL import Image
 from asyncio import sleep
 from os import path as ospath
@@ -159,31 +160,68 @@ async def upload_file(file_path: str, real_name: str):
 # =============================================================================
 # Batch Photo Upload (New) 29-04-2026
 # =============================================================================
-async def _batch_progress(current: int, total: int):
-    """Progress callback for batch photo uploads — updates status bar."""
-    elapsed = max((datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
-    speed = current / elapsed if current > 0 else 0
-    percentage = (current + sum(Transfer.up_bytes)) / max(Transfer.total_down_size, 1) * 100
-    remaining = max(Transfer.total_down_size - current - sum(Transfer.up_bytes), 0)
-    eta = remaining / speed if speed > 0 else 0
+async def _upload_photo_with_progress(file_path: str, caption: Optional[str], photo_idx: int, total_photos: int, processed: int):
+    """
+    Upload a single photo with progress tracking and return its file_id.
 
-    await status_bar(
-        down_msg=Messages.status_head,
-        speed=f"{sizeUnit(speed)}/s",
-        percentage=min(percentage, 100),
-        eta=getTime(eta),
-        done=sizeUnit(current + sum(Transfer.up_bytes)),
-        left=sizeUnit(Transfer.total_down_size),
-        engine="Telegram 📤",
+    Since reply_media_group() doesn't support progress callbacks, we upload
+    each photo individually first (with full progress bar), grab the file_id,
+    then delete the temporary message. The file_id is later used in the
+    media group call which is instant (no re-upload).
+
+    Args:
+        file_path: path to photo file
+        caption: caption text (only for first photo in group, else None)
+        photo_idx: 0-based index of this photo within the current batch
+        total_photos: total number of photos across all batches
+        processed: number of photos already uploaded in previous batches
+
+    Returns:
+        file_id string on success, None on failure
+    """
+    real_name = ospath.basename(file_path)
+    current_global = processed + photo_idx + 1
+    Messages.status_head = (
+        f"**📸 Uploading Photos** `{current_global}/{total_photos}`\n\n"
+        f"`{real_name}`\n"
     )
+
+    BotTimes.task_start = datetime.now()
+
+    try:
+        temp_msg = await MSG.sent_msg.reply_photo(
+            photo=file_path,
+            caption=caption,
+            progress=progress_bar,
+            reply_to_message_id=MSG.sent_msg.id
+        )
+        file_id = temp_msg.photo.file_id
+
+        # Delete the temporary individual photo message
+        try:
+            await temp_msg.delete()
+        except Exception:
+            pass
+
+        return file_id
+
+    except FloodWait as e:
+        logger.warning(f"Flood wait: waiting {e.value} seconds")
+        await sleep(e.value)
+        return await _upload_photo_with_progress(file_path, caption, photo_idx, total_photos, processed)
+
+    except Exception as e:
+        logger.error(f"Photo upload error ({real_name}): {e}")
+        return None
 
 
 async def upload_photos_batch(photo_paths: list, remove: bool = False):
     """
     Upload multiple photos in batches of 10 using media groups.
 
-    Each batch upload shows a live progress bar with speed, ETA,
-    and percentage via the Pyrogram progress callback.
+    Each photo is uploaded individually first with a full progress bar
+    (speed, ETA, percentage), then grouped into albums via file_id.
+    The media group send is instant since files are already on Telegram servers.
 
     Args:
         photo_paths: list of absolute paths to photo files
@@ -202,58 +240,61 @@ async def upload_photos_batch(photo_paths: list, remove: bool = False):
         media_group = []
         batch_names = []
 
+        # Update batch label
+        batch_label = f"{processed + 1}–{min(processed + batch_size, total_photos)}"
+
         for idx, file_path in enumerate(batch):
             real_name = ospath.basename(file_path)
             batch_names.append(real_name)
 
             # Caption only on first photo of each group
+            caption = None
             if idx == 0:
                 caption = f"<{BOT.Options.caption}>{BOT.Setting.prefix} {real_name} {BOT.Setting.suffix}</{BOT.Options.caption}>"
-            else:
-                caption = None  # No caption for subsequent photos per Telegram API
 
-            media_group.append(
-                InputMediaPhoto(
-                    media=file_path,
-                    caption=caption
-                )
+            # Upload individually with progress → get file_id
+            file_id = await _upload_photo_with_progress(
+                file_path, caption, idx, total_photos, processed
             )
+
+            if file_id:
+                media_group.append(InputMediaPhoto(media=file_id))
+            else:
+                logger.warning(f"Skipping {real_name} — upload failed")
+
+            # Track upload bytes regardless
+            try:
+                Transfer.up_bytes.append(os.stat(file_path).st_size)
+            except OSError:
+                pass
 
         try:
-            # Calculate batch size for progress tracking
-            batch_bytes = 0
-            for file_path in batch:
-                try:
-                    batch_bytes += os.stat(file_path).st_size
-                except OSError:
-                    pass
+            if media_group:
+                # Send the media group (instant — files already on servers)
+                Messages.status_head = (
+                    f"**📤 Grouping Photos** `{batch_label}/{total_photos}`\n\n"
+                )
+                await status_bar(
+                    down_msg=Messages.status_head,
+                    speed="—",
+                    percentage=min((processed / max(total_photos, 1)) * 100, 100),
+                    eta="—",
+                    done=sizeUnit(sum(Transfer.up_bytes)),
+                    left=sizeUnit(Transfer.total_down_size),
+                    engine="Telegram 📤",
+                )
 
-            # Update status head for this batch
-            batch_label = f"{processed + 1}–{min(processed + batch_size, total_photos)}"
-            Messages.status_head = (
-                f"**📤 Uploading Photos** `{batch_label}/{total_photos}`\n\n"
-            )
+                messages = await MSG.sent_msg.reply_media_group(
+                    media=media_group,
+                    reply_to_message_id=MSG.sent_msg.id
+                )
 
-            # Send the media group with progress callback
-            messages = await MSG.sent_msg.reply_media_group(
-                media=media_group,
-                progress=_batch_progress,
-                reply_to_message_id=MSG.sent_msg.id
-            )
+                # Update the chaining message to the first of this group
+                MSG.sent_msg = messages[0]
 
-            # Update the chaining message to the first of this group
-            MSG.sent_msg = messages[0]
-
-            # Track sent files
-            Transfer.sent_file.extend(messages)
-            Transfer.sent_file_names.extend(batch_names)
-
-            # Track upload bytes for progress
-            for file_path in batch:
-                try:
-                    Transfer.up_bytes.append(os.stat(file_path).st_size)
-                except OSError:
-                    pass
+                # Track sent files
+                Transfer.sent_file.extend(messages)
+                Transfer.sent_file_names.extend(batch_names)
 
             # Clean up uploaded files if requested
             if remove:
@@ -265,7 +306,7 @@ async def upload_photos_batch(photo_paths: list, remove: bool = False):
                         logger.warning(f"Failed to remove {file_path}: {e}")
 
             processed += len(batch)
-            logger.info(f"Uploaded photo batch {processed}/{total_photos}")
+            logger.info(f"Uploaded photo batch {batch_label}/{total_photos}")
             i += batch_size  # Advance to next batch only on success
 
         except FloodWait as e:

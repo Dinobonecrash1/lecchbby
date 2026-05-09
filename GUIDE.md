@@ -278,21 +278,31 @@ The dashboard starts automatically when the bot starts. You'll see this in the l
 
 **On Google Colab:**
 
-1. Start the bot — the dashboard runs on port 8080
-2. Use Colab's built-in URL or set up an ngrok tunnel:
-   ```python
-   # Add this to your Colab notebook after the bot starts
-   !ngrok http 8080
-   ```
-3. Copy the ngrok `https://xxx.ngrok.io` URL
-4. Open it in your browser
-5. Enter the token from the bot logs
+1. Deploy the bot using the notebook (`notebooks/LeechBot.ipynb`)
+2. Run the **🌐 Dashboard Tunnel** cell (optional, after bot starts)
+3. Choose **ngrok** (needs free token) or **cloudflared** (no signup)
+4. Open the URL it prints in your browser
+5. Enter the token from the bot logs (look for `🔑 Dashboard token:`)
 
-**On VPS/Local:**
+> 💡 The tunnel cell auto-detects if the bot is running. If you see "Port 8080 is not open", run the Deploy cell first.
 
-1. Start the bot
+**On VPS / Local:**
+
+1. Start the bot: `python3 -m leechbot`
 2. Open `http://your-server-ip:8080` in your browser
 3. Enter the token from the bot logs
+
+**Behind a reverse proxy (nginx):**
+
+```nginx
+location /dashboard/ {
+    proxy_pass http://127.0.0.1:8080/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+}
+```
 
 ### Environment Variables
 
@@ -314,12 +324,13 @@ WEB_TOKEN=my_secret_token_here
 |---------|-------------|
 | 🔐 **Login** | Token-based auth (saved in browser localStorage) |
 | 📊 **Status Cards** | Idle/active, total downloads, uploads, task count |
-| 🔄 **Active Task** | Progress bar, speed, ETA, elapsed, current file |
+| 🔄 **Active Task** | Mode, progress bar, speed, ETA, elapsed, total size, current file |
 | 📋 **Queue** | View pending downloads, clear queue |
+| 📁 **Files** | Recent uploaded files list |
 | ⚙️ **Settings** | View current bot settings |
 | 💻 **System** | CPU, RAM, disk usage bars |
-| 📁 **Files** | Recent uploaded files list |
-| 🟢 **WebSocket** | Real-time updates every 3 seconds |
+| 📖 **Commands** | Quick reference for all bot commands |
+| 🟢 **WebSocket** | Real-time updates every 3 seconds (REST fallback when WS is down) |
 
 ### API Endpoints
 
@@ -450,12 +461,25 @@ Any HTTP/FTP link works. Examples:
 - FTP links: `ftp://files.example.com/data.tar.gz`
 - Torrent files and magnet links (if `ENABLE_TORRENTS=true`)
 
+### HLS / DASH Streams
+Live and on-demand streaming protocols are fully supported via yt-dlp:
+- HLS streams: `https://example.com/live/index.m3u8`
+- DASH manifests: `https://example.com/video/manifest.mpd`
+- Authenticated streams with tokens in URL
+- Live streams (records until stream ends)
+
+> 💡 **How it works:** yt-dlp downloads all `.ts` segments from the m3u8 playlist, merges them into a single `.mp4` file, then uploads to Telegram with streaming support.
+
 ### Video Platforms (YT-DLP)
 2000+ sites including:
-- YouTube (videos, shorts, playlists)
-- Facebook, Instagram, Twitter/X
-- TikTok, Reddit, Vimeo
-- Twitch, Dailymotion, Streamable
+- YouTube (videos, shorts, playlists, live)
+- Facebook, Instagram, Twitter/X, TikTok
+- Reddit, Vimeo, Dailymotion, Streamable
+- Twitch, Kick, Rumble, Bilibili
+- Crunchyroll, Funimation, TubiTV
+- SoundCloud, Spotify, Bandcamp
+- Odysee, PeerTube, Rutube, VK
+- Pornhub, XVideos, XHamster, SpankBang
 - And thousands more → [full list](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md)
 
 ### File Hosters
@@ -466,6 +490,10 @@ Any HTTP/FTP link works. Examples:
 | Terabox | Direct links |
 | Pixeldrain | Single files and lists |
 | Mediafire | Automatic direct link extraction |
+| GoFile.io | Free hosting, API-based, multi-file folders |
+| Bunkr (la/ru/si) | Image/video hosting, album support |
+| Catbox.moe / Litterbox | Direct file links |
+| StreamTape | Video hosting, direct extraction |
 
 ### Photo Galleries (gallery-dl)
 | Site | Content |
@@ -495,6 +523,52 @@ Any HTTP/FTP link works. Examples:
 | **Private group** | `https://t.me/c/1234567890/421` | ✅ Yes — bot must be a member |
 
 > 💡 **Public links** use the channel username (e.g., `t.me/username/msg`). **Private links** use numeric IDs (e.g., `t.me/c/123456/msg`). The bot can download from any public channel/group without being a member.
+
+> 💡 **Want to download from private channels without adding the bot as a member?** Use the **UserBot** feature — see [UserBot Setup](#-userbot-setup-for-private-channels) below.
+
+---
+
+## 👤 UserBot Setup (Private Channels)
+
+By default, the bot cannot access private channels unless it's a member. **UserBot** lets you login with your own Telegram account so the bot can download from any channel you're a member of.
+
+### How It Works
+
+```
+Normal:  User → Bot → Private Channel (❌ bot not a member)
+UserBot: User → Bot → User's Account → Private Channel (✅ user is a member)
+```
+
+### Setup (One-Time)
+
+1. Send `/userbot` to the bot
+2. The bot asks for your **phone number** (with country code, e.g., `+1234567890`)
+3. You receive an **OTP code** on Telegram — send it to the bot
+4. If you have **2FA** enabled, enter your cloud password
+5. Done! Session is saved locally
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `/userbot` | Start login flow |
+| `/userbot_status` | Check if session is active |
+| `/userbot_logout` | Disconnect and remove session |
+
+### Security
+
+- Session file is stored locally in `sessions/userbot_session.session`
+- No data is sent to any third-party server
+- Your phone number is NOT stored after login
+- Send `/userbot_logout` anytime to remove the session
+- Only the bot owner (OWNER_ID) can use these commands
+
+### Requirements
+
+- You need a **separate Telegram API ID & hash** for the user client (same ones work, but some users prefer a separate app)
+- Your Telegram account must be a member of the private channels you want to download from
+
+> ⚠️ **Important:** Using a user session with automated tools may violate Telegram's ToS. Use at your own risk. The session is equivalent to logging in on a new device.
 
 ---
 
@@ -1432,7 +1506,7 @@ LeechBot/
 ├── notebooks/
 │   └── LeechBot.ipynb      # Google Colab notebook
 └── public/
-    └── index.html           # Web interface placeholder
+    └── index.html           # Web dashboard (real-time monitoring)
 ```
 
 ---

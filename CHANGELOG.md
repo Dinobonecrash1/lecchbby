@@ -4,6 +4,73 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.1] - 2026-05-09
+
+### Fixed
+- **Batch photo upload crash** — `reply_media_group()` does not accept a `progress` callback (Telegram Bot API limitation); replaced with per-photo upload-with-progress strategy
+- Each photo is now uploaded individually first via `reply_photo(progress=...)` with full progress bar (speed, ETA, percentage), then grouped into albums using `file_id`
+- Temporary individual messages are auto-deleted after capturing `file_id`
+- Media group send is instant since files are already on Telegram servers
+
+### Added
+- `_upload_photo_with_progress()` — helper that uploads a single photo with progress tracking and returns its `file_id`
+- **Dashboard Tunnel cell** (optional) in `notebooks/LeechBot.ipynb` — exposes the web dashboard to the internet via ngrok or cloudflared
+  - `ngrok` option — reliable, needs free authtoken (supports Colab Secrets)
+  - `cloudflared` option — no signup, random URL each restart
+  - Auto-detects if dashboard port is open before tunneling
+  - Skippable if remote access not needed
+- **Commands tab** in web dashboard — quick reference for all bot commands with tips
+- **Files tab** — separated from Queue for cleaner layout
+- **Version display** in login screen and footer
+
+### Changed
+- **Dashboard upgrade** — `public/index.html` fully reworked:
+  - Active task now shows mode (Leech/Mirror/Gallery), engine name, speed, download progress, total size
+  - Progress bar percentage calculated from server data
+  - Stat cards with hover effects and pulse indicators
+  - Better visual polish: fade-in animations, improved spacing, emoji labels
+  - Login screen shows dashboard version and helper text
+  - WebSocket fallback: REST polling only kicks in when WS is disconnected
+  - HTML escaping for user content (file names, links)
+  - Connection timeout (10s) with error feedback on login
+- **GUIDE.md** — updated Dashboard section with Colab tunnel instructions, nginx proxy example, Commands tab mention
+
+### Added (Agent/Developer Files)
+- **`AGENTS.md`** — comprehensive instructions for AI coding agents: architecture overview, key files, state model, data flow, conventions, common tasks, known constraints
+- **`ARCHITECTURE.md`** — technical deep dive: system architecture, module dependency graph, state management, request lifecycle, download/upload pipelines, web dashboard internals, error handling strategy, configuration system, threading model
+- **`CONTRIBUTING.md`** — human contribution guide: setup, workflow, code guidelines, PR checklist
+- **`.github/copilot-instructions.md`** — GitHub Copilot-specific instructions
+- **`.cursorrules`** — Cursor IDE rules
+- **`.clinerules`** — Cline rules
+- **`.windsurfrules`** — Windsurf rules
+- **`pyproject.toml`** — Python tooling config (ruff, mypy)
+- **`.editorconfig`** — consistent formatting across editors
+
+### Added (v3.1.1)
+- **UserBot session for private channels** — login with your own Telegram account to download from private channels/groups without adding the bot as a member
+  - `leechbot/userbot.py` — session manager with OTP + 2FA auth flow
+  - `/userbot` — start login (phone → OTP → 2FA)
+  - `/userbot_status` — check session
+  - `/userbot_logout` — disconnect and remove session
+  - Auto-fallback: tries UserBot first, falls back to bot client
+  - Session saved locally in `sessions/userbot_session.session`
+  - Startup check: logs UserBot session status on boot
+- **HLS/DASH stream support** — direct `.m3u8` and `.mpd` URLs now download via yt-dlp
+- **GoFile.io downloader** — API-based, supports folders, multi-file, password-protected
+- **Bunkr downloader** — album + single file support (bunkr.la/ru/si/is/black)
+- **Catbox.moe downloader** — direct file downloads from Catbox and Litterbox
+- **StreamTape downloader** — video extraction with aria2c download
+- **Massively expanded yt-dlp coverage** — 50+ domains now recognized (was 11)
+  - Added: Kick, Rumble, Bilibili, SoundCloud, Spotify, Crunchyroll, VK, Odysee, Reddit video, adult sites, Chinese platforms
+- **Direct link detection** — URLs with file extensions (mp4, zip, pdf, etc.) auto-detected
+- **Better link type labels** — GoFile, Bunkr, Catbox, StreamTape, HLS/DASH, Direct Link, Web Link
+
+### Changed
+- `upload_photos_batch()` reworked: pre-uploads each photo with progress → groups via `file_id` instead of raw file paths
+- Version bump to 3.1.1
+
+---
+
 ## [3.1.0] - 2026-05-09
 
 ### Added

@@ -1,0 +1,30 @@
+# Windsurf Rules for LeechBot
+
+## Project
+Pyrogram 2.0.106 Telegram bot for file transloading. Python 3.10+, asyncio, ~8000 lines.
+
+## Quick Reference
+- Entry: `leechbot/__main__.py`
+- Commands: `leechbot/commands.py`
+- State: `leechbot/utility/variables.py`
+- Config: `config.py`
+- Downloaders: `leechbot/downloader/*.py`
+- Uploaders: `leechbot/uploader/telegram.py`
+- Dashboard: `leechbot/web/server.py` + `public/index.html`
+- Agent docs: `AGENTS.md`, `ARCHITECTURE.md`
+
+## Patterns
+- All state in class attributes — import and mutate directly
+- `from leechbot import app` for Pyrogram client
+- Async handlers with `@app.on_message()` / `@app.on_callback_query()`
+- `logger = logging.getLogger(__name__)` at module top
+- Standard file header block on every `.py` file
+
+## Constraints
+- No `progress` on `reply_media_group()` — upload individually then group via `file_id`
+- No `style` on `InlineKeyboardButton` — Pyrogram 2.0.106 predates it
+- Telegram 2GB file limit, media group max 10 photos
+- No test suite, no CI/CD
+
+## Changelog
+New entry at top of `CHANGELOG.md` for every change. Never edit existing entries.
