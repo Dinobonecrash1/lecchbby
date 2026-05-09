@@ -53,6 +53,14 @@ This is a **major rewrite** with focus on **configurability, new download source
 - 🔄 **Auto-Retry** — Failed downloads automatically retry up to 3 times.
 - 🐛 **Bug Fixes** — Fixed hardcoded paths, missing imports, uninitialized globals, and more.
 
+### 🔧 v3.0.1 — Codebase Overhaul
+
+- 🏗️ **Modularized `__main__.py`** — Split 1,149-line monolith into focused modules: `commands.py`, `callbacks.py`, `handlers.py`
+- 🐛 **Fixed 9 critical bugs** — Runtime crashes, blocking async calls, incorrect `global` declarations, `moviepy` 2.x compatibility
+- 🔒 **Security** — Expanded `.gitignore` with proper patterns for `.env`, sessions, credentials, IDE files
+- ⚡ **Async fix** — Replaced blocking `os.system()` with `asyncio.create_subprocess_exec()` in task manager
+- 📝 **CHANGELOG.md** — All changes now tracked at the repository root
+
 ---
 
 ## 🚀 Features
@@ -147,6 +155,36 @@ ALLOWED_USERS=123456789,987654321
 | Google Drive API    | google‑api‑python‑client                                                |
 | Thumbnail Generator | PIL / Pillow                                                            |
 
+### 📁 Project Structure
+
+```
+leechbot/
+├── __init__.py          # Pyrogram client initialization
+├── __main__.py          # Entry point (imports handlers, runs bot)
+├── commands.py          # All /command handlers
+├── callbacks.py         # Inline keyboard callback handlers
+├── handlers.py          # Message handlers (URL, photo, text, reply)
+├── downloader/
+│   ├── aria2.py         # HTTP/FTP/torrent via aria2c
+│   ├── gdrive.py        # Google Drive downloads
+│   ├── manager.py       # Download router & retry logic
+│   ├── mediafire.py     # Mediafire downloads
+│   ├── mega.py          # Mega.nz downloads
+│   ├── pixeldrain.py    # Pixeldrain downloads
+│   ├── telegram.py      # Telegram message downloads
+│   ├── terabox.py       # Terabox downloads
+│   └── ytdl.py          # YT-DLP (YouTube, 2000+ sites)
+├── uploader/
+│   └── telegram.py      # Telegram upload with progress
+└── utility/
+    ├── converters.py    # Video conversion, archive/extract
+    ├── handler.py       # Task handlers (Leech, Zip, Unzip)
+    ├── helper.py        # Formatting, link detection, UI helpers
+    ├── style.py         # Unicode small caps styling
+    ├── task_manager.py  # Task scheduler & orchestrator
+    └── variables.py     # Global state & configuration classes
+```
+
 ---
 
 ## 📥 **How to Deploy**
@@ -240,7 +278,7 @@ When sending links, append:
 | **UI / UX**            | Plain text messages                  | Clean, professional Markdown with inline menus       |
 | **Auto‑Delete**        | None                                 | Configurable auto‑delete for bot messages            |
 | **Batch Photo Upload** | One‑by‑one photos                    | Media groups of 10 for cleaner delivery              |
-| **Code Structure**     | Monolithic, less documented          | Modular, fully typed, clean docstrings               |
+| **Code Structure**     | Monolithic, less documented          | Modular (`commands` / `callbacks` / `handlers`), fully typed, clean docstrings |
 | **Video Converter**    | Basic FFmpeg                         | GPU‑accelerated FFmpeg + MoviePy fallback            |
 | **Archive Support**    | Limited to ZIP                       | Full 7z, RAR, TAR, GZ, multipart extraction          |
 | **Settings Menu**      | None                                 | Interactive inline menu with toggle switches         |

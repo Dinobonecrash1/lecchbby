@@ -31,3 +31,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 - `Queue.size()` method to `DownloadQueue` class in `variables.py`
 - `src_request_msg` stored on `BOT` object for cross-module handler communication
+
+### Docs
+- Updated README with v3.0.1 changelog section
+- Added project structure tree to README
+- Updated "Code Structure" in comparison table to reflect modularization
