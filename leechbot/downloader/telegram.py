@@ -36,30 +36,46 @@ async def media_Identifier(link: str):
     """
     Identify media from a Telegram message link.
 
+    Supports:
+      - Public:  https://t.me/USERNAME/MSG_ID  (no membership needed)
+      - Private: https://t.me/c/CHAT_ID/MSG_ID (bot must be a member)
+
     Args:
-        link: Telegram message link (https://t.me/c/... or https://t.me/...)
+        link: Telegram message link
 
     Returns:
         tuple: (media, message) or (None, None) on failure
     """
     try:
-        parts = link.split("/")
+        parts = link.rstrip("/").split("/")
         message_id = int(parts[-1])
 
         # Private channel: t.me/c/CHAT_ID/MSG_ID
-        if "t.me/c/" in link:
+        if "/c/" in link:
             chat_id = int("-100" + parts[4])
         else:
             # Public channel: t.me/USERNAME/MSG_ID
             chat_id = parts[4]
 
         message = await app.get_messages(chat_id, message_id)
-    except Exception as e:
-        logger.error(f"Telegram message fetch error: {e}")
-        return None, None
 
-    if message is None:
-        logger.error("Message not found")
+        if message is None or message.empty:
+            logger.error(f"Message not found: {link}")
+            return None, None
+
+        if message.service:
+            logger.error("Message is a service message (no media)")
+            return None, None
+
+    except Exception as e:
+        error_text = str(e).lower()
+        if "peer" in error_text or "channel" in error_text or "chat" in error_text:
+            logger.error(
+                f"Cannot access message. For private channels, the bot must be a member. "
+                f"Public channels work without membership. Error: {e}"
+            )
+        else:
+            logger.error(f"Telegram message fetch error: {e}")
         return None, None
 
     media = (
@@ -72,6 +88,10 @@ async def media_Identifier(link: str):
         or message.sticker
         or message.animation
     )
+
+    if media is None:
+        logger.error(f"No downloadable media in message: {link}")
+        return None, None
 
     return media, message
 

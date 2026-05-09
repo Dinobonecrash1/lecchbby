@@ -392,8 +392,15 @@ Any HTTP/FTP link works. Examples:
 | 100+ more | [full list](https://github.com/mikf/gallery-dl/blob/master/docs/supportedsites.md) |
 
 ### Telegram
-- Any Telegram message link (`https://t.me/c/...`)
-- Bot must be a member of the source chat/channel
+
+| Link Type | Example | Bot Membership Required? |
+|-----------|---------|--------------------------|
+| **Public channel** | `https://t.me/MaximXStickers/1281` | ❌ No — works without joining |
+| **Public group** | `https://t.me/publicgroup/12345` | ❌ No — works without joining |
+| **Private channel** | `https://t.me/c/1234567890/421` | ✅ Yes — bot must be a member |
+| **Private group** | `https://t.me/c/1234567890/421` | ✅ Yes — bot must be a member |
+
+> 💡 **Public links** use the channel username (e.g., `t.me/username/msg`). **Private links** use numeric IDs (e.g., `t.me/c/123456/msg`). The bot can download from any public channel/group without being a member.
 
 ---
 
@@ -753,15 +760,16 @@ Bot:   🚀 Initializing Task...
 
 ### Demo 7: Download from Telegram
 
-Download a file from another Telegram channel or group.
+Download files from Telegram message links. **Public channels work without the bot being a member.**
 
+**Public channel (no membership needed):**
 ```
 You:   /tupload
 
 Bot:   ⚡ Send Download Link(s) 🔗
        ...
 
-You:   https://t.me/c/1234567890/45678
+You:   https://t.me/MaximXStickers/1281
 
 Bot:   🎯 Select Upload Type For Leech
 
@@ -769,7 +777,8 @@ You:   [📄 Regular ✨]
 
 Bot:   🚀 Initializing Task...
 
-       📥 Downloading
+       📥 Downloading Link 01
+       sticker.webm
        ████████░░░░ 56% | 34.7 MB/s
        Engine: Telegram 💬
 
@@ -778,10 +787,22 @@ Bot:   🚀 Initializing Task...
        Engine: Telegram 📤
 
        ✅ Task Complete
-       📛 Name: documentary.mp4
-       📦 Size: 1.1 GB
-       ⏱️ Time: 01:22
+       📛 Name: sticker.webm
+       📦 Size: 2.3 MB
+       ⏱️ Time: 00:03
 ```
+
+**Private channel (bot must be a member):**
+```
+You:   https://t.me/c/3780084791/421
+
+Bot:   (same flow — works if bot is a member of that private channel)
+
+       ❌ Error: Could Not Identify Telegram Media
+       (if bot is NOT a member)
+```
+
+> ⚠️ **Private links** (`t.me/c/...`) require the bot to be a member of the channel/group. There is no workaround — this is enforced by Telegram's API. **Public links** (`t.me/username/...`) work without any membership.
 
 ### Demo 8: Mirror to Google Drive
 
