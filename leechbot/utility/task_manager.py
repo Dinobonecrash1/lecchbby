@@ -13,6 +13,7 @@ Task scheduler and orchestrator for download/upload workflows.
 
 import pytz
 import shutil
+import random
 import logging
 import asyncio
 from time import time
@@ -143,8 +144,17 @@ async def taskScheduler():
 
     Messages.link_p = str(DUMP_ID)[4:]
 
-    # Use local hero image from assets/images/
-    if not ospath.exists(Paths.HERO_IMAGE):
+    # Pick random hero image from assets/images/
+    try:
+        import glob as _glob
+        images = _glob.glob(os.path.join(Paths.ASSETS_IMAGES, "*.jpg")) + \
+                 _glob.glob(os.path.join(Paths.ASSETS_IMAGES, "*.png")) + \
+                 _glob.glob(os.path.join(Paths.ASSETS_IMAGES, "*.webp"))
+        if images:
+            Paths.HERO_IMAGE = random.choice(images)
+        else:
+            Paths.HERO_IMAGE = Paths.DEFAULT_HERO
+    except Exception:
         Paths.HERO_IMAGE = Paths.DEFAULT_HERO
 
     # Send task log

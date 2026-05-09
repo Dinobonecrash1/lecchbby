@@ -7,14 +7,15 @@ All notable changes to this project will be documented in this file.
 ## [3.1.10] - 2026-05-10
 
 ### Added
-- **`assets/images/` folder** — local hero image for task status messages
-  - `assets/images/hero.jpg` — default hero image (gradient + LeechBot branding)
-  - No more downloading from `picsum.photos` on every task — uses local file instantly
-  - Users can replace `hero.jpg` with their own custom image
+- **`assets/images/` folder** — 6 themed hero images for task status messages
+  - `hero_purple.jpg`, `hero_blue.jpg`, `hero_green.jpg`, `hero_red.jpg`, `hero_cyan.jpg`, `hero_orange.jpg`
+  - Bot randomly picks a different image for each task — no two tasks look the same
+  - No more downloading from `picsum.photos` — uses local files instantly
+  - Users can add/remove images in `assets/images/` — bot picks from all `.jpg/.png/.webp` files
 
 ### Changed
-- `variables.py`: `HERO_IMAGE` and `DEFAULT_HERO` now point to `assets/images/hero.jpg`
-- `task_manager.py`: removed aria2c download of random picsum image — uses local asset directly
+- `variables.py`: `HERO_IMAGE`/`DEFAULT_HERO` → `assets/images/hero_purple.jpg`, added `ASSETS_IMAGES` path
+- `task_manager.py`: replaced aria2c picsum download with `random.choice()` from local assets folder
 
 ---
 
