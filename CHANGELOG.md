@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - **Duplicate function names** — `is_bunkr()`, `is_catbox()`, `is_gofile()` renamed to `is_bunkr_link()`, `is_catbox_link()`, `is_gofile_link()` in downloader modules to avoid collision with link detection helpers
+- **Colab runtime disconnects after Deploy cell** — cell exited immediately after launching bot in background, causing Colab to think the session was idle and disconnect. Now waits for bot startup confirmation, then keeps the cell alive with a `while` loop that monitors the process. Cell stays running → Colab stays connected.
 
 ---
 
