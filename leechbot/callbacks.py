@@ -243,6 +243,7 @@ async def _handle_upload_type(client, callback_query, data: str):
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
         ),
+        disable_web_page_preview=True
     )
 
     BOT.State.task_going = True
@@ -439,6 +440,7 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
         ),
+        disable_web_page_preview=True
     )
 
     BOT.State.task_going = True

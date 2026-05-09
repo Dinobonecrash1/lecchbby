@@ -164,7 +164,7 @@ async def taskScheduler():
         pass
 
     # Send task log
-    MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task)
+    MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
     Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
     Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
 
@@ -184,7 +184,8 @@ async def taskScheduler():
         MSG.status_msg = await app.send_message(
             chat_id=OWNER,
             text=caption,
-            reply_markup=keyboard()
+            reply_markup=keyboard(),
+            disable_web_page_preview=True
         )
 
     # Calculate download size

@@ -104,6 +104,7 @@ async def handle_url(client, message):
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
                 ),
+                disable_web_page_preview=True
             )
 
             await message.delete()

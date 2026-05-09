@@ -320,6 +320,7 @@ async def cancelTask(reason: str):
             await app.send_message(
                 chat_id=OWNER,
                 text=text,
+                disable_web_page_preview=True,
                 reply_markup=InlineKeyboardMarkup([
                     [
                         InlineKeyboardButton("📣 Channel", url="https://t.me/MaximXBots"),
