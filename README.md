@@ -49,10 +49,10 @@
 
 ### 🔧 Colab Notebook Fix — Runtime No Longer Disconnects
 - **Root cause:** monolithic Deploy cell + browser-side idle detection killed sessions
-- **Restructured notebook:** Setup cell (fast) → Deploy cell (bot + tunnel + keep-alive in one)
+- **Restructured notebook:** Setup cell (fast) → Deploy cell (bot + keep-alive in one)
 - **3-strategy JS keep-alive:** clicks indicators, simulates DOM activity, focus/blur cycle (every 30s)
 - **Auto-restart watchdog:** bot crashes → automatic restart (up to 5 attempts)
-- **Dashboard tunnel integrated:** URL/token shown immediately in Deploy cell output
+- **Dashboard tunnel removed:** Colab users interact 100% via Telegram
 
 ### 👤 UserBot — Private Channel Access
 - **Download from private channels/groups** without adding the bot as a member
@@ -218,7 +218,6 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 1. Open notebook → fill credentials (or use Colab Secrets)
 2. Run **📦 Setup** then **🚀 Deploy** — bot starts with keep-alive
 3. Bot starts, send `/start` on Telegram
-4. Optional: choose ngrok/cloudflared tunnel for remote dashboard access
 
 ### 2️⃣ VPS / Local
 

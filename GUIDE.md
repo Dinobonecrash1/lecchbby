@@ -131,9 +131,9 @@ Now edit `.env` with your credentials (see [Configuration](#-configuration)).
 1. Open `notebooks/LeechBot.ipynb` in Google Colab
 2. Add your credentials to Colab Secrets (recommended) or fill in the form
 3. Run **📦 Setup LeechBot** (Cell 2) — clones repo, installs dependencies, saves config
-4. Run **🚀 Deploy LeechBot** (Cell 3) — starts bot, sets up dashboard tunnel, keeps session alive
+4. Run **🚀 Deploy LeechBot** (Cell 3) — starts bot with keep-alive, interact via Telegram
 
-> 💡 The Deploy cell handles everything: bot launch, tunnel setup, and anti-idle keep-alive. It stays running to prevent Colab from disconnecting.
+> 💡 The Deploy cell starts the bot and keeps the session alive. All interaction is via Telegram — no tunnel or web dashboard needed.
 
 ### Option C: Docker (Coming Soon)
 
@@ -283,14 +283,9 @@ The dashboard starts automatically when the bot starts. You'll see this in the l
 
 The dashboard is hosted at **https://shineii86.github.io/LeechBot/** — no setup needed.
 
-1. Run **📦 Setup LeechBot** (Cell 2), then **🚀 Deploy LeechBot** (Cell 3)
-2. Choose `ngrok` or `cloudflared` in the Tunnel dropdown before running
-3. Copy the **tunnel URL** from the cell output (e.g. `https://xxxx.ngrok-free.app`)
-4. Copy the **auth token** from the bot logs (look for `🔑 Dashboard token:`)
-5. Open [https://shineii86.github.io/LeechBot/](https://shineii86.github.io/LeechBot/)
-6. Paste the tunnel URL and token → hit **Connect**
-
-> 💡 The Deploy cell starts the bot, sets up the tunnel, and keeps the session alive — all in one cell.
+1. Deploy the bot using the notebook → Setup + Deploy cells
+2. The bot runs on Colab with the web dashboard active in the background
+3. For remote access, use a VPS or self-hosted deployment (see Option 2)
 
 **Option 2: Local Dashboard (VPS / Self-hosted)**
 
@@ -300,9 +295,9 @@ The dashboard is hosted at **https://shineii86.github.io/LeechBot/** — no setu
 
 **Option 3: Colab Built-in (No GitHub Pages)**
 
-1. Run **🚀 Deploy LeechBot** (Cell 3) — tunnel URL appears in the output
-2. Open the tunnel URL directly in your browser
-3. The bot serves the dashboard HTML at `/dashboard` — no separate page needed
+1. Run **🚀 Deploy LeechBot** (Cell 3) — bot starts with keep-alive
+2. Interact entirely via Telegram — all commands work without the web dashboard
+3. The web dashboard runs in the background but is not accessible without a tunnel
 
 **Behind a reverse proxy (nginx):**
 

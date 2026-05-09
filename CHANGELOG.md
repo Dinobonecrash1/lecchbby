@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [3.1.8] - 2026-05-10
 
+### Removed
+- **Dashboard tunnel from notebook** — ngrok/cloudflared tunnel setup removed from Deploy cell. The web dashboard still runs in the background (VPS users access it directly at `http://server:8080`), but Colab users interact 100% via Telegram. No more tunnel tokens, no more unreachable URLs.
+
 ### Fixed
 - **Colab runtime still disconnects despite JS keep-alive** — Two root causes:
   1. **JS `setInterval` couldn't fire** — the Python `while True: time.sleep(15)` loop blocked the IPython event loop, preventing JS callbacks from executing. Fix: JS keep-alive now runs in a **separate daemon thread** using `google.colab.output.eval_js()` which bypasses the blocked event loop.
