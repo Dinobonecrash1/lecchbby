@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.19] - 2026-06-07
+
+### Added
+- **`AUDIT_REPORT.md`** — comprehensive static-analysis report covering all 35 Python files, 9,229 lines, 257 functions. Documents: 1 critical bug found (`Transfer.down_bytes[0]` stats accumulation — see report §1), 8 truly-dead functions, 1 thread-safety concern (works in CPython GIL but fragile), 4 resource-leak risks (Popen without cancel cleanup), full error-handling coverage stats (37%), structural comparison vs. `ehraz786/tgdl` (LeechBot is a strict superset). Includes prioritized recommendations for the 6 follow-up items. Report is documentation-only — no code changes in this commit.
+
+### Notes
+- This is a **documentation-only release**. The 6 recommendations in `AUDIT_REPORT.md` §10 are listed in priority order; user can pick which to apply next. Most impactful low-risk fix: the 2-line `Transfer.down_bytes[0]` → `sum(Transfer.down_bytes)` change in `task_manager.py:288-289` (see report §1).
+
+---
+
 ## [3.1.18] - 2026-06-07
 
 ### Fixed
