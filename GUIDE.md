@@ -83,7 +83,7 @@ You need **5 values** to run the bot. Here's how to get each one:
 
 > 💡 You can create multiple bots with BotFather. Use `/mybots` to manage them.
 
-> ℹ️ **Note:** Bot commands are **auto-registered** on startup — you don't need to set them manually via BotFather. The bot registers all 29 commands with Telegram automatically when it starts.
+> ℹ️ **Note:** Bot commands are **auto-registered** on startup — you don't need to set them manually via BotFather. The bot registers all 32 commands with Telegram automatically when it starts.
 
 ### 3. OWNER_ID
 
@@ -416,6 +416,9 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 | `/broadcast <ids>` | Send last file to multiple chats |
 | `/stats` | Show lifetime task totals + system resource info (CPU, RAM, disk) |
 | `/ping` | Check Telegram round-trip latency + bot uptime |
+| `/status` | Show active task detail + download queue + transfer stats |
+| `/restart` | Gracefully restart the bot (wrapper will respawn) |
+| `/logs [N]` | Show last N log lines (default 30, max 100) |
 | `/update` | Check for bot updates |
 | `/help` | Show help menu |
 

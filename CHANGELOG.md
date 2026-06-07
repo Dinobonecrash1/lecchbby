@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.30] - 2026-06-07
+
+### Added
+- **`/status` command** — shows active task detail (mode, elapsed time, bytes downloaded/uploaded, remaining, files sent, current link) + download queue (current + next 5 pending). Owner / allowed-users only. Self-deletes after the standard delay.
+- **`/restart` command** — gracefully cancels any active task, sends a confirmation message, then sends `SIGTERM` to its own PID. The process wrapper (systemd, `docker --restart=always`, `pm2`, tmux respawn loop, Colab auto-reconnect, nohup loop) brings the bot back in 5-10 seconds. Owner-only.
+- **`/logs [N]` command** — shows last N log lines (default 30, max 100). Tails from end of file efficiently (reads last 256 KB max, no full file load). Truncates to fit Telegram's 4096-char limit while keeping first + last lines. Owner-only.
+- **Rotating file logger** — `leechbot/__init__.py` now configures a `RotatingFileHandler` writing to `LOGS_PATH/leechbot.log` (2 MB × 3 backups = max 8 MB on disk). Exports `LOG_FILE` constant for `/logs` to find the log file. Falls back gracefully to stdout-only if the filesystem is read-only.
+- **WELCOME_TEXT updated** — quick-commands section now shows `/status`, `/ping`, `/logs` alongside existing commands.
+
+### Changed
+- **README.md** — version badge 3.1.21 → 3.1.30; new "What's New in v3.1.30" section; command count 28 → 32; new rows for `/status`, `/restart`, `/logs` in the Commands table; arch tree updated to "32 commands".
+- **GUIDE.md** — auto-registration note 29 → 32 commands; new rows in the Commands Reference table for `/status`, `/restart`, `/logs`.
+- **ROADMAP.md** — "Done (Recent)" table gains 3.1.30 row.
+
+### Notes
+- `/restart` relies on an external process supervisor. On bare `python -m leechbot` with no wrapper, it WILL exit and the bot will NOT come back automatically. Documented in TERMUX.md Step 7 (the 3 wrapper methods: nohup, tmux, screen).
+- Log file location: `LOGS_PATH` defaults to `/tmp/leechbot/logs/leechbot.log` per `config.py`. Override `LEECHBOT_BASE_DIR` env var to relocate.
+- This commit brings the count from 29 → 32 registered bot commands, all auto-registered on startup (no BotFather needed).
+
+---
+
 ## [3.1.29] - 2026-06-07
 
 ### Added

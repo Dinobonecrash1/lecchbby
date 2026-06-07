@@ -83,6 +83,7 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 
 | Feature | Version |
 |---------|---------|
+| 3 utility commands: `/status`, `/restart`, `/logs` + rotating file logger | 3.1.30 |
 | 4 unwired features exposed: `/formats`, `/preview`, multi-link URL extraction, lifetime stats in `/stats` | 3.1.21 |
 | YTDL thread-safety (loop.call_soon_threadsafe for progress hook) | 3.1.21 |
 | `/cancel` mid-ffmpeg no longer leaks orphan subprocesses | 3.1.20 |

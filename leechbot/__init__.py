@@ -27,13 +27,36 @@ import config
 # =============================================================================
 # Logging Configuration
 # =============================================================================
+_log_handlers = [logging.StreamHandler(sys.stdout)]
+
+# File handler for /logs command — writes to LOGS_PATH/leechbot.log
+# Rotated manually (or could be RotatingFileHandler if size grows)
+try:
+    from logging.handlers import RotatingFileHandler
+    _log_file = config.LOGS_PATH / "leechbot.log"
+    _log_file.parent.mkdir(parents=True, exist_ok=True)
+    _file_handler = RotatingFileHandler(
+        _log_file,
+        maxBytes=2 * 1024 * 1024,  # 2 MB per file
+        backupCount=3,             # keep 3 backups
+        encoding="utf-8",
+    )
+    _file_handler.setFormatter(
+        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                          datefmt="%Y-%m-%d %H:%M:%S")
+    )
+    _log_handlers.append(_file_handler)
+    LOG_FILE = str(_log_file)
+except Exception as _e:
+    # If file logging fails (e.g. read-only fs), continue with stdout only
+    LOG_FILE = None
+    print(f"[leechbot] file logging disabled: {_e}", file=sys.stderr)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-    ],
+    handlers=_log_handlers,
 )
 logger = logging.getLogger(__name__)
 

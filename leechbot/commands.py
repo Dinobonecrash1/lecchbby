@@ -14,14 +14,17 @@ Bot command handlers — all /command message handlers.
 """
 
 import logging
+import os
+import signal
+import sys
 from datetime import datetime
 from pyrogram import filters
-from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, Queue, BotStats
+from leechbot import app, OWNER, LOG_FILE
+from leechbot.utility.variables import BOT, Queue, BotStats, Transfer, Messages, BotTimes
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import (
-    message_deleter, send_settings, sysINFO, format_stats, getTime,
+    message_deleter, send_settings, sysINFO, format_stats, getTime, sizeUnit,
 )
 import config
 
@@ -60,6 +63,9 @@ WELCOME_TEXT = """**🤖 Leech Bot** — Advanced Telegram File Transloader
 `/format` — Set YT-DLP Quality
 `/speed` — Set Bandwidth Limit
 `/settings` — Configure Bot Preferences
+`/status` — Active Task Detail
+`/ping` — Latency & Uptime
+`/logs` — Recent Log Lines
 
 **🧑‍💻 Developer:** [Shinei Nouzen](https://t.me/Shineii86)"""
 
@@ -400,6 +406,190 @@ async def ping_command(client, message):
 • 🤖 **Version:** `v{config.VERSION}`"""
     await msg.edit(ping_text, disable_web_page_preview=True)
     await message_deleter(message, msg)
+
+# =============================================================================
+# /status
+# =============================================================================
+@app.on_message(filters.command("status") & filters.private)
+async def status_command(client, message):
+    """Handle the /status command — show active task detail + queue + transfer stats."""
+    if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
+        return
+
+    # ── Active task section ──
+    if BOT.State.task_going:
+        task_elapsed = ""
+        try:
+            secs = (datetime.now() - BotTimes.task_start).total_seconds()
+            task_elapsed = getTime(int(secs))
+        except Exception:
+            pass
+
+        down_total = sizeUnit(sum(Transfer.down_bytes))
+        up_total = sizeUnit(sum(Transfer.up_bytes))
+        remaining = sizeUnit(max(Transfer.total_down_size - sum(Transfer.down_bytes), 0))
+
+        mode = f"{BOT.Mode.type.capitalize()} {BOT.Mode.mode.capitalize()}"
+        if BOT.Mode.ytdl:
+            mode += " (yt-dlp)"
+        elif BOT.Mode.gallery:
+            mode += " (gallery-dl)"
+
+        active_section = f"""**🎯 Active Task**
+
+• **Mode:** `{mode}`
+• **Running:** `{task_elapsed}`
+• **Downloaded:** `{down_total}` ({len(Transfer.down_bytes)} chunks)
+• **Uploaded:** `{up_total}` ({len(Transfer.up_bytes)} chunks)
+• **Remaining:** `{remaining}`
+• **Files sent:** `{len(Transfer.sent_file)}`"""
+        if Messages.status_head:
+            # Trim the status head for display
+            head_clean = Messages.status_head.replace("**", "").replace("\n", " · ")[:120]
+            active_section += f"\n• **Current:** `{head_clean}`"
+    else:
+        active_section = "**🎯 Active Task**\n\n• `No task running`"
+
+    # ── Queue section ──
+    pending = Queue.pending
+    current = Queue.current
+    if pending or current:
+        queue_lines = [f"**📋 Queue** (`{pending} pending`)"]
+        if current:
+            link = current["links"][0][:60] + ("..." if len(current["links"][0]) > 60 else "")
+            queue_lines.append(f"• 🔄 **Current:** `{link}` ({len(current['links'])} link(s))")
+        for line in Queue.list_items()[:5]:
+            queue_lines.append(line)
+        if pending > 5:
+            queue_lines.append(f"• _... and {pending - 5} more_")
+        queue_section = "\n".join(queue_lines)
+    else:
+        queue_section = "**📋 Queue**\n\n• `Empty`"
+
+    status_text = f"{active_section}\n\n{queue_section}"
+    msg = await message.reply_text(status_text, quote=True)
+    await message_deleter(message, msg)
+
+# =============================================================================
+# /restart
+# =============================================================================
+@app.on_message(filters.command("restart") & filters.private)
+async def restart_command(client, message):
+    """Handle the /restart command — gracefully exit so the wrapper can respawn."""
+    if message.chat.id != OWNER:
+        return
+
+    # Cancel any active task first
+    if BOT.State.task_going:
+        try:
+            await cancelTask("Bot restarting")
+        except Exception:
+            pass
+
+    restart_text = (
+        "**🔄 Restarting LeechBot...**\n\n"
+        f"• **Version:** `v{config.VERSION}`\n"
+        "• **Action:** Sending SIGTERM to self\n"
+        "• **Wrapper:** Will respawn the process\n\n"
+        "⏳ Bot will be back in 5-10 seconds."
+    )
+    msg = await message.reply_text(restart_text, quote=True)
+    await message_deleter(message, msg)
+
+    logger.warning(
+        "🔄 Restart requested by user %s — exiting for wrapper respawn",
+        message.from_user.id if message.from_user else "unknown",
+    )
+
+    # Give the message a moment to send, then exit.
+    # The process supervisor (systemd, docker --restart, pm2, tmux respawn,
+    # Colab auto-reconnect, nohup loop, etc.) should bring it back.
+    import asyncio
+    await asyncio.sleep(1)
+
+    # Try graceful exit first
+    try:
+        os.kill(os.getpid(), signal.SIGTERM)
+    except Exception:
+        # Fallback: hard exit
+        sys.exit(0)
+
+# =============================================================================
+# /logs
+# =============================================================================
+@app.on_message(filters.command("logs") & filters.private)
+async def logs_command(client, message):
+    """Handle the /logs command — show last N log lines (default 30, max 100)."""
+    if message.chat.id != OWNER:
+        return
+
+    # Parse optional count: /logs 50
+    args = message.text.split(maxsplit=1)
+    try:
+        n_lines = int(args[1]) if len(args) > 1 else 30
+        n_lines = max(1, min(n_lines, 100))  # clamp 1..100
+    except ValueError:
+        n_lines = 30
+
+    # Find log file
+    log_file = LOG_FILE or str(config.LOGS_PATH / "leechbot.log")
+
+    if not os.path.isfile(log_file):
+        msg = await message.reply_text(
+            f"**📋 Logs**\n\n`Log file not found: {log_file}`\n\n"
+            "_File logging may be disabled (read-only filesystem)._",
+            quote=True,
+        )
+        await message_deleter(message, msg)
+        return
+
+    # Tail the last N lines efficiently (read from end, no full file load)
+    try:
+        # Get file size
+        fsize = os.path.getsize(log_file)
+        # Read up to ~256 KB from the end (enough for ~500 lines of INFO)
+        read_size = min(fsize, 256 * 1024)
+
+        with open(log_file, "rb") as f:
+            if fsize > read_size:
+                f.seek(fsize - read_size)
+                _ = f.readline()  # discard partial first line
+            data = f.read().decode("utf-8", errors="replace")
+
+        all_lines = data.splitlines()
+        tail_lines = all_lines[-n_lines:]
+
+        if not tail_lines:
+            tail_lines = ["(log file is empty)"]
+
+        log_text = (
+            f"**📋 Last `{len(tail_lines)}` log lines**\n"
+            f"`({log_file})`\n\n"
+            f"```\n" + "\n".join(tail_lines) + "\n```"
+        )
+
+        # Telegram has 4096 char limit per message — truncate if needed
+        if len(log_text) > 4000:
+            # Drop from the middle, keep first and last lines
+            half = (4000 - 200) // 2
+            log_text = (
+                f"**📋 Last `{len(tail_lines)}` log lines** (truncated)\n"
+                f"`({log_file})`\n\n"
+                f"```\n"
+                + "\n".join(tail_lines[:half // 80])  # ~80 chars per line avg
+                + "\n\n... [truncated] ...\n\n"
+                + "\n".join(tail_lines[-(half // 80):])
+                + "\n```"
+            )
+
+        msg = await message.reply_text(log_text, quote=True)
+        await message_deleter(message, msg)
+    except Exception as e:
+        logger.error(f"Failed to read log file: {e}")
+        msg = await message.reply_text(
+            f"**❌ Error reading logs:**\n`{e}`", quote=True,
+        )
+        await message_deleter(message, msg)
 
 # =============================================================================
 # /cancel

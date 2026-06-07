@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.21-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.30-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -24,7 +24,7 @@
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
 - [🗺️ Roadmap](ROADMAP.md) — what's planned
-- [✨ What's New?](#-whats-new-in-v3121)
+- [✨ What's New?](#-whats-new-in-v3130)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
 - [👤 UserBot — Private Channels](#-userbot--private-channels)
@@ -36,6 +36,32 @@
 - [📄 License](#-license)
 - [🫂 Updates & Support](#-updates--support)
 - [👤 Developer & Credits](#-developer--credits)
+
+---
+
+## ✨ What's New in v3.1.30
+
+### 📊 `/status` — Active Task Detail
+- Show the currently running task: mode, elapsed time, bytes downloaded/uploaded, remaining, files sent, current link.
+- Plus the queue: current item + next 5 pending.
+- One-shot diagnostic, no side effects.
+
+### 🔄 `/restart` — Graceful Restart
+- Cancels active task, sends a confirmation message, then sends `SIGTERM` to itself.
+- The process wrapper (systemd / Docker `--restart=always` / `pm2` / tmux respawn loop / Colab auto-reconnect) brings the bot back in 5-10 seconds.
+- Owner-only.
+
+### 📋 `/logs [N]` — Recent Log Lines
+- New: bot now writes logs to `LOGS_PATH/leechbot.log` (rotating, 2 MB × 3 backups).
+- `/logs` shows last 30 lines (max 100). `/logs 50` shows last 50.
+- Tails from end of file efficiently — no full file load even if log is 2 MB.
+- Truncates output to fit Telegram's 4096-char limit while keeping first + last lines.
+
+### 🛠️ Other Updates
+- 29 → 32 registered bot commands (`/status`, `/restart`, `/logs`).
+- `leechbot/__init__.py` adds `RotatingFileHandler` to root logger.
+- New `LOG_FILE` export in `leechbot/__init__.py` for `/logs` to find the log file.
+- All docs (README, GUIDE, ROADMAP, TERMUX) updated for the new commands.
 
 ---
 
@@ -176,7 +202,7 @@ Real-time browser dashboard runs alongside the bot on port `8080`.
 | 📁 Files | Recent uploads list |
 | ⚙️ Settings | Current bot configuration |
 | 💻 System | CPU, RAM, disk usage |
-| 📖 Commands | Quick reference for all 28 commands |
+| 📖 Commands | Quick reference for all 32 commands |
 | 🟢 WebSocket | Real-time updates every 3s |
 
 ```bash
@@ -334,6 +360,9 @@ conda install -c conda-forge libtorrent
 |---------|-------------|
 | `/admin` | Manage users |
 | `/stats` | Bot & system statistics (lifetime totals) |
+| `/status` | Active task detail + queue + transfer stats |
+| `/restart` | Gracefully restart the bot |
+| `/logs` | View recent log lines (file-backed) |
 | `/broadcast` | Send to multiple chats |
 | `/update` | Check for updates |
 | `/cookies` | YouTube auth status |
@@ -377,7 +406,7 @@ LeechBot/
 ├── leechbot/
 │   ├── __init__.py          # Pyrogram client
 │   ├── __main__.py          # Entry point
-│   ├── commands.py          # /command handlers (28 commands)
+│   ├── commands.py          # /command handlers (32 commands)
 │   ├── callbacks.py         # Button callbacks
 │   ├── handlers.py          # Message handlers
 │   ├── userbot.py           # UserBot session manager
