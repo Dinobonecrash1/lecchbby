@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.15-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.21-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -24,7 +24,7 @@
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
 - [🗺️ Roadmap](ROADMAP.md) — what's planned
-- [✨ What's New?](#-whats-new-in-v3115)
+- [✨ What's New?](#-whats-new-in-v3121)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
 - [👤 UserBot — Private Channels](#-userbot--private-channels)
@@ -39,28 +39,32 @@
 
 ---
 
-## ✨ What's New in v3.1.15
+## ✨ What's New in v3.1.21
 
-### 🔴 Critical Fix — Bot Was Completely Unresponsive
-- **`__main__.py` never imported handler modules** — `leechbot.commands`, `leechbot.callbacks`, `leechbot.handlers` were missing. Without these, no `@app.on_message()` or `@app.on_callback_query()` decorators registered. Bot started but responded to **nothing**.
+### 🎬 New Commands — `/formats` and `/preview`
+- **`/formats <url>`** — list all available yt-dlp formats (resolution / codec / size) for a video URL before downloading. Picks up the previously-unused `ytdl.list_formats()` helper.
+- **`/preview <url>`** — dry-run a gallery URL with `gallery-dl -K` to see what would be downloaded, without actually downloading. Picks up the previously-unused `gallery.list_gallery_content()` helper.
 
-### 🔧 Full Diagnostic Sweep — 19 Bugs Fixed Across 15 Files
-- **Shell injection risk in `converters.py`** — `subprocess.Popen(cmd, shell=True)` with user-controlled filenames. Replaced all 4 instances with list-based args.
-- **`Transfer.total_down_size` not reset between tasks** — progress bar used stale data from previous task.
-- **`Paths.down_path` persists across tasks** — class variable mutation caused wrong download path.
-- **`BotStats` counters always zero** — `total_tasks`, `total_downloaded`, `total_uploaded` never incremented.
-- **`asyncio.get_event_loop()` deprecated** — replaced with `get_running_loop()` across 6 files (Python 3.12+ safe).
-- **GoFile downloads 404** — URL used `filename` instead of `file_id`.
-- **Photo upload infinite FloodWait recursion** — added max 10 retries.
-- **Dead `_download()` function in `gdrive.py`** — removed unused generator.
-- **Duplicate cookie config in `config.py`** — removed duplicate block.
-- **`MyLogger.debug` inconsistency** — made all methods `@staticmethod`.
-- **`isLink` filter `__` parameter** — renamed to `client`.
+### 🛠️ Multi-link URL Extraction
+- Forwarded messages with multiple URLs on the same line (e.g. `https://a.com https://b.com`) or scattered through paragraphs now process **all** of them in series, not just the first. Wires up the previously-unused `helper.extract_links()` helper.
 
-### 📒 Colab Notebook — Fixed Runtime Disconnects
-- **Root cause:** old notebook used `get_ipython().system()` which blocks the event loop, preventing any keep-alive from working.
-- **Fixed:** restored old working style with `get_ipython().system()` + libtorrent install via apt (conda fallback) + health checks.
-- **Code cells hidden** by default for cleaner UI.
+### 📊 `/stats` Now Shows Lifetime Totals
+- `/stats` now shows lifetime task counts (total tasks, total bytes downloaded, total bytes uploaded, failed tasks, uptime) in addition to the existing system resource info (CPU, RAM, disk).
+
+### 🧵 YTDL Thread-Safety Hardening
+- The yt-dlp progress hook and logger no longer mutate global `YTDL` state directly from the worker thread. Every update is marshaled through `loop.call_soon_threadsafe` so the asyncio event loop is the single owner of `YTDL.*` attributes. Removes a subtle data-race window under PyPy / no-GIL CPython.
+
+### 🔴 Critical Bug Fix — `/stats` Always Showed 0 Bytes (3.1.20)
+- The cumulative byte counters (`BotStats.total_downloaded`, `total_uploaded`) were reading `Transfer.down_bytes[0]` which was always `0` because per-file sizes are `.append()`-ed to the list, not stored at index 0. Fixed by using `sum(Transfer.down_bytes)`. Now lifetime totals actually accumulate.
+
+### 🛡️ Resource-Leak Fix — `/cancel` Mid-ffmpeg (3.1.20)
+- Hitting `/cancel` while ffmpeg/zip/7z was running would orphan the subprocess. Added a `_terminate_subprocess()` helper (SIGTERM → 5s wait → SIGKILL) and wrapped all 4 `subprocess.Popen()` polling loops in `try/except CancelledError` cleanup.
+
+### 📋 Earlier Releases
+- **3.1.17** — YouTube thumbnail not showing on video uploads
+- **3.1.18** — `NameError: 'os' is not defined` latent bug in `task_manager.py` (would have crashed the first task)
+- **3.1.19** — Comprehensive `AUDIT_REPORT.md` (1 critical bug, 8 dead functions, 1 thread-safety concern, 4 resource-leak risks)
+- **3.1.15** — Bot was completely unresponsive (`__main__.py` never imported handler modules) + 18 other fixes
 
 > 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md)
 
@@ -172,7 +176,7 @@ Real-time browser dashboard runs alongside the bot on port `8080`.
 | 📁 Files | Recent uploads list |
 | ⚙️ Settings | Current bot configuration |
 | 💻 System | CPU, RAM, disk usage |
-| 📖 Commands | Quick reference for all 26 commands |
+| 📖 Commands | Quick reference for all 28 commands |
 | 🟢 WebSocket | Real-time updates every 3s |
 
 ```bash
@@ -298,6 +302,8 @@ conda install -c conda-forge libtorrent
 | `/ytupload` | YouTube / yt-dlp |
 | `/glupload` | Photo galleries |
 | `/drupload` | Local directory |
+| `/formats <url>` | List available formats for a video URL |
+| `/preview <url>` | Dry-run a gallery URL to preview its content |
 
 ### 👤 UserBot
 | Command | Description |
@@ -327,7 +333,7 @@ conda install -c conda-forge libtorrent
 | Command | Description |
 |---------|-------------|
 | `/admin` | Manage users |
-| `/stats` | System stats |
+| `/stats` | Bot & system statistics (lifetime totals) |
 | `/broadcast` | Send to multiple chats |
 | `/update` | Check for updates |
 | `/cookies` | YouTube auth status |
@@ -371,7 +377,7 @@ LeechBot/
 ├── leechbot/
 │   ├── __init__.py          # Pyrogram client
 │   ├── __main__.py          # Entry point
-│   ├── commands.py          # /command handlers (26 commands)
+│   ├── commands.py          # /command handlers (28 commands)
 │   ├── callbacks.py         # Button callbacks
 │   ├── handlers.py          # Message handlers
 │   ├── userbot.py           # UserBot session manager

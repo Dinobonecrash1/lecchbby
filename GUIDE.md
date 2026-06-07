@@ -83,7 +83,7 @@ You need **5 values** to run the bot. Here's how to get each one:
 
 > 💡 You can create multiple bots with BotFather. Use `/mybots` to manage them.
 
-> ℹ️ **Note:** Bot commands are **auto-registered** on startup — you don't need to set them manually via BotFather. The bot registers all 23 commands with Telegram automatically when it starts.
+> ℹ️ **Note:** Bot commands are **auto-registered** on startup — you don't need to set them manually via BotFather. The bot registers all 28 commands with Telegram automatically when it starts.
 
 ### 3. OWNER_ID
 
@@ -375,6 +375,8 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 | `/drupload` | Upload a local directory to Telegram | `/drupload` → send path |
 | `/ytupload` | Download using YT-DLP (YouTube, etc.) | `/ytupload` → send URL |
 | `/glupload` | Download image galleries via gallery-dl | `/glupload` → send URL |
+| `/formats <url>` | List available yt-dlp formats (resolution/codec/size) for a video URL | `/formats https://youtu.be/...` |
+| `/preview <url>` | Dry-run a gallery URL to see what would be downloaded, without downloading | `/preview https://imgur.com/a/...` |
 
 ### Queue & Control
 
@@ -412,7 +414,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 | `/admin remove <id>` | Remove a user |
 | `/admin list` | Show allowed users |
 | `/broadcast <ids>` | Send last file to multiple chats |
-| `/stats` | Show system statistics |
+| `/stats` | Show lifetime task totals + system resource info (CPU, RAM, disk) |
 | `/update` | Check for bot updates |
 | `/help` | Show help menu |
 

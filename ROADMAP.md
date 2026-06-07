@@ -83,6 +83,15 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 
 | Feature | Version |
 |---------|---------|
+| 4 unwired features exposed: `/formats`, `/preview`, multi-link URL extraction, lifetime stats in `/stats` | 3.1.21 |
+| YTDL thread-safety (loop.call_soon_threadsafe for progress hook) | 3.1.21 |
+| `/cancel` mid-ffmpeg no longer leaks orphan subprocesses | 3.1.20 |
+| `/stats` cumulative bytes now show real totals (was always 0) | 3.1.20 |
+| 4 dead style helpers removed (`style_text`, `style_button`, `mini_stats_bar`, `mini_bar`) | 3.1.20 |
+| Comprehensive static analysis report (`AUDIT_REPORT.md`) — 1 critical, 8 dead, 1 thread-safety, 4 resource-leak | 3.1.19 |
+| Latent `NameError` fix in `task_manager.py` (would have crashed first task) | 3.1.18 |
+| YouTube thumbnail bug fix (used original filename instead of truncated) | 3.1.17 |
+| Bot completely unresponsive fix (`__main__.py` didn't import handlers) + 18 other fixes | 3.1.15 |
 | Full downloader/uploader audit (14 bugs fixed) | 3.1.14 |
 | Mega.nz folder support + async rewrite | 3.1.14 |
 | Google Drive pagination + async | 3.1.14 |

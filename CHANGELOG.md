@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.22] - 2026-06-07
+
+### Fixed
+- **`/formats` and `/preview` were not registered with Telegram** — `leechbot/__main__.py::_register_commands()` builds a hardcoded list of `BotCommand(...)` entries to push to `app.set_bot_commands()` so the menu shows up in the Telegram client. The list was last updated before 3.1.21, so the two new commands (which DO have working `@app.on_message(filters.command(...))` handlers in `commands.py`) were missing from the auto-registered menu. Users would have to type the full `/formats` or `/preview` command path with the leading slash. Fixed by adding both to the registered command list. Also updated the `/stats` description from "📊 System statistics" → "📊 Bot & system statistics" to reflect the 3.1.20 lifetime-totals change. Total registered commands: 26 → 28.
+
+### Changed
+- **README.md** — version badge 3.1.15 → 3.1.21; "What's New" section rewritten for v3.1.21; command count 26 → 28; added `/formats` and `/preview` rows to the Downloads table; updated `/stats` description to mention "Bot & system statistics (lifetime totals)".
+- **GUIDE.md** — auto-registration note updated from "all 23 commands" → "all 28 commands"; added `/formats` and `/preview` rows to the Commands Reference → Download Commands table; updated `/stats` description to mention "lifetime task totals + system resource info".
+- **ROADMAP.md** — "Done (Recent)" table now lists 3.1.15 through 3.1.21 in reverse-chronological order, including the dead-code cleanup, the resource-leak fix, the stats-counter bug fix, the YTDL thread-safety hardening, and the 4 unwired features that landed in 3.1.21.
+- **ARCHITECTURE.md** — no changes needed; only historical "since v3.1.1+" markers present.
+
+### Notes
+- This is a **docs-only release** + one real bug fix (the missing command registrations). No code behavior changes. The fix is important though: without it, `/formats` and `/preview` would only work if the user knew the command existed and typed it manually — the Telegram command menu would not show them.
+- ARCHITECTURE.md, AGENTS.md, and CONTRIBUTING.md were checked and required no updates (no version numbers or feature claims that had gone stale).
+- Cross-reference check: the 28 commands listed in the menu match the 28 `@app.on_message(filters.command(...))` handlers in `commands.py` exactly.
+
+---
+
 ## [3.1.21] - 2026-06-07
 
 ### Added
