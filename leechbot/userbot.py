@@ -273,6 +273,9 @@ async def disconnect_user():
     for ext in [".session", ".session-journal"]:
         path = SESSION_PATH + ext
         if os.path.exists(path):
-            os.remove(path)
+            try:
+                os.remove(path)
+            except OSError as e:
+                logger.warning("Could not remove session file %s: %s", path, e)
 
     logger.info("UserBot session disconnected and removed")

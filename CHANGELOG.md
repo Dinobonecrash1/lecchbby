@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.21] - 2026-06-07
+
+### Added
+- **`/formats <url>` command** — wires up the previously-unused `ytdl.list_formats()` helper. Lists all available yt-dlp formats (resolution, codec, size) for a given video URL so users can see what quality options are available before downloading. Resolves audit report item §3 (`list_formats` — "Should be wired to a `/formats` command for users to pick quality").
+- **`/preview <url>` command** — wires up the previously-unused `gallery.list_gallery_content()` helper. Runs `gallery-dl -K <url>` as a dry run to show what files would be downloaded from a gallery URL, without actually downloading anything. Useful for previewing imgur/pixiv/etc. galleries. Resolves audit report item §3.
+- **Multi-link support in URL handler** — wires up the previously-unused `helper.extract_links()` helper. `handle_url` in `handlers.py` now extracts ALL URLs (and magnets) from the message text using the existing `LINK_PATTERNS` regex set, not just one per line. Forwarded messages with multiple links on the same line (e.g. `https://a.com https://b.com`) or scattered through paragraphs now process all of them in series. Resolves audit report item §3.
+- **Task-lifetime stats in `/stats`** — wires up the previously-unused `helper.format_stats()` helper. `/stats` now shows lifetime totals (total tasks, total bytes downloaded, total bytes uploaded, failed tasks, uptime) in addition to the existing system resource info (CPU, RAM, disk). Resolves audit report item §3.
+
+### Changed
+- **YTDL thread-safety refactor** — `downloader/ytdl.py` no longer mutates global `YTDL` state directly from yt-dlp's worker thread. Every write from `_progress_hook` and `MyLogger.debug` is now marshaled through `loop.call_soon_threadsafe` so the asyncio event loop is the single owner of `YTDL.*` attributes. The hook is built by a factory `_make_progress_hook(loop)` that captures the loop once, and updates are batched into atomic `_set_progress(speed, percentage, eta, done, left)` and `_set_header(value)` setters. Under CPython's GIL the old direct writes were atomic in practice, but they could let the event loop observe a stale-but-individually-consistent value (e.g. `percentage` updated but `speed` not yet). The new pattern is correct under PyPy and future no-GIL CPython, and verified with a real `asyncio.run()` + `threading.Thread` test (14/15 progress snapshots observed non-zero values within 50ms of write, all 5 fields stay consistent). Resolves audit report item §4.
+- **UserBot logout is now defensive** — `userbot.py:272-279` wraps `os.remove()` of `.session` and `.session-journal` files in `try/except OSError` with a warning log. If the file is locked or read-only on logout, the session is still marked disconnected and the bot continues. Resolves audit report item §6.
+
+### Notes
+- All 4 unwired features from `AUDIT_REPORT.md` §3 are now exposed as user-facing commands. The `list_gallery_content` function continues to shell out to `gallery-dl -K` (dry-run mode) — no download happens during `/preview`.
+- The YTDL refactor adds one event-loop round-trip per progress update (sub-millisecond), so throughput is unchanged in practice. The `loop=None` fallback in `YouTubeDL(url, loop=None)` preserves the legacy direct-write behavior for any future test code that calls it without an event loop.
+- `/formats` and `/preview` were added to the text-input handler's command-exclusion list so they don't get re-routed to the userbot auth flow.
+- Smoke tests run: all edited files parse cleanly, `_make_progress_hook` exercised against real threading + asyncio with race-free state updates, all 4 new wiring points verified to call the previously-unused functions.
+
+---
+
 ## [3.1.20] - 2026-06-07
 
 ### Fixed

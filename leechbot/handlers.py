@@ -19,7 +19,7 @@ from pyrogram import filters
 from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, Paths, MSG, BotTimes, BotStats
 from leechbot.utility.helper import (
-    isLink, setThumbnail, message_deleter, send_settings,
+    isLink, setThumbnail, message_deleter, send_settings, extract_links,
 )
 
 logger = logging.getLogger(__name__)
@@ -88,7 +88,10 @@ async def handle_url(client, message):
             else:
                 break
 
-        BOT.SOURCE = temp_source
+        # Extract all URLs (and magnets) from the remaining text. Handles
+        # forwarded messages where multiple links may share a line, and
+        # deduplicates while preserving first-seen order.
+        BOT.SOURCE = extract_links("\n".join(temp_source))
 
         # Gallery mode: skip type selection, go straight to download
         if BOT.Mode.gallery:
@@ -194,7 +197,7 @@ async def handle_document(client, message):
 @app.on_message(filters.text & filters.private & ~filters.command([
     "start", "tupload", "gdupload", "drupload", "ytupload", "glupload",
     "settings", "help", "setname", "zipaswd", "unzipaswd",
-    "stats", "cancel", "cancel_all", "queue", "format",
+    "stats", "cancel", "cancel_all", "queue", "format", "formats", "preview",
     "speed", "broadcast", "admin", "cookies", "setcookies",
     "clearcookies", "update", "userbot", "userbot_logout", "userbot_status",
 ]))

@@ -28,6 +28,26 @@ from leechbot.utility.helper import getTime, keyboard, sizeUnit, status_bar, sys
 
 logger = logging.getLogger(__name__)
 
+
+def _schedule_state_update(loop, func, *args):
+    """
+    Thread-safe dispatch from the yt-dlp worker thread to the asyncio loop.
+
+    yt-dlp invokes progress hooks and logger callbacks from its own thread,
+    so direct writes to the shared `YTDL` object race with the event loop
+    that reads those attributes to render the status bar. We marshal every
+    mutation through `loop.call_soon_threadsafe` so the loop is the single
+    owner of `YTDL` state. Under CPython's GIL the races are benign in
+    practice (atomic attribute writes), but this pattern is correct under
+    PyPy and future no-GIL CPython.
+    """
+    if loop is None or loop.is_closed():
+        return
+    try:
+        loop.call_soon_threadsafe(func, *args)
+    except RuntimeError:
+        pass  # loop already closed mid-callback
+
 # =============================================================================
 # Format Presets
 # =============================================================================
@@ -97,12 +117,17 @@ async def YTDL_Status(link: str, num: int):
         link: video URL
         num: link number for display
     """
+    from asyncio import get_running_loop
+
     name = await get_YT_Name(link)
     Messages.status_head = (
         f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n`{name}`\n"
     )
 
-    ytdl_thread = Thread(target=YouTubeDL, name="YT-DLP", args=(link,), daemon=True)
+    loop = get_running_loop()
+    ytdl_thread = Thread(
+        target=YouTubeDL, name="YT-DLP", args=(link, loop), daemon=True
+    )
     ytdl_thread.start()
 
     while ytdl_thread.is_alive():
@@ -137,54 +162,86 @@ async def YTDL_Status(link: str, num: int):
 class MyLogger:
     """Custom logger for yt-dlp that updates the YTDL status object."""
 
-    @staticmethod
-    def debug(msg):
+    def __init__(self, loop=None):
+        self._loop = loop
+
+    def debug(self, msg):
         if "item" in str(msg):
             msgs = msg.split(" ")
-            YTDL.header = f"\n⏳ `Getting Info {msgs[-3]} of {msgs[-1]}`"
+            header = f"\n⏳ `Getting Info {msgs[-3]} of {msgs[-1]}`"
+            _schedule_state_update(self._loop, _set_header, header)
 
-    @staticmethod
-    def warning(msg):
+    def warning(self, msg):
         pass
 
-    @staticmethod
-    def error(msg):
+    def error(self, msg):
         logger.error(f"YT-DLP: {msg}")
 
 
 # =============================================================================
 # Progress Hook
 # =============================================================================
-def _progress_hook(d):
-    """Progress hook for yt-dlp that updates global YTDL status."""
-    if d["status"] == "downloading":
-        total_bytes = d.get("total_bytes") or d.get("total_bytes_estimate", 0)
-        dl_bytes = d.get("downloaded_bytes", 0)
-        speed = d.get("speed")
-        eta = d.get("eta")
+def _set_header(value: str):
+    YTDL.header = value
 
-        percent = round((float(dl_bytes) * 100 / float(total_bytes)), 2) if total_bytes else 0
 
-        YTDL.header = ""
-        YTDL.speed = sizeUnit(speed) if speed else "N/A"
-        YTDL.percentage = min(percent, 100)
-        YTDL.eta = getTime(eta) if eta else "N/A"
-        YTDL.done = sizeUnit(dl_bytes) if dl_bytes else "N/A"
-        YTDL.left = sizeUnit(total_bytes) if total_bytes else "N/A"
+def _set_progress(speed: str, percentage: float, eta: str, done: str, left: str):
+    """Atomically update all five YTDL progress fields. Runs on the event loop."""
+    YTDL.header = ""
+    YTDL.speed = speed
+    YTDL.percentage = percentage
+    YTDL.eta = eta
+    YTDL.done = done
+    YTDL.left = left
 
-    elif d["status"] == "finished":
-        YTDL.header = "\n⏳ `Download finished, processing...`"
+
+def _make_progress_hook(loop):
+    """
+    Build a yt-dlp progress hook bound to the given asyncio loop.
+
+    The returned function is invoked from yt-dlp's worker thread, so it
+    must NOT mutate `YTDL` directly — it dispatches via
+    `loop.call_soon_threadsafe` so the event loop owns the state.
+    """
+    def _progress_hook(d):
+        if d["status"] == "downloading":
+            total_bytes = d.get("total_bytes") or d.get("total_bytes_estimate", 0)
+            dl_bytes = d.get("downloaded_bytes", 0)
+            speed = d.get("speed")
+            eta = d.get("eta")
+
+            percent = round((float(dl_bytes) * 100 / float(total_bytes)), 2) if total_bytes else 0
+
+            speed_str = sizeUnit(speed) if speed else "N/A"
+            percentage = min(percent, 100)
+            eta_str = getTime(eta) if eta else "N/A"
+            done_str = sizeUnit(dl_bytes) if dl_bytes else "N/A"
+            left_str = sizeUnit(total_bytes) if total_bytes else "N/A"
+
+            _schedule_state_update(
+                loop, _set_progress, speed_str, percentage, eta_str, done_str, left_str
+            )
+
+        elif d["status"] == "finished":
+            _schedule_state_update(
+                loop, _set_header, "\n⏳ `Download finished, processing...`"
+            )
+
+    return _progress_hook
 
 
 # =============================================================================
 # YT-DLP Download Function
 # =============================================================================
-def YouTubeDL(url: str):
+def YouTubeDL(url: str, loop=None):
     """
     Download video/audio using yt-dlp.
 
     Args:
         url: video URL
+        loop: asyncio event loop used to marshal progress updates from the
+              yt-dlp worker thread. If None, falls back to direct writes
+              (legacy behavior, used by tests).
     """
     format_str = get_format_string()
     is_audio_only = format_str == FORMAT_PRESETS.get("audio")
@@ -195,13 +252,13 @@ def YouTubeDL(url: str):
         "writethumbnail": True,
         "concurrent_fragment_downloads": 5,
         "overwrites": True,
-        "progress_hooks": [_progress_hook],
+        "progress_hooks": [_make_progress_hook(loop)],
         "writesubtitles": True,
         "subtitleslangs": ["en", "en-US", "en-GB"],
         "extractor_args": {
             "subtitlesformat": "srt",
         },
-        "logger": MyLogger(),
+        "logger": MyLogger(loop),
         "user_agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
             "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -229,7 +286,7 @@ def YouTubeDL(url: str):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             info = ydl.extract_info(url, download=False)
-            YTDL.header = "⏳ `Preparing...`"
+            _schedule_state_update(loop, _set_header, "⏳ `Preparing...`")
 
             if info.get("_type") == "playlist":
                 # Playlist download
@@ -240,6 +297,9 @@ def YouTubeDL(url: str):
                     makedirs(playlist_path)
 
                 ydl_opts["outtmpl"]["default"] = f"{playlist_path}/%(title)s.%(ext)s"
+                # Re-bind the hook to the same loop for the inner YoutubeDL.
+                ydl_opts["progress_hooks"] = [_make_progress_hook(loop)]
+                ydl_opts["logger"] = MyLogger(loop)
 
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl2:
                     for entry in info.get("entries", []):

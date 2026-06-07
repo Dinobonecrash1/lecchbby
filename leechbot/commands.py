@@ -20,7 +20,7 @@ from leechbot.utility.variables import BOT, Queue, BotStats
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import (
-    message_deleter, send_settings, sysINFO,
+    message_deleter, send_settings, sysINFO, format_stats,
 )
 import config
 
@@ -248,6 +248,7 @@ async def help_command(client, message):
 • `/drupload` — Upload local directory
 • `/ytupload` — Download with YT-DLP
 • `/glupload` — Download image galleries
+• `/preview` — Dry-run a gallery URL to see what would be downloaded
 
 ─── Queue & Control ───
 • `/queue` — View download queue
@@ -260,12 +261,13 @@ async def help_command(client, message):
 • `/zipaswd` — Set zip password
 • `/unzipaswd` — Set unzip password
 • `/format` — Set YT-DLP quality
+• `/formats` — List available formats for a video URL
 • `/speed` — Set bandwidth limit
 
 ─── Admin ───
 • `/admin` — Manage allowed users
 • `/broadcast` — Send file to multiple chats
-• `/stats` — System statistics
+• `/stats` — Bot & system statistics
 • `/update` — Check for updates
 • `/help` — Show this help message
 
@@ -361,8 +363,8 @@ async def unzipaswd_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("stats") & filters.private)
 async def stats_command(client, message):
-    """Handle the /stats command."""
-    stats_text = f"**📊 Bot Statistics**{sysINFO()}"
+    """Handle the /stats command — shows lifetime task counts + system info."""
+    stats_text = f"{format_stats()}{sysINFO()}"
     msg = await message.reply_text(stats_text, quote=True)
     await message_deleter(message, msg)
 
@@ -448,6 +450,68 @@ async def format_command(client, message):
         reply_markup=keyboard,
         quote=True,
     )
+
+# =============================================================================
+# /formats <url> — list available formats for a video URL
+# =============================================================================
+@app.on_message(filters.command("formats") & filters.private)
+async def formats_command(client, message):
+    """List available yt-dlp formats for a given video URL."""
+    from leechbot.downloader.ytdl import list_formats
+
+    if message.chat.id != OWNER:
+        return
+
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) < 2 or not parts[1].strip():
+        msg = await message.reply_text(
+            "**⚠️ Usage:** `/formats <url>`\n\n"
+            "Example: `/formats https://youtube.com/watch?v=...`",
+            quote=True,
+        )
+        await message_deleter(message, msg)
+        return
+
+    url = parts[1].strip()
+    status = await message.reply_text("**🔍 Fetching available formats...**", quote=True)
+    try:
+        text = await list_formats(url)
+        await status.edit_text(text, disable_web_page_preview=True)
+    except Exception as e:
+        logger.exception("formats_command failed")
+        await status.edit_text(f"**❌ Failed to fetch formats:** `{e}`")
+    await message_deleter(message, status)
+
+# =============================================================================
+# /preview <url> — show what a gallery URL contains (dry run)
+# =============================================================================
+@app.on_message(filters.command("preview") & filters.private)
+async def preview_command(client, message):
+    """Show the file list a gallery URL would produce, without downloading."""
+    from leechbot.downloader.gallery import list_gallery_content
+
+    if message.chat.id != OWNER:
+        return
+
+    parts = (message.text or "").split(maxsplit=1)
+    if len(parts) < 2 or not parts[1].strip():
+        msg = await message.reply_text(
+            "**⚠️ Usage:** `/preview <gallery_url>`\n\n"
+            "Example: `/preview https://imgur.com/a/abc123`",
+            quote=True,
+        )
+        await message_deleter(message, msg)
+        return
+
+    url = parts[1].strip()
+    status = await message.reply_text("**🔍 Inspecting gallery...**", quote=True)
+    try:
+        text = await list_gallery_content(url)
+        await status.edit_text(text, disable_web_page_preview=True)
+    except Exception as e:
+        logger.exception("preview_command failed")
+        await status.edit_text(f"**❌ Preview failed:** `{e}`")
+    await message_deleter(message, status)
 
 # =============================================================================
 # /speed
