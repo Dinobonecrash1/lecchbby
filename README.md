@@ -1,3 +1,15 @@
+> [!IMPORTANT]
+> **🧪 This repository is currently in BETA / active development.**
+>
+> Things may break, features may change, and bugs may appear. If you deploy this bot and run into an error, a crash, or unexpected behavior:
+>
+> 1. **Open an Issue** → [github.com/Shineii86/LeechBot/issues/new](https://github.com/Shineii86/LeechBot/issues/new) (please paste `/logs 50` output and the failing link)
+> 2. **Join the Telegram Support Group** → [MaximXGroup](https://t.me/MaximXGroup)
+> 3. **DM the Developer** → [Shinei Nouzen](https://t.me/Shineii86)
+>
+> Bug reports with logs get fixed fastest. Feature requests go to [GitHub Discussions](https://github.com/Shineii86/LeechBot/discussions) 💡.
+>
+
 <div align="center">
 
 <!-- Animated Logo Banner -->
@@ -6,17 +18,6 @@
 <p align="center">
   <strong>A Pyrogram‑based Telegram Bot to transfer files / folders to Telegram and Google Drive, powered by Google Colab</strong>
 </p>
-
-> [!IMPORTANT]
-> **🧪 This repository is currently in BETA / active development.**
->
-> Things may break, features may change, and bugs may appear. If you deploy this bot and run into an error, a crash, or unexpected behavior:
->
-> 1. **Open an Issue** → [github.com/Shineii86/LeechBot/issues/new](https://github.com/Shineii86/LeechBot/issues/new) (please paste `/logs 50` output and the failing link)
-> 2. **Join the Telegram support group** → [t.me/Shineii86](https://t.me/Shineii86)
-> 3. **DM the developer** → [@Shineii86](https://t.me/Shineii86)
->
-> Bug reports with logs get fixed fastest. Feature requests go to [GitHub Discussions](https://github.com/Shineii86/LeechBot/discussions) 💡.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-3.1.30-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
@@ -29,7 +30,9 @@
 
 </div>
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 📑 **Table of Contents**
 
@@ -48,7 +51,9 @@
 - [🫂 Updates & Support](#-updates--support)
 - [👤 Developer & Credits](#-developer--credits)
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## ✨ What's New in v3.1.30
 
@@ -75,8 +80,6 @@
 - All docs (README, GUIDE, ROADMAP, TERMUX) updated for the new commands.
 
 > 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md)
-
----
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -147,7 +150,9 @@
 | Telegram | Pyrogram (single + batch photo) |
 | Google Drive | GDrive API |
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 👤 UserBot — Private Channels
 
@@ -360,7 +365,9 @@ conda install -c conda-forge libtorrent
 | `/clearcookies` | Delete cookies |
 | `/help` | All commands |
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 🛠️ Technology Stack
 
@@ -435,7 +442,9 @@ LeechBot/
     └── LeechBot.ipynb        # Colab notebook
 ```
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 🙏 Acknowledgements
 
@@ -446,7 +455,9 @@ LeechBot/
 > [!NOTE]
 > Special thanks to **Pyrogram**, **aria2**, **yt-dlp**, **gallery-dl**, and **Google Colab**.
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 📄 License
 
@@ -457,7 +468,9 @@ MIT License — see [LICENSE](LICENSE) for details.
 > Do not violate Google Colab's Terms of Service.
 > The developer assumes no liability for misuse.
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 🫂 Updates & Support
 
@@ -474,7 +487,8 @@ MIT License — see [LICENSE](LICENSE) for details.
 ## 💕 Loved My Work?
 
 🚨 [Follow me on GitHub](https://github.com/Shineii86)
-⭐ [Give a star to this project](https://github.com/Shineii86/LeechBot)
+
+⭐ [Give a star to this Project](https://github.com/Shineii86/LeechBot)
 
 <div align="center">
 
@@ -482,14 +496,14 @@ MIT License — see [LICENSE](LICENSE) for details.
 <img src="https://github.com/Shineii86/AniPay/blob/main/Source/Banner6.png" alt="Banner">
 </a>
 
-*For inquiries or collaborations*
+<i>~ For inquiries or collaborations</i>
 
 [![Telegram Badge](https://img.shields.io/badge/-Telegram-2CA5E0?style=flat&logo=Telegram&logoColor=white)](https://telegram.me/Shineii86 "Contact on Telegram")
 [![Instagram Badge](https://img.shields.io/badge/-Instagram-C13584?style=flat&logo=Instagram&logoColor=white)](https://instagram.com/ikx7.a "Follow on Instagram")
 [![Pinterest Badge](https://img.shields.io/badge/-Pinterest-E60023?style=flat&logo=Pinterest&logoColor=white)](https://pinterest.com/ikx7a "Follow on Pinterest")
 [![Gmail Badge](https://img.shields.io/badge/-Gmail-D14836?style=flat&logo=Gmail&logoColor=white)](mailto:ikx7a@hotmail.com "Send an Email")
 
-<sup><b>Copyright © 2026 <a href="https://telegram.me/Shineii86">Shinei Nouzen</a> All Rights Reserved</b></sup>
+<sup><b>Copyright © <a href="https://telegram.me/Shineii86">Shinei Nouzen</a> All Rights Reserved</b></sup>
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
 
