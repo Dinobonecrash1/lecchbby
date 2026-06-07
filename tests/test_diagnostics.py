@@ -25,6 +25,7 @@ Verifies (in order):
   6. Version string consistency
   7. /help system (3.1.34 category-button UI)
   8. Welcome / About / Start-back (3.1.35)
+  9. Colab notebook (notebooks/LeechBot.ipynb)
 """
 
 import os
@@ -771,10 +772,112 @@ def test_welcome_about():
 
 
 # =============================================================================
-# Test 9 — Python syntax check on all source files
+# Test 9 — Colab notebook (notebooks/LeechBot.ipynb)
+# =============================================================================
+def test_notebook():
+    results.section("9. Colab notebook (notebooks/LeechBot.ipynb)")
+
+    import json
+    nb_path = REPO_ROOT / "notebooks" / "LeechBot.ipynb"
+    if not nb_path.exists():
+        results.fail("notebook exists", f"{nb_path} not found")
+        return
+    results.ok("notebook exists", str(nb_path.relative_to(REPO_ROOT)))
+
+    try:
+        nb = json.loads(nb_path.read_text())
+    except Exception as e:
+        results.fail("notebook is valid JSON", str(e))
+        return
+    results.ok("notebook is valid JSON", f"{len(nb.get('cells', []))} cells")
+
+    cells = nb.get("cells", [])
+    if not cells:
+        results.fail("notebook has cells", "empty")
+        return
+
+    # First cell should be a markdown with the version badge
+    if cells[0].get("cell_type") != "markdown":
+        results.fail("cell 0 is markdown", f"got {cells[0].get('cell_type')}")
+    else:
+        cell0_src = "".join(cells[0].get("source", []))
+        if "Version" in cell0_src and "img.shields.io/badge/Version" in cell0_src:
+            # Extract version number
+            import re as _re
+            m = _re.search(r"Version-([\d.]+)-", cell0_src)
+            if m:
+                badge_ver = m.group(1)
+                # Should match the bot version in config.py
+                cfg = (REPO_ROOT / "config.py").read_text()
+                cfg_m = _re.search(r'VERSION\s*=\s*["\']([^"\']+)["\']', cfg)
+                if cfg_m:
+                    bot_ver = cfg_m.group(1)
+                    if badge_ver == bot_ver:
+                        results.ok(
+                            "version badge matches config.py",
+                            f"badge={badge_ver} == bot={bot_ver}",
+                        )
+                    else:
+                        results.fail(
+                            "version badge matches config.py",
+                            f"badge={badge_ver} but bot={bot_ver} — out of sync",
+                        )
+                else:
+                    results.fail("version badge", "could not read bot VERSION")
+            else:
+                results.fail("version badge parseable", "no version in badge URL")
+        else:
+            results.fail("version badge present", "no shields.io badge in cell 0")
+
+    # Code cells should be hidden by default (form-mode UX)
+    code_cells = [(i, c) for i, c in enumerate(cells) if c.get("cell_type") == "code"]
+    if not code_cells:
+        results.fail("notebook has code cells", "none")
+    else:
+        results.ok("notebook has code cells", f"{len(code_cells)} found")
+        for i, cell in code_cells:
+            jupyter = cell.get("metadata", {}).get("jupyter", {})
+            if jupyter.get("source_hidden") is True:
+                results.ok(f"cell {i} hidden by default", "source_hidden=True")
+            else:
+                results.fail(
+                    f"cell {i} hidden by default",
+                    f"source_hidden={jupyter.get('source_hidden')}",
+                )
+
+    # Code cells with form fields (#@param) should exist for credentials
+    cell2_src = "".join(cells[-1].get("source", [])) if cells else ""
+    form_checks = [
+        ("API_ID param", "API_ID = 0  # @param"),
+        ("BOT_TOKEN param", "BOT_TOKEN = \"\"  # @param"),
+        ("DUMP_ID param", "DUMP_ID = 0  # @param"),
+        ("@title for cell", "# @title"),
+        ("@markdown form text", "#@markdown"),
+    ]
+    for name, marker in form_checks:
+        if marker in cell2_src:
+            results.ok(f"deployer has {name}", "present")
+        else:
+            results.fail(f"deployer has {name}", f"missing marker: {marker}")
+
+    # Dynamic VERSION readout in deployer (so banner shows actual bot version)
+    if "BOT_VERSION" in cell2_src and "config.py" in cell2_src:
+        results.ok(
+            "deployer reads VERSION dynamically",
+            "reads from cloned config.py at runtime",
+        )
+    else:
+        results.fail(
+            "deployer reads VERSION dynamically",
+            "no BOT_VERSION block — badge could drift from code",
+        )
+
+
+# =============================================================================
+# Test 10 — Python syntax check on all source files
 # =============================================================================
 def test_syntax():
-    results.section("9. Python syntax (all .py files)")
+    results.section("10. Python syntax (all .py files)")
 
     py_files = list(REPO_ROOT.rglob("*.py"))
     # Exclude test workspace
@@ -814,6 +917,7 @@ def main():
         test_version_consistency,
         test_help_system,
         test_welcome_about,
+        test_notebook,
         test_syntax,
     ]
     for t in tests:
