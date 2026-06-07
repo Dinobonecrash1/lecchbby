@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.30-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.35-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -38,7 +38,7 @@
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
 - [🗺️ Roadmap](ROADMAP.md) — what's planned
-- [✨ What's New?](#-whats-new-in-v3130)
+- [✨ What's New?](#-whats-new-in-v3135)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
 - [👤 UserBot — Private Channels](#-userbot--private-channels)
@@ -55,31 +55,30 @@
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
 
-## ✨ What's New in v3.1.30
+## ✨ What's New in v3.1.35
 
-### 📊 `/status` — Active Task Detail
-- Show the currently running task: mode, elapsed time, bytes downloaded/uploaded, remaining, files sent, current link.
-- Plus the queue: current item + next 5 pending.
-- One-shot diagnostic, no side effects.
+### 🎨 Category‑Button `/help` UI
+- `/help` no longer shows a wall‑of‑text — now an **interactive inline‑keyboard menu** with 6 categories (Downloads, Files, Status, Account, Cookies, Admin), each with per‑command help cards, usage, and examples.
+- **Deep‑link:** `/help <command>` jumps straight to that command's help card.
+- Same drill‑down UX as BotFather: click → edit in place, no message spam.
 
-### 🔄 `/restart` — Graceful Restart
-- Cancels active task, sends a confirmation message, then sends `SIGTERM` to itself.
-- The process wrapper (systemd / Docker `--restart=always` / `pm2` / tmux respawn loop / Colab auto-reconnect) brings the bot back in 5-10 seconds.
-- Owner-only.
+### 🏠 Fresh Welcome + ℹ️ About
+- `/start` message trimmed from 35 lines → 9 lines with **📖 Help** + **ℹ️ About** buttons.
+- About card shows live version, build date, command/category counts, developer credits, license, disclaimer.
+- "⬅️ Back to Start" navigation — no need to retype `/start`.
 
-### 📋 `/logs [N]` — Recent Log Lines
-- New: bot now writes logs to `LOGS_PATH/leechbot.log` (rotating, 2 MB × 3 backups).
-- `/logs` shows last 30 lines (max 100). `/logs 50` shows last 50.
-- Tails from end of file efficiently — no full file load even if log is 2 MB.
-- Truncates output to fit Telegram's 4096-char limit while keeping first + last lines.
+### 🗺️ Telegram Link Parser (ported from xditya/GetRestrictedMessages)
+- **New formats:** `t.me/s/USERNAME/MSG_ID` (slug), `t.me/c/CHAT/MSG/THREAD` (discussion threads), `http://` URLs, `telegram.me` mirror.
+- Stricter validation, friendlier error messages.
 
-### 🛠️ Other Updates
-- 29 → 32 registered bot commands (`/status`, `/restart`, `/logs`).
-- `leechbot/__init__.py` adds `RotatingFileHandler` to root logger.
-- New `LOG_FILE` export in `leechbot/__init__.py` for `/logs` to find the log file.
-- All docs (README, GUIDE, ROADMAP, TERMUX) updated for the new commands.
+### 🛡️ Graceful Shutdown
+- `BOT.State.shutting_down` flag blocks new tasks during shutdown.
+- `upload_file` catches `CancelledError` cleanly — no scary tracebacks on Colab runtime disconnect.
 
-> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md)
+### 🧹 Removed Broken Downloaders
+- **Bunkr + Instagram** removed — both sites changed their APIs and were untestable.
+
+> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **30 commands across 6 categories**
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -138,9 +137,9 @@
 | Terabox | API | ✅ |
 | Pixeldrain | API | ✅ Single files + lists |
 | Mediafire | Scraping | ✅ Auto-extracted direct links |
-| GoFile.io | API | ✅ **NEW** — folders, multi-file |
-| Catbox.moe / Litterbox | Direct | ✅ **NEW** — direct download |
-| StreamTape | Extraction | ✅ **NEW** — video links |
+| GoFile.io | API | ✅ Folders, multi-file |
+| Catbox.moe / Litterbox | Direct | ✅ Direct download |
+| StreamTape | Extraction | ✅ Video links |
 
 ### 📤 Upload To
 
@@ -192,7 +191,7 @@ Real-time browser dashboard runs alongside the bot on port `8080`.
 | 📁 Files | Recent uploads list |
 | ⚙️ Settings | Current bot configuration |
 | 💻 System | CPU, RAM, disk usage |
-| 📖 Commands | Quick reference for all 32 commands |
+| 📖 Commands | Quick reference for all 30 commands |
 | 🟢 WebSocket | Real-time updates every 3s |
 
 ```bash
@@ -313,56 +312,19 @@ conda install -c conda-forge libtorrent
 
 ## 📋 Commands
 
-### 📥 Downloads
-| Command | Description |
-|---------|-------------|
-| `/start` | Welcome message |
-| `/tupload` | Leech to Telegram |
-| `/gdupload` | Mirror to Google Drive |
-| `/ytupload` | YouTube / yt-dlp |
-| `/glupload` | Photo galleries |
-| `/drupload` | Local directory |
-| `/formats <url>` | List available formats for a video URL |
-| `/preview <url>` | Dry-run a gallery URL to preview its content |
+All 30 commands are organized into 6 categories in the **interactive `/help` menu** (category‑button UI added in v3.1.34).
 
-### 👤 UserBot
-| Command | Description |
-|---------|-------------|
-| `/userbot` | Login for private channel access |
-| `/userbot_status` | Check session |
-| `/userbot_logout` | Disconnect |
+| Category | Commands | Usage |
+|----------|----------|-------|
+| **📥 Downloads** | 10 | `tupload`, `gdupload`, `drupload`, `ytupload`, `glupload`, `setname`, `format`, `formats`, `preview`, `speed` |
+| **🗂 Files** | 5 | `zipaswd`, `unzipaswd`, `queue`, `cancel`, `cancel_all` |
+| **⚙️ Status & Settings** | 7 | `settings`, `status`, `stats`, `logs`, `ping`, `restart`, `update` |
+| **👤 Account** | 3 | `userbot`, `userbot_status`, `userbot_logout` |
+| **🍪 Cookies** | 3 | `cookies`, `setcookies`, `clearcookies` |
+| **🛠 Admin** | 2 | `admin`, `broadcast` |
 
-### ⚙️ Settings
-| Command | Description |
-|---------|-------------|
-| `/settings` | Bot preferences |
-| `/setname` | Custom filename |
-| `/zipaswd` | Zip password |
-| `/unzipaswd` | Extract password |
-| `/format` | YT-DLP quality |
-| `/speed` | Bandwidth limit |
-
-### 📋 Control
-| Command | Description |
-|---------|-------------|
-| `/queue` | View queue |
-| `/cancel` | Cancel task |
-| `/cancel_all` | Cancel + clear |
-
-### 🛠️ Admin
-| Command | Description |
-|---------|-------------|
-| `/admin` | Manage users |
-| `/stats` | Bot & system statistics (lifetime totals) |
-| `/status` | Active task detail + queue + transfer stats |
-| `/restart` | Gracefully restart the bot |
-| `/logs` | View recent log lines (file-backed) |
-| `/broadcast` | Send to multiple chats |
-| `/update` | Check for updates |
-| `/cookies` | YouTube auth status |
-| `/setcookies` | Upload cookies.txt |
-| `/clearcookies` | Delete cookies |
-| `/help` | All commands |
+> 💡 **Try it on Telegram:** Send `/help` — the bot will show category buttons.
+> Type `/help <command>` (e.g. `/help ytupload`) for direct help without navigating the menu.
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -402,7 +364,7 @@ LeechBot/
 ├── leechbot/
 │   ├── __init__.py          # Pyrogram client
 │   ├── __main__.py          # Entry point
-│   ├── commands.py          # /command handlers (32 commands)
+│   ├── commands.py          # /command handlers (30 commands)
 │   ├── callbacks.py         # Button callbacks
 │   ├── handlers.py          # Message handlers
 │   ├── userbot.py           # UserBot session manager
