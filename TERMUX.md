@@ -334,8 +334,46 @@ LEECHBOT_BASE_DIR=/sdcard/leechbot_data
 
 ---
 
-## 🛠 Common Issues & Fixes
+## 🧪 Running Offline Tests (no bot credentials needed)
 
+Before starting the bot, run the diagnostic test suite to catch routing/parser bugs:
+
+```bash
+cd ~/LeechBot
+python tests/test_diagnostics.py
+```
+
+**What it tests** (35+ checks, runs in ~2 seconds):
+
+| # | Section | What it verifies |
+|---|---------|------------------|
+| 1 | Telegram link parser | `t.me/USERNAME/MSG_ID` (public) AND `t.me/c/CHAT/MSG_ID` (private) extract correctly |
+| 2 | Thumbnail None-safety | `os.path.exists(None)` is safely short-circuited |
+| 3 | Bunkr domains | `bunkr.cr`, `dl.bunkr.cr`, `balbums.st` all detected |
+| 4 | Instagram routing | `is_instagram` branch comes before `is_gallery` in manager.py |
+| 5 | All `is_*` helpers | YouTube, GDrive, Mega, Terabox, Pixeldrain, etc. all detect correctly |
+| 6 | Command consistency | `# of handlers == # of registered BotCommand` (currently 29 each) |
+| 7 | Version string | `VERSION` in config.py is valid semver |
+| 8 | Python syntax | All 38 `.py` files parse without errors |
+
+**Expected output:**
+```
+Results: 35/35 passed, 0 failed
+✓ All checks passed.
+```
+
+If any check fails, the suite prints the exact file + line + expected vs actual — no need to read the code yourself.
+
+**Verbose mode** (prints every individual Python file syntax check):
+```bash
+python tests/test_diagnostics.py --verbose
+```
+
+**Run before every `/update`** — catches regressions in 2 seconds. Pure offline, no API calls, no bot token, no network.
+
+---
+
+## 🛠 Common Issues & Fixes
 ### ❌ `ModuleNotFoundError: No module named 'tgcrypto'`
 
 ```bash

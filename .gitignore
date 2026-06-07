@@ -37,3 +37,4 @@ BOT_WORK/
 
 # Jupyter
 .ipynb_checkpoints/
+.test_workspace/

@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.29] - 2026-06-07
+
+### Added
+- **`tests/test_diagnostics.py` — offline diagnostic test suite** — 35+ checks across 8 sections covering every fix from 3.1.23-3.1.28 plus all domain detection helpers, command registration consistency, version string format, and Python syntax for all 38 source files. Runs in ~2 seconds with **zero external dependencies** (no bot token, no Telegram API, no network). Use this to catch regressions locally before deploying. Soft-skips section 5 if `psutil` isn't installed (e.g. minimal dev envs).
+- **TERMUX.md** — added "🧪 Running Offline Tests" section explaining how to use the new test suite on Termux, with a per-section breakdown of what each test verifies.
+
+### Notes
+- No code changes — pure testing infrastructure. Bot behavior identical to 3.1.28.
+- The test suite uses pure stdlib (`ast`, `re`, `pathlib`) so it works even in stripped-down Termux installs that haven't pulled all `requirements.txt` deps yet.
+- This addresses the recurring pattern of "fix pushed → user can't easily verify it works → reports another symptom that turns out to be a different bug". Now there's a 2-second local check before every deploy.
+
+---
+
 ## [3.1.28] - 2026-06-07
 
 ### Fixed
