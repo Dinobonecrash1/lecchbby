@@ -52,12 +52,13 @@ async def media_Identifier(link: str):
         parts = link.rstrip("/").split("/")
         message_id = int(parts[-1])
 
-        # Private channel: t.me/c/CHAT_ID/MSG_ID
+        # Private channel: t.me/c/CHAT_ID/MSG_ID  → 6 parts
+        # Public channel:  t.me/USERNAME/MSG_ID   → 5 parts
+        # chat_id / username is always the segment immediately before the message_id
         if "/c/" in link:
             chat_id = int("-100" + parts[4])
         else:
-            # Public channel: t.me/USERNAME/MSG_ID
-            chat_id = parts[4]
+            chat_id = parts[-2]
 
         # For private channels, try UserBot session first
         message = None

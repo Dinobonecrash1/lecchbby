@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.23] - 2026-06-07
+
+### Fixed
+- **🔴 Telegram public-link download broken (off-by-one in link parser)** — `leechbot/downloader/telegram.py::media_Identifier()` was using `parts[4]` to extract the chat identifier from public links like `https://t.me/yunavip/28`. That index is correct for the `/c/` private format (6 parts, chat_id is at index 4) but wrong for public links (5 parts, username is at index 3). Effect: every public-channel Telegram download since the 2026-04 refactor (`bdf8e1e`) was calling `app.get_messages("28", 28)` instead of `app.get_messages("yunavip", 28)`, producing `[400 PEER_ID_INVALID]`. Fixed by using `parts[-2]`, which is the segment immediately before the message_id in BOTH formats and works for trailing slashes too. Verified against 5 link shapes: public w/o slash, public w/ slash, /c/ w/o slash, /c/ w/ slash, public with higher msg_id. All pass.
+
+### Notes
+- One-line fix, no API changes, no behavior change for `/c/` private links.
+- This bug silently regressed in 3.1.5/3.1.6 era cleanup commits; the prior public-link parser used `parts[3]` (correct) before the consolidation refactor. No test suite exists (per `AGENTS.md`), so this went undetected for ~2 months of releases.
+- Symptom in DUMP channel: `Cannot access private channel ... [400 PEER_ID_INVALID]` for ANY public `t.me/<username>/<msg_id>` link, including non-NSFW channels. Private `/c/` links and UserBot-fetched content were unaffected.
+
+---
+
 ## [3.1.22] - 2026-06-07
 
 ### Fixed
