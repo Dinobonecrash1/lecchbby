@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.25] - 2026-06-07
+
+### Added
+- **`/ping` command** — measures Telegram round-trip latency in milliseconds, displays it as a colored 5-dot bar (🟢 Excellent < 200ms / 🟢 Good < 500ms / 🟡 Average < 1s / 🔴 Poor ≥ 1s), plus bot uptime and current version. Self-deletes after the standard delay (consistent with `/stats`, `/queue`, `/cancel`). Registered as a Telegram bot command in `_register_commands()` so it shows up in the menu automatically.
+
+### Changed
+- **GUIDE.md** — auto-registration note updated from "all 28 commands" → "all 29 commands"; added `/ping` row to the Commands Reference → Utility Commands table.
+
+### Notes
+- Pure feature add, no bug fixes. The ping measurement uses the round-trip time of `message.reply_text()` to Telegram's servers — a true client→server→client RTT, not just a `time.sleep(0)`. On a healthy Colab session this should land in the 100-300ms range.
+
+---
+
 ## [3.1.24] - 2026-06-07
 
 ### Fixed

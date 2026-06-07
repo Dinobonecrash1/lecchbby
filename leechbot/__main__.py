@@ -123,6 +123,7 @@ async def _register_commands():
         BotCommand("cancel", "🚫 Cancel current task"),
         BotCommand("cancel_all", "🗑️ Cancel & clear queue"),
         BotCommand("stats", "📊 Bot & system statistics"),
+        BotCommand("ping", "🏓 Check latency & uptime"),
         BotCommand("admin", "👥 Manage allowed users"),
         BotCommand("broadcast", "📢 Broadcast to chats"),
         BotCommand("cookies", "🍪 YT-DLP auth status"),

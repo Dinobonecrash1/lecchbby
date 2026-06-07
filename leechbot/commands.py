@@ -14,13 +14,14 @@ Bot command handlers — all /command message handlers.
 """
 
 import logging
+from datetime import datetime
 from pyrogram import filters
 from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, Queue, BotStats
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import (
-    message_deleter, send_settings, sysINFO, format_stats,
+    message_deleter, send_settings, sysINFO, format_stats, getTime,
 )
 import config
 
@@ -366,6 +367,38 @@ async def stats_command(client, message):
     """Handle the /stats command — shows lifetime task counts + system info."""
     stats_text = f"{format_stats()}{sysINFO()}"
     msg = await message.reply_text(stats_text, quote=True)
+    await message_deleter(message, msg)
+
+# =============================================================================
+# /ping
+# =============================================================================
+@app.on_message(filters.command("ping") & filters.private)
+async def ping_command(client, message):
+    """Handle the /ping command — measures Telegram round-trip latency + shows uptime."""
+    start = datetime.now()
+    msg = await message.reply_text("**🏓 Pinging...**", quote=True)
+    latency_ms = (datetime.now() - start).total_seconds() * 1000
+    uptime = getTime(int((datetime.now() - BotStats.start_time).total_seconds()))
+
+    if latency_ms < 200:
+        bar = "🟢🟢🟢🟢🟢"
+        quality = "Excellent"
+    elif latency_ms < 500:
+        bar = "🟢🟢🟢🟢⚪"
+        quality = "Good"
+    elif latency_ms < 1000:
+        bar = "🟡🟡🟡⚪⚪"
+        quality = "Average"
+    else:
+        bar = "🔴🔴⚪⚪⚪"
+        quality = "Poor"
+
+    ping_text = f"""**🏓 Pong!**
+
+• ⚡ **Latency:** `{latency_ms:.1f} ms` {bar} _{quality}_
+• ⏱️ **Uptime:** `{uptime}`
+• 🤖 **Version:** `v{config.VERSION}`"""
+    await msg.edit(ping_text, disable_web_page_preview=True)
     await message_deleter(message, msg)
 
 # =============================================================================
