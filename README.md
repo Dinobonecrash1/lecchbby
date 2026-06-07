@@ -63,38 +63,7 @@
 - New `LOG_FILE` export in `leechbot/__init__.py` for `/logs` to find the log file.
 - All docs (README, GUIDE, ROADMAP, TERMUX) updated for the new commands.
 
----
-
-## ✨ What's New in v3.1.21
-
-### 🎬 New Commands — `/formats` and `/preview`
-- **`/formats <url>`** — list all available yt-dlp formats (resolution / codec / size) for a video URL before downloading. Picks up the previously-unused `ytdl.list_formats()` helper.
-- **`/preview <url>`** — dry-run a gallery URL with `gallery-dl -K` to see what would be downloaded, without actually downloading. Picks up the previously-unused `gallery.list_gallery_content()` helper.
-
-### 🛠️ Multi-link URL Extraction
-- Forwarded messages with multiple URLs on the same line (e.g. `https://a.com https://b.com`) or scattered through paragraphs now process **all** of them in series, not just the first. Wires up the previously-unused `helper.extract_links()` helper.
-
-### 📊 `/stats` Now Shows Lifetime Totals
-- `/stats` now shows lifetime task counts (total tasks, total bytes downloaded, total bytes uploaded, failed tasks, uptime) in addition to the existing system resource info (CPU, RAM, disk).
-
-### 🧵 YTDL Thread-Safety Hardening
-- The yt-dlp progress hook and logger no longer mutate global `YTDL` state directly from the worker thread. Every update is marshaled through `loop.call_soon_threadsafe` so the asyncio event loop is the single owner of `YTDL.*` attributes. Removes a subtle data-race window under PyPy / no-GIL CPython.
-
-### 🔴 Critical Bug Fix — `/stats` Always Showed 0 Bytes (3.1.20)
-- The cumulative byte counters (`BotStats.total_downloaded`, `total_uploaded`) were reading `Transfer.down_bytes[0]` which was always `0` because per-file sizes are `.append()`-ed to the list, not stored at index 0. Fixed by using `sum(Transfer.down_bytes)`. Now lifetime totals actually accumulate.
-
-### 🛡️ Resource-Leak Fix — `/cancel` Mid-ffmpeg (3.1.20)
-- Hitting `/cancel` while ffmpeg/zip/7z was running would orphan the subprocess. Added a `_terminate_subprocess()` helper (SIGTERM → 5s wait → SIGKILL) and wrapped all 4 `subprocess.Popen()` polling loops in `try/except CancelledError` cleanup.
-
-### 📋 Earlier Releases
-- **3.1.17** — YouTube thumbnail not showing on video uploads
-- **3.1.18** — `NameError: 'os' is not defined` latent bug in `task_manager.py` (would have crashed the first task)
-- **3.1.19** — Comprehensive `AUDIT_REPORT.md` (1 critical bug, 8 dead functions, 1 thread-safety concern, 4 resource-leak risks)
-- **3.1.15** — Bot was completely unresponsive (`__main__.py` never imported handler modules) + 18 other fixes
-
 > 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md)
-
----
 
 ---
 
