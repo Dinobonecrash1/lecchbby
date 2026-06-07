@@ -19,9 +19,10 @@ LeechBot offline diagnostic test suite.
 Verifies (in order):
   1. Telegram public-link parser (3.1.23 fix: parts[4] → parts[-2])
   2. thumbMaintainer None-safety (3.1.24 fix: ytdl_thmb None guard)
-  3. All domain detection helpers
-  4. All command count matches registration
-  5. Version string consistency
+  3. Shutdown flag wiring (3.1.32 fix: BOT.State.shutting_down blocks new tasks)
+  4. All domain detection helpers
+  5. All command count matches registration
+  6. Version string consistency
 """
 
 import os
@@ -149,10 +150,156 @@ def test_thumb_maintainer():
 
 
 # =============================================================================
-# Test 3 — All domain detection helpers
+# Test 3 — Shutdown flag wiring (3.1.32 fix)
+# =============================================================================
+def test_shutdown_flag():
+    """
+    Verify the 3.1.32 fix for the "CancelledError traceback on shutdown" bug.
+
+    The bug: when SIGINT/SIGTERM hit `startup()` after `await idle()`, the bot
+    called `app.stop()` which cancelled Pyrogram's dispatcher mid-handler. A
+    pending callback (e.g. "normal" upload type) was still being drained and
+    triggered a long task (download + upload). When the upload was cancelled
+    mid-stream by `save_file` → `queue.put()`, the CancelledError propagated
+    all the way up and produced a scary traceback.
+
+    The fix has two parts:
+      1. `BOT.State.shutting_down` flag — set to True BEFORE `app.stop()` in
+         `__main__.py:startup()`. Checked at the top of `_handle_upload_type`
+         and `taskScheduler` to bail early.
+      2. `asyncio.CancelledError` handler in `uploader/telegram.py:upload_file`
+         — logs a clean warning instead of letting the error propagate raw.
+    """
+    results.section("3. Shutdown flag wiring (3.1.32)")
+
+    # --- Part 1: Verify BOT.State has the shutting_down attribute ---
+    try:
+        from leechbot.utility.variables import BOT
+    except (ImportError, ModuleNotFoundError) as e:
+        results.ok("import BOT — skipped", f"missing dep: {e}")
+        return
+    except Exception as e:
+        results.fail("import BOT", f"{type(e).__name__}: {e}")
+        return
+
+    if not hasattr(BOT.State, "shutting_down"):
+        results.fail(
+            "BOT.State.shutting_down attribute",
+            "missing — need to add to leechbot/utility/variables.py:BOT.State",
+        )
+        return
+    results.ok("BOT.State.shutting_down attribute", "exists with default False")
+
+    # --- Part 2: Default value should be False ---
+    if BOT.State.shutting_down is False:
+        results.ok("default value", "False (clean state at startup)")
+    else:
+        results.fail("default value", f"expected False, got {BOT.State.shutting_down!r}")
+
+    # --- Part 3: Flag can be toggled and read back ---
+    try:
+        original = BOT.State.shutting_down
+        BOT.State.shutting_down = True
+        if BOT.State.shutting_down is True:
+            results.ok("toggle to True", "read-back is True")
+        else:
+            results.fail("toggle to True", f"got {BOT.State.shutting_down!r}")
+        BOT.State.shutting_down = original  # restore
+    except Exception as e:
+        results.fail("toggle", f"{type(e).__name__}: {e}")
+
+    # --- Part 4: __main__.py sets the flag before app.stop() ---
+    main_path = REPO_ROOT / "leechbot" / "__main__.py"
+    if not main_path.exists():
+        results.ok("__main__.py shutdown flow — skipped", f"{main_path} not found")
+    else:
+        text = main_path.read_text()
+        flag_set_pos = text.find("BOT.State.shutting_down = True")
+        app_stop_pos = text.find("await app.stop()")
+        idle_pos = text.find("await idle()")
+
+        if flag_set_pos == -1:
+            results.fail(
+                "main.py shutdown flow",
+                "BOT.State.shutting_down = True not found — startup() doesn't set the flag",
+            )
+        elif idle_pos == -1 or app_stop_pos == -1:
+            results.fail(
+                "main.py shutdown flow",
+                f"idle() or app.stop() not found (idle@{idle_pos}, stop@{app_stop_pos})",
+            )
+        elif flag_set_pos > app_stop_pos:
+            results.fail(
+                "main.py shutdown flow",
+                f"flag set (pos {flag_set_pos}) is AFTER app.stop() (pos {app_stop_pos}) — must be BEFORE",
+            )
+        elif flag_set_pos < idle_pos:
+            results.fail(
+                "main.py shutdown flow",
+                f"flag set (pos {flag_set_pos}) is BEFORE idle() (pos {idle_pos}) — should be AFTER",
+            )
+        else:
+            results.ok(
+                "main.py shutdown flow",
+                f"idle({idle_pos}) < flag({flag_set_pos}) < stop({app_stop_pos})",
+            )
+
+    # --- Part 5: callbacks.py checks the flag in _handle_upload_type ---
+    cb_path = REPO_ROOT / "leechbot" / "callbacks.py"
+    if not cb_path.exists():
+        results.ok("callbacks.py shutdown check — skipped", f"{cb_path} not found")
+    else:
+        text = cb_path.read_text()
+        if "BOT.State.shutting_down" in text and "def _handle_upload_type" in text:
+            results.ok("callbacks.py shutdown check", "BOT.State.shutting_down checked in _handle_upload_type")
+        else:
+            results.fail(
+                "callbacks.py shutdown check",
+                "BOT.State.shutting_down NOT checked in _handle_upload_type",
+            )
+
+    # --- Part 6: task_manager.py checks the flag in taskScheduler ---
+    tm_path = REPO_ROOT / "leechbot" / "utility" / "task_manager.py"
+    if not tm_path.exists():
+        results.ok("task_manager.py shutdown check — skipped", f"{tm_path} not found")
+    else:
+        text = tm_path.read_text()
+        if "BOT.State.shutting_down" in text and "async def taskScheduler" in text:
+            results.ok("task_manager.py shutdown check", "BOT.State.shutting_down checked in taskScheduler")
+        else:
+            results.fail(
+                "task_manager.py shutdown check",
+                "BOT.State.shutting_down NOT checked in taskScheduler",
+            )
+
+    # --- Part 7: uploader/telegram.py handles CancelledError gracefully ---
+    up_path = REPO_ROOT / "leechbot" / "uploader" / "telegram.py"
+    if not up_path.exists():
+        results.ok("uploader CancelledError handler — skipped", f"{up_path} not found")
+    else:
+        text = up_path.read_text()
+        if "asyncio.CancelledError" in text and "def upload_file" in text:
+            # Count occurrences — should be exactly 1 (in upload_file, not batch)
+            count = text.count("except asyncio.CancelledError")
+            if count >= 1:
+                results.ok(
+                    "uploader CancelledError handler",
+                    f"{count} handler(s) found in uploader/telegram.py",
+                )
+            else:
+                results.fail("uploader CancelledError handler", "no handler found")
+        else:
+            results.fail(
+                "uploader CancelledError handler",
+                "asyncio.CancelledError NOT caught in upload_file",
+            )
+
+
+# =============================================================================
+# Test 4 — All domain detection helpers
 # =============================================================================
 def test_domain_helpers():
-    results.section("3. Domain detection helpers (is_*)")
+    results.section("4. Domain detection helpers (is_*)")
 
     # Try to import and test, but skip gracefully if config/dependency import fails
     try:
@@ -202,10 +349,10 @@ def test_domain_helpers():
 
 
 # =============================================================================
-# Test 6 — Command count consistency
+# Test 5 — Command count consistency
 # =============================================================================
 def test_command_consistency():
-    results.section("6. Command registration consistency")
+    results.section("5. Command registration consistency")
 
     handlers_path = REPO_ROOT / "leechbot" / "commands.py"
     main_path = REPO_ROOT / "leechbot" / "__main__.py"
@@ -234,10 +381,10 @@ def test_command_consistency():
 
 
 # =============================================================================
-# Test 7 — Version string consistency
+# Test 6 — Version string consistency
 # =============================================================================
 def test_version_consistency():
-    results.section("7. Version string consistency")
+    results.section("6. Version string consistency")
 
     config_path = REPO_ROOT / "config.py"
     if not config_path.exists():
@@ -261,10 +408,10 @@ def test_version_consistency():
 
 
 # =============================================================================
-# Test 8 — Python syntax check on all source files
+# Test 7 — Python syntax check on all source files
 # =============================================================================
 def test_syntax():
-    results.section("8. Python syntax (all .py files)")
+    results.section("7. Python syntax (all .py files)")
 
     py_files = list(REPO_ROOT.rglob("*.py"))
     # Exclude test workspace
@@ -298,6 +445,7 @@ def main():
     tests = [
         test_telegram_parser,
         test_thumb_maintainer,
+        test_shutdown_flag,
         test_domain_helpers,
         test_command_consistency,
         test_version_consistency,

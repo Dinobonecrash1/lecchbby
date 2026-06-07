@@ -25,6 +25,8 @@ import os
 import asyncio
 import logging
 
+from leechbot.utility.variables import BOT
+
 # =============================================================================
 # Patch Pyrogram's 32-bit peer ID limits
 # Telegram supports 64-bit channel/supergroup IDs, but Pyrogram defaults
@@ -202,7 +204,14 @@ async def startup():
     # Keep the bot running
     await idle()
 
-    # Graceful shutdown
+    # Graceful shutdown — set the flag BEFORE app.stop() so that any
+    # in-flight callbacks (which the dispatcher drains before stopping)
+    # check this flag and bail instead of starting new long-running tasks
+    # (download + upload) that will get cancelled mid-flight and produce
+    # a noisy CancelledError traceback. See callbacks.py:_handle_upload_type
+    # and task_manager.py:taskScheduler for the bail-out checks.
+    BOT.State.shutting_down = True
+    logger.info("🛑 Shutdown signal received — blocking new tasks, draining queue...")
     await app.stop()
 
 

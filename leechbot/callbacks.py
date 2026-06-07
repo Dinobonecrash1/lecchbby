@@ -221,6 +221,20 @@ async def _handle_upload_type(client, callback_query, data: str):
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
     from leechbot.utility.task_manager import taskScheduler
 
+    # Bail if bot is shutting down — the dispatcher drains pending callbacks
+    # before app.stop() completes, and starting a long task here will be
+    # cancelled mid-flight (noisy CancelledError traceback).
+    if BOT.State.shutting_down:
+        logger.warning(
+            "Callback %s ignored: bot is shutting down",
+            data,
+        )
+        try:
+            await callback_query.answer("⏳ Bot is shutting down, try again later.", show_alert=True)
+        except Exception:
+            pass
+        return
+
     BOT.Mode.type = data
     await callback_query.message.delete()
     await app.delete_messages(

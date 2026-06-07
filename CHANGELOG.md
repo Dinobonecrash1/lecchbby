@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.32] - 2026-06-07
+
+### Fixed
+- **🔴 Noisy `CancelledError` traceback on bot shutdown** — when SIGINT/SIGTERM hit (Ctrl+C, Colab runtime disconnect, `/restart`), `startup()` would call `app.stop()` which cancels Pyrogram's dispatcher mid-handler. Any pending callback (e.g. a "normal" upload-type button click) was being drained by the dispatcher and triggered a long task — `Do_Leech` → `Leech` → `upload_file` → `reply_video` → `save_file` → `queue.put`. The cancel cascaded through that stack and produced a scary traceback at the top of the user's log.
+
+  **Fix has two parts:**
+  1. **`BOT.State.shutting_down` flag** (`leechbot/utility/variables.py`) — new bool field, defaults to False. Set to True in `__main__.py:startup()` AFTER `await idle()` returns and BEFORE `await app.stop()`. This signals to all in-flight callbacks and task schedulers that the bot is shutting down.
+  2. **Bail-out checks at 3 layers:**
+     - `callbacks.py:_handle_upload_type` — checks the flag first thing, answers the callback with "Bot is shutting down", returns early. Prevents new long tasks from being started at all.
+     - `task_manager.py:taskScheduler` — defensive second-line check. If a queued message somehow bypasses the callback (e.g. via `task_starter`), the task scheduler bails before doing any work.
+     - `uploader/telegram.py:upload_file` — wraps the upload in `try/except asyncio.CancelledError`. Logs a clean "Upload of X cancelled (bot shutting down) — partial upload discarded" warning instead of letting the error propagate raw. Re-raises after logging so the dispatcher knows to stop.
+
+### Changed
+- **`leechbot/__main__.py`** — added `from leechbot.utility.variables import BOT` import; added 4-line block between `idle()` and `app.stop()` that sets `BOT.State.shutting_down = True` and logs "🛑 Shutdown signal received — blocking new tasks, draining queue...".
+- **`leechbot/callbacks.py:_handle_upload_type`** — added 11-line guard at the top. When shutting down, logs a warning, sends a `callback_query.answer("⏳ Bot is shutting down, try again later.")` with `show_alert=True`, and returns without starting any task.
+- **`leechbot/utility/task_manager.py:taskScheduler`** — added 6-line guard at the top (defensive second line).
+- **`leechbot/uploader/telegram.py:upload_file`** — added `import asyncio` and `except asyncio.CancelledError` block (10 lines, including the `raise` re-raise).
+- **`tests/test_diagnostics.py`** — added new `test_shutdown_flag()` function with 7 sub-checks: attribute exists, default value, toggle-ability, main.py order, callbacks.py check, task_manager.py check, uploader CancelledError handler. Renumbered Test 3–8 to Test 4–7 to make room. Test count: 15 → 16.
+
+### Notes
+- The CancelledError is **still re-raised** in `upload_file` after logging — this is correct. Pyrogram's dispatcher expects the handler to acknowledge the cancel by raising. We just log first so the user sees "Upload cancelled (bot shutting down)" instead of a raw `asyncio.exceptions.CancelledError`.
+- This fix only affects the **shutdown** path. Mid-task `/cancel` commands still work exactly as before.
+- The `shutting_down` flag is process-scoped (Python bool, not persisted). On every fresh bot start, it resets to False.
+- Backwards compatible — all 16 tests pass, no API changes, no new dependencies.
+
+---
+
 ## [3.1.31] - 2026-06-07
 
 ### Removed (Breaking)

@@ -82,6 +82,7 @@ class BOT:
         suffix: bool = False
         setting_autodelete_delay: bool = False
         userbot_waiting: str = ""  # "phone" | "code" | "2fa" | ""
+        shutting_down: bool = False  # Set True when SIGINT/SIGTERM received — blocks new long tasks
 
 
 # =============================================================================

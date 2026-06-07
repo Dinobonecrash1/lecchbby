@@ -15,6 +15,7 @@ Handles uploading files to Telegram with progress tracking.
 
 import os
 import logging
+import asyncio
 from typing import Optional
 from PIL import Image
 from asyncio import sleep
@@ -150,6 +151,18 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
         # Track sent files
         Transfer.sent_file.append(MSG.sent_msg)
         Transfer.sent_file_names.append(real_name)
+
+    except asyncio.CancelledError:
+        # Bot is shutting down (SIGINT/SIGTERM, Colab runtime disconnect,
+        # or the /restart command). The current upload was cancelled mid-
+        # stream by Pyrogram's dispatcher draining pending handlers.
+        # Log a clean message instead of letting the CancelledError propagate
+        # and produce a scary traceback at the top of the user's log.
+        logger.warning(
+            "Upload of %s cancelled (bot shutting down) — partial upload discarded",
+            real_name,
+        )
+        raise  # Re-raise so the dispatcher knows to stop, but the warning is logged
 
     except FloodWait as e:
         if _retry_depth >= 10:

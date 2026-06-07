@@ -69,6 +69,15 @@ async def taskScheduler():
     """
     from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError
 
+    # Bail if bot is shutting down — see __main__.py:startup() and
+    # callbacks.py:_handle_upload_type for the full shutdown flow.
+    # This is a defensive check: _handle_upload_type should already have
+    # prevented this call, but in case it was bypassed (e.g. via
+    # task_starter for queued messages), we bail here too.
+    if BOT.State.shutting_down:
+        logger.warning("taskScheduler bailing: bot is shutting down")
+        return
+
     # Determine task type
     is_dualzip = BOT.Mode.type == "undzip"
     is_unzip = BOT.Mode.type == "unzip"
