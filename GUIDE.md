@@ -501,7 +501,7 @@ Live and on-demand streaming protocols are fully supported via yt-dlp:
 ### Video Platforms (YT-DLP)
 2000+ sites including:
 - YouTube (videos, shorts, playlists, live)
-- Facebook, Instagram, Twitter/X, TikTok
+- Facebook, Twitter/X, TikTok
 - Reddit, Vimeo, Dailymotion, Streamable
 - Twitch, Kick, Rumble, Bilibili
 - Crunchyroll, Funimation, TubiTV
@@ -519,14 +519,12 @@ Live and on-demand streaming protocols are fully supported via yt-dlp:
 | Pixeldrain | Single files and lists |
 | Mediafire | Automatic direct link extraction |
 | GoFile.io | Free hosting, API-based, multi-file folders |
-| Bunkr (la/ru/si) | Image/video hosting, album support |
 | Catbox.moe / Litterbox | Direct file links |
 | StreamTape | Video hosting, direct extraction |
 
 ### Photo Galleries (gallery-dl)
 | Site | Content |
 |------|---------|
-| Instagram | Posts, carousels, profiles |
 | Twitter / X | Timelines, likes, bookmarks |
 | Pinterest | Boards, pins |
 | Pixiv | Artworks, user galleries |
@@ -811,9 +809,9 @@ Bot:   ⚡ Send Yt-Dlp Link(s) 🔗
        https://youtu.be/xxxxx
        [Custom Name.mp4]
        {Zip Password}
-       💡 Supported Sites:
-       • Youtube, Facebook, Instagram
-       • Twitter, Tiktok, And More...
+        💡 Supported Sites:
+        • Youtube, Facebook
+        • Twitter, Tiktok, And More...
 
 You:   https://www.youtube.com/watch?v=dQw4w9WgXcQ
 
@@ -838,7 +836,7 @@ Bot:   🚀 Initializing Task...
 
 ### Demo 4: Download Photo Gallery
 
-Use `/glupload` for Instagram, Twitter, Pinterest, Pixiv, and 100+ gallery sites.
+Use `/glupload` for Twitter, Pinterest, Pixiv, and 100+ gallery sites.
 
 ```
 You:   /glupload
@@ -846,7 +844,6 @@ You:   /glupload
 Bot:   📸 Send Gallery Link(s) 🖼️
        ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
        📋 Follow The Pattern Below:
-       https://instagram.com/username
        https://twitter.com/username
        https://pinterest.com/user/board
        https://pixiv.net/users/123456
@@ -854,7 +851,7 @@ Bot:   📸 Send Gallery Link(s) 🖼️
        {Zip Password}
        ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
        🖼️ Supported Sites:
-       ┣ Instagram, Twitter / X, Pinterest
+       ┣ Twitter / X, Pinterest
        ┣ Pixiv, DeviantArt, ArtStation, Flickr
        ┣ Reddit, Tumblr, Imgur, TikTok
        ┗ And 100+ more gallery sites

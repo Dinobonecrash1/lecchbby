@@ -4,6 +4,40 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.31] - 2026-06-07
+
+### Removed (Breaking)
+- **Bunkr downloader** (`leechbot/downloader/bunkr.py`) — entirely removed. The 3.1.26 fix added `bunkr.cr` / `dl.bunkr.cr` / `balbums.st` to the domain list, but the site's scraping logic is fragile and regularly breaks. Bunkr URLs now produce a clear "no downloader found" error instead of silently hanging.
+- **Instagram downloader** — entirely removed. The 3.1.28 fix routed Instagram to yt-dlp first with gallery-dl as fallback, but Instagram's anti-bot measures make it untestable in CI and unreliable in production. Instagram URLs (`instagram.com`) no longer match `is_ytdl_link()`, `is_gallery()`, or any downloader. They will produce a clear "unsupported link" error.
+
+### Code changes
+- **`leechbot/downloader/bunkr.py`** — file deleted (was 7184 bytes).
+- **`leechbot/utility/helper.py`** — removed `is_bunkr()` and `is_instagram()` functions; removed Bunkr branch from `detect_link_type()`; removed `instagram.com` from `is_ytdl_link()` domains list.
+- **`leechbot/downloader/manager.py`** — removed `is_bunkr` and `is_instagram` from imports; removed the Instagram routing block (26 lines: yt-dlp-first + gallery-dl fallback) and the Bunkr routing block (3 lines).
+- **`leechbot/downloader/gallery.py`** — removed `instagram.com` from `GALLERY_SITES`; removed Instagram branch from `get_gallery_name()`.
+- **`leechbot/downloader/__init__.py`** — removed `bunkr_download` and `is_bunkr_link` from imports and `__all__`.
+- **`leechbot/commands.py`** — removed Instagram example URL from `WELCOME_TEXT` gallery-link pattern.
+- **`tests/test_diagnostics.py`** — removed `test_bunkr_domains()` (~62 lines) and `test_instagram_routing()` (~38 lines); removed Bunkr/Instagram rows from `test_domain_helpers`; removed `is_bunkr` and `is_instagram` from helper imports. Test count: 35 → 15.
+
+### Documentation
+- **`README.md`** — removed Instagram and Bunkr from Features, Supported Sources, and the project structure tree.
+- **`GUIDE.md`** — removed Instagram and Bunkr from Video Platforms, Photo Galleries, Direct Downloads tables; updated Demo 4 (photo gallery) to remove Instagram example.
+- **`ROADMAP.md`** — added 3.1.31 row at top of "Done (Recent)"; removed 3.1.26 and 3.1.28 fix rows; annotated 3.1.1 row to mark Bunkr as "removed in 3.1.31".
+- **`AUDIT_REPORT.md`** — TL;DR updated to reflect 2 bugs found + 2 fixes reverted in 3.1.31; §11.3 and §11.4 replaced with a "REMOVED" entry explaining the rationale; §15 "What changed" table now shows the full 3.1.20 → 3.1.31 timeline with reverted entries marked.
+- **`TERMUX.md`** — test-suite description table updated (4 sections, not 6) with `32 commands` (was `29`).
+
+### Rationale
+Per the developer's observation: both Bunkr and Instagram have become untestable in real production usage. Rather than ship unreliable downloaders that fail silently, we remove them outright. Users get a clear error message and can save the file to Telegram or Google Drive manually.
+
+The 3.1.26 Bunkr fix and 3.1.28 Instagram fix are not lost — they remain in git history. If these sites become tractable again in the future, the code is still recoverable via `git log -p -- leechbot/downloader/bunkr.py`.
+
+### Notes
+- **No new features in 3.1.31.** This is a removal-only release.
+- **No new bugs introduced.** All 15 remaining diagnostic tests pass.
+- **Test count went DOWN from 35 to 15** because Bunkr and Instagram had ~20 dedicated checks between them. This is not a regression — those tests no longer apply to code that no longer exists.
+
+---
+
 ## [3.1.30] - 2026-06-07
 
 ### Added

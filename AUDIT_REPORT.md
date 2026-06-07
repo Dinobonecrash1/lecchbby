@@ -22,14 +22,14 @@
 | `import moviepy` | 0 | 0 | ±0 |
 | Public API surface | 193 top-level functions | 90 top-level + 32 registered bot commands | reorganized |
 | **Critical bugs found** | **1** (`Transfer.down_bytes[0]`) | **0** (fixed in 3.1.20) | -1 |
-| **Latent bugs found (this pass)** | — | **4** (Telegram parser, thumbMaintainer, Bunkr domains, Instagram routing) | new |
+| **Latent bugs found (this pass)** | — | **2** (Telegram parser, thumbMaintainer) — *Bunkr/Instagram fixes (3.1.26, 3.1.28) reverted in 3.1.31 because sites became untestable* | new → reverted |
 | Dead code (truly unused) | 8 functions | **4 functions** (style helpers only) | -4 |
 | Thread-safety concerns | 1 (works in practice) | **0** (hardened in 3.1.21) | -1 |
 | Resource leak risk | Low (Popen w/o cleanup) | **Low** (fixed in 3.1.20) | mitigated |
 | Bot commands | 23 | **32** | +9 |
-| Test coverage | 0 (manual only) | **35 checks / 8 sections / 0 deps** | new |
+| Test coverage | 0 (manual only) | **15 checks / 5 sections / 0 deps** (Bunkr/Instagram tests removed in 3.1.31) | -20 |
 
-**Overall verdict:** Production-ready and significantly more hardened than the 3.1.19 baseline. All 6 recommendations from the original audit (§10) have been addressed except item 3 (dead style helpers — kept for now, can be removed in a future cleanup). Four new latent bugs surfaced from real user reports and were fixed across 3.1.23–3.1.28. A 35-check offline diagnostic test suite (3.1.29) now catches regressions at code-write time, and `/status` + `/logs` (3.1.30) give operators live insight without SSH access.
+**Overall verdict:** Production-ready and significantly more hardened than the 3.1.19 baseline. All 6 recommendations from the original audit (§10) have been addressed except item 3 (dead style helpers — kept for now, can be removed in a future cleanup). Two new latent bugs surfaced from real user reports (Telegram parser, thumbMaintainer) and were fixed in 3.1.23 and 3.1.24. The 3.1.26 Bunkr and 3.1.28 Instagram fixes were later reverted in **3.1.31** when both downloaders proved untestable in production. A 15-check offline diagnostic test suite (3.1.29) now catches regressions at code-write time, and `/status` + `/logs` (3.1.30) give operators live insight without SSH access.
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -226,21 +226,15 @@ These were found from real user reports (not static analysis) and fixed in dedic
 **Fix:** Added `if ytdl_thmb and` guard before `os.stat()`.
 **Commit:** `a616b74` — `fix: thumbMaintainer crashes with os.stat(None) for non-yt-dlp downloads (3.1.24)`
 
-### 11.3. Bunkr domain list stale — FIXED 3.1.26
+### 11.3–11.4. Bunkr + Instagram downloaders — **REMOVED in 3.1.31** (originally "fixed" in 3.1.26 and 3.1.28)
 
-**File:** `leechbot/downloader/bunkr.py` + `leechbot/utility/helper.py:is_bunkr`
-**Severity:** Medium (Bunkr site moved to `.cr` TLD; downloads silently failed with no domain match)
-**Root cause:** Hardcoded `.si` / `.la` / `.ws` TLDs — Bunkr had migrated to `bunkr.cr`, `dl.bunkr.cr`, and `balbums.st`.
-**Fix:** Added 3 new domains to the regex; added a new `dl.bunkr.*` regex method in `_get_direct_url` to handle the CDN subdomain routing.
-**Commit:** `37b9132` — `fix: Bunkr domain list stale — add bunkr.cr + dl.bunkr.cr (3.1.26)`
+**Status:** 🗑️ **Downloader modules deleted in 3.1.31** because both sites proved untestable in production — the 3.1.26 Bunkr domain list and 3.1.28 Instagram routing fixes did not hold up. Users will now get a clear "no downloader found" error instead of a silent hang. See `CHANGELOG.md` [3.1.31] for full rationale.
 
-### 11.4. Instagram routing silently fails — FIXED 3.1.28
-
-**File:** `leechbot/downloader/manager.py`
-**Severity:** High (Instagram carousels and private accounts failed with cryptic `AbortExtraction`)
-**Root cause:** Instagram URLs were routed to `gallery-dl` first. While gallery-dl can handle single posts, it fails cryptically on private accounts and multi-image carousels where yt-dlp's cookie support would have succeeded.
-**Fix:** Added `is_instagram` check BEFORE `is_gallery` in `manager.py`. yt-dlp is tried first (better error messages, cookie support); gallery-dl is fallback for multi-image carousels.
-**Commit:** `f1de0a6` — `fix: Instagram downloads silently fail — route to yt-dlp first with gallery-dl fallback (3.1.28)`
+**Files removed in 3.1.31:**
+- `leechbot/downloader/bunkr.py` (entire module)
+- `is_bunkr()` and `is_instagram()` from `leechbot/utility/helper.py`
+- `instagram.com` from `is_ytdl_link()` domains list and `GALLERY_SITES` in `gallery.py`
+- Instagram + Bunkr routing branches from `manager.py::downloadManager()`
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -309,12 +303,13 @@ A 35-check offline test suite was added so this audit doesn't have to be re-run 
 | Fixed Telegram public-link parser off-by-one | 3.1.23 | `bf3582e` |
 | Fixed `thumbMaintainer` None crash | 3.1.24 | `a616b74` |
 | Added `/ping` command | 3.1.25 | `0a6ae24` |
-| Fixed Bunkr stale domain list | 3.1.26 | `37b9132` |
+| **Bunkr stale domain fix — LATER REVERTED in 3.1.31 (downloader untestable)** | 3.1.26 | `37b9132` |
 | Added `TERMUX.md` guide | 3.1.27 | `5b13aa8` |
-| Fixed Instagram routing (yt-dlp first) | 3.1.28 | `f1de0a6` |
-| Added 35-check diagnostic test suite | 3.1.29 | `d11607a` |
+| **Instagram routing fix — LATER REVERTED in 3.1.31 (downloader untestable)** | 3.1.28 | `f1de0a6` |
+| Added 15-check diagnostic test suite (35 → 15 after Bunkr/Instagram tests removed) | 3.1.29 / 3.1.31 | `d11607a` / (3.1.31) |
 | Added `/status`, `/restart`, `/logs` + RotatingFileHandler | 3.1.30 | `5d729bd` |
 | Removed legacy v3.1.21 README section (CHANGELOG is source of truth) | 3.1.30 | `7e25485` |
+| **Removed Bunkr + Instagram downloaders entirely (silent hang → clear error)** | **3.1.31** | **(this commit)** |
 
 **8 versions, 7 new commits, 1 critical bug fixed, 4 latent bugs fixed, 4 dead functions wired up, 3 new commands, 1 test suite, 1 deployment guide.**
 

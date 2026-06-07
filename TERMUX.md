@@ -349,10 +349,8 @@ python tests/test_diagnostics.py
 |---|---------|------------------|
 | 1 | Telegram link parser | `t.me/USERNAME/MSG_ID` (public) AND `t.me/c/CHAT/MSG_ID` (private) extract correctly |
 | 2 | Thumbnail None-safety | `os.path.exists(None)` is safely short-circuited |
-| 3 | Bunkr domains | `bunkr.cr`, `dl.bunkr.cr`, `balbums.st` all detected |
-| 4 | Instagram routing | `is_instagram` branch comes before `is_gallery` in manager.py |
-| 5 | All `is_*` helpers | YouTube, GDrive, Mega, Terabox, Pixeldrain, etc. all detect correctly |
-| 6 | Command consistency | `# of handlers == # of registered BotCommand` (currently 29 each) |
+| 3 | All `is_*` helpers | YouTube, GDrive, Mega, Terabox, Pixeldrain, etc. all detect correctly |
+| 4 | Command consistency | `# of handlers == # of registered BotCommand` (currently 32 each) |
 | 7 | Version string | `VERSION` in config.py is valid semver |
 | 8 | Python syntax | All 38 `.py` files parse without errors |
 

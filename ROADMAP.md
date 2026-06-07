@@ -87,11 +87,10 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 
 | Feature | Version |
 |---------|---------|
+| **Removed Bunkr + Instagram downloaders (broken, untestable)** — see [CHANGELOG 3.1.31](CHANGELOG.md) | **3.1.31** |
 | 3 utility commands: `/status`, `/restart`, `/logs` + rotating file logger | 3.1.30 |
 | 35-check offline diagnostic test suite (`tests/test_diagnostics.py`) | 3.1.29 |
-| Instagram routing fix (yt-dlp first, gallery-dl fallback) | 3.1.28 |
 | `TERMUX.md` deployment guide (513 lines) | 3.1.27 |
-| Bunkr stale domain fix (`bunkr.cr`, `dl.bunkr.cr`, `balbums.st`) | 3.1.26 |
 | `/ping` command (latency bar + uptime + version) | 3.1.25 |
 | `thumbMaintainer` None crash fix | 3.1.24 |
 | Telegram public-link parser off-by-one fix (`parts[4]` → `parts[-2]`) | 3.1.23 |
@@ -110,7 +109,7 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 | Dockerfile: libtorrent, tini, signal handling | 3.1.12 |
 | Torrent/magnet aria2c fallback | 3.1.14 |
 | libtorrent magnet/torrent downloader | 3.1.7 |
-| 4 new downloaders (GoFile, Bunkr, Catbox, StreamTape) | 3.1.1 |
+| 4 new downloaders (GoFile, Bunkr*, Catbox, StreamTape) — *Bunkr removed in 3.1.31 | 3.1.1 |
 | Web dashboard (REST + WebSocket) | 3.1.0 |
 | UserBot for private channels | 3.1.1 |
 | YouTube PO Token auto-generation | 3.0.2 |

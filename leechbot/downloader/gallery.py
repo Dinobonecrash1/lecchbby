@@ -12,7 +12,7 @@
 """
 gallery-dl downloader module.
 
-Handles photo/image gallery downloads from Instagram, Twitter, Pinterest,
+Handles photo/image gallery downloads from Twitter, Pinterest,
 Pixiv, DeviantArt, ArtStation, Flickr, Reddit, Tumblr, and 100+ other sites.
 """
 
@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 # Supported Sites (for detection)
 # =============================================================================
 GALLERY_SITES = [
-    "instagram.com",
     "twitter.com",
     "x.com",
     "pinterest.com",
@@ -242,11 +241,7 @@ async def get_gallery_name(url: str) -> str:
     """Get a human-readable name for a gallery URL."""
     # Extract username/post from URL
     parts = url.rstrip('/').split('/')
-    if 'instagram.com' in url:
-        if 'p/' in url:
-            return f"Instagram Post: {parts[-1]}"
-        return f"Instagram: @{parts[-1] if parts[-1] else parts[-2]}"
-    elif 'twitter.com' in url or 'x.com' in url:
+    if 'twitter.com' in url or 'x.com' in url:
         return f"Twitter: @{parts[-1] if parts[-1] else parts[-2]}"
     elif 'pinterest.com' in url:
         return f"Pinterest: {parts[-1] if parts[-1] else parts[-2]}"

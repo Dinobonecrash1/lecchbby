@@ -39,7 +39,7 @@ WELCOME_TEXT = """**🤖 Leech Bot** — Advanced Telegram File Transloader
 
 ─── Download From Anywhere ───
 • Direct Links, Google Drive, Telegram
-• YouTube, Facebook, Instagram & 2000+ sites
+• YouTube, Facebook & 2000+ sites
 • Terabox, Mega, Pixeldrain, Mediafire
 
 ─── Upload To ───
@@ -187,7 +187,7 @@ https://youtu.be/xxxxx
 {Zip Password}</code>
 
 ─── Supported Sites ───
-• YouTube, Facebook, Instagram
+• YouTube, Facebook
 • Twitter, TikTok, Vimeo, Dailymotion
 • And 2000+ more sites"""
     src_request_msg = await task_starter(message, text)
@@ -207,15 +207,14 @@ async def gallery_upload_command(client, message):
 
 📋 **Follow The Pattern Below:**
 
-<code>https://instagram.com/username
-https://twitter.com/username
+<code>https://twitter.com/username
 https://pinterest.com/user/board
 https://pixiv.net/users/123456
 [Custom Name]
 {Zip Password}</code>
 
 ─── Supported Sites ───
-• Instagram, Twitter / X, Pinterest
+• Twitter / X, Pinterest
 • Pixiv, DeviantArt, ArtStation, Flickr
 • Reddit, Tumblr, Imgur, TikTok
 • Bluesky, Newgrounds, Danbooru
@@ -287,7 +286,7 @@ async def help_command(client, message):
 
 ─── Supported Sites ───
 Direct Links, Google Drive, Telegram
-YouTube, Facebook, Instagram & 2000+ sites
+YouTube, Facebook & 2000+ sites
 Terabox, Mega, Pixeldrain, Mediafire"""
 
     keyboard = InlineKeyboardMarkup([

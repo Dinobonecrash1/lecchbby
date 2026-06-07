@@ -26,9 +26,8 @@ from leechbot.utility.variables import (
 from leechbot.utility.helper import (
     is_google_drive, is_telegram, is_ytdl_link, is_mega,
     is_terabox, is_pixeldrain, is_mediafire, is_gallery,
-    is_hls_stream, is_gofile, is_bunkr, is_catbox, is_streamtape,
+    is_hls_stream, is_gofile, is_catbox, is_streamtape,
     is_torrent, isYtdlComplete, keyboard, sysINFO, detect_link_type,
-    is_instagram,
 )
 import config
 
@@ -124,33 +123,6 @@ async def downloadManager(sources: list, is_ytdl: bool):
                 elif is_telegram(link):
                     await _with_retry(lambda l=link, n=i+1: TelegramDownload(l, n), link)
 
-                elif is_instagram(link):
-                    # Instagram: try yt-dlp first (better error messages, supports
-                    # age-restricted content with cookies). Fall back to gallery-dl
-                    # if yt-dlp is missing or the content is a multi-image post
-                    # where gallery-dl's metadata extraction is more complete.
-                    logger.info(f"Instagram URL detected, trying yt-dlp: {link[:80]}")
-                    try:
-                        await _with_retry(
-                            lambda l=link, n=i+1: YTDL_Status(l, n), link
-                        )
-                        try:
-                            await MSG.status_msg.edit_text(
-                                text=Messages.task_msg + Messages.status_head + merge_msg + sysINFO(),
-                                reply_markup=keyboard()
-                            )
-                        except Exception:
-                            pass
-                        while not isYtdlComplete():
-                            await sleep(2)
-                    except Exception as yt_err:
-                        logger.warning(
-                            f"yt-dlp failed for Instagram, falling back to gallery-dl: {yt_err}"
-                        )
-                        await _with_retry(
-                            lambda l=link, n=i+1: gallery_download(l, n), link
-                        )
-
                 elif is_gallery(link):
                     await _with_retry(lambda l=link, n=i+1: gallery_download(l, n), link)
 
@@ -170,10 +142,6 @@ async def downloadManager(sources: list, is_ytdl: bool):
                 elif is_gofile(link):
                     from leechbot.downloader.gofile import gofile_download
                     await _with_retry(lambda l=link, n=i+1: gofile_download(l, n), link)
-
-                elif is_bunkr(link):
-                    from leechbot.downloader.bunkr import bunkr_download
-                    await _with_retry(lambda l=link, n=i+1: bunkr_download(l, n), link)
 
                 elif is_catbox(link):
                     from leechbot.downloader.catbox import catbox_download

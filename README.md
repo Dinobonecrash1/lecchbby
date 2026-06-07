@@ -109,7 +109,7 @@
 | 🏷️ **Custom Filename** | `/setname` or inline `[name]` syntax |
 | ⏳ **Auto-Delete** | Configurable auto-delete for bot messages |
 | 🎬 **YouTube PO Tokens** | Auto-generated — no manual cookie setup |
-| 📸 **Photo Galleries** | Instagram, Twitter, Pinterest, Pixiv via gallery-dl |
+| 📸 **Photo Galleries** | Twitter, Pinterest, Pixiv via gallery-dl |
 | 🌐 **Web Dashboard** | Real-time browser monitoring and control |
 
 <p align="center">
@@ -125,21 +125,20 @@
 | Direct HTTP/HTTPS/FTP | aria2c | ✅ Full — resume supported |
 | Torrent / Magnet | libtorrent | ✅ Full — DHT, resume, progress |
 | HLS / DASH (`.m3u8` / `.mpd`) | yt-dlp | ✅ Full — live + VOD |
-| YouTube, Facebook, Instagram | yt-dlp | ✅ 2000+ sites |
+| YouTube, Facebook | yt-dlp | ✅ 2000+ sites |
 | Kick, Rumble, Bilibili, Twitch | yt-dlp | ✅ |
 | SoundCloud, Spotify, Bandcamp | yt-dlp | ✅ |
 | Crunchyroll, TubiTV, Odysee | yt-dlp | ✅ |
 | Reddit, VK, Dailymotion, Vimeo | yt-dlp | ✅ |
 | Google Drive | GDrive API | ✅ Files, folders, shared drives |
 | Telegram (public + private) | Pyrogram | ✅ With UserBot support |
-| Instagram, Twitter, Pinterest | gallery-dl | ✅ 100+ gallery sites |
+| Twitter, Pinterest | gallery-dl | ✅ 100+ gallery sites |
 | Pixiv, DeviantArt, ArtStation | gallery-dl | ✅ Art galleries |
 | Mega.nz | megatools | ✅ Files + folders, async |
 | Terabox | API | ✅ |
 | Pixeldrain | API | ✅ Single files + lists |
 | Mediafire | Scraping | ✅ Auto-extracted direct links |
 | GoFile.io | API | ✅ **NEW** — folders, multi-file |
-| Bunkr (la/ru/si/is) | Scraping | ✅ **NEW** — albums + single |
 | Catbox.moe / Litterbox | Direct | ✅ **NEW** — direct download |
 | StreamTape | Extraction | ✅ **NEW** — video links |
 
@@ -421,7 +420,6 @@ LeechBot/
 │   │   ├── pixeldrain.py    # Pixeldrain
 │   │   ├── mediafire.py     # Mediafire
 │   │   ├── gofile.py        # GoFile.io        ← NEW
-│   │   ├── bunkr.py         # Bunkr            ← NEW
 │   │   ├── catbox.py        # Catbox.moe       ← NEW
 │   │   ├── streamtape.py    # StreamTape       ← NEW
 │   │   └── manager.py       # Download router

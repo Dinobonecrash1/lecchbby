@@ -19,11 +19,9 @@ LeechBot offline diagnostic test suite.
 Verifies (in order):
   1. Telegram public-link parser (3.1.23 fix: parts[4] → parts[-2])
   2. thumbMaintainer None-safety (3.1.24 fix: ytdl_thmb None guard)
-  3. Bunkr domain list (3.1.26 fix: bunkr.cr, dl.bunkr.cr added)
-  4. Instagram routing (3.1.28 fix: yt-dlp first, gallery-dl fallback)
-  5. All domain detection helpers
-  6. All command count matches registration
-  7. Version string consistency
+  3. All domain detection helpers
+  4. All command count matches registration
+  5. Version string consistency
 """
 
 import os
@@ -151,124 +149,17 @@ def test_thumb_maintainer():
 
 
 # =============================================================================
-# Test 3 — Bunkr domain detection (3.1.26 fix)
-# =============================================================================
-def test_bunkr_domains():
-    results.section("3. Bunkr domain detection (3.1.26)")
-
-    # Re-implement is_bunkr from helper.py
-    def is_bunkr(link: str) -> bool:
-        lower = link.lower()
-        return any(d in lower for d in [
-            "bunkr.cr", "bunkr.la", "bunkr.ru", "bunkr.si", "bunkr.is", "bunkr.black",
-            "dl.bunkr.cr", "dl.bunkr.la", "dl.bunkr.si", "balbums.st",
-        ])
-
-    # Re-implement CDN regex from bunkr.py:_get_direct_url
-    def extract_dl_bunkr(html: str):
-        m = re.findall(r'href=["\'](https?://dl\.bunkr\.[^"\']+)["\']', html)
-        return m[0] if m else None
-
-    cases = [
-        ("https://bunkr.cr/f/T2TC2quAOWPdv", True, "current primary domain"),
-        ("https://bunkr.cr/a/albumid", True, "album on bunkr.cr"),
-        ("https://dl.bunkr.cr/file/47535867", True, "CDN subdomain (current)"),
-        ("https://dl.bunkr.la/file/abc", True, "CDN subdomain (legacy)"),
-        ("https://bunkr.la/f/abc123", True, "legacy domain (still works)"),
-        ("https://bunkr.ru/f/abc", True, "legacy domain"),
-        ("https://bunkr.si/a/xyz", True, "legacy domain"),
-        ("https://balbums.st/album/123", True, "new album sub-site"),
-        ("https://example.com/file.mp4", False, "non-bunkr link"),
-        ("https://pixeldrain.com/u/abc", False, "other host"),
-    ]
-    for url, expected, label in cases:
-        actual = is_bunkr(url)
-        if actual == expected:
-            results.ok(f"is_bunkr: {label}", url)
-        else:
-            results.fail(f"is_bunkr: {label}", f"url={url}, expected={expected}, got={actual}")
-
-    # CDN extraction regex
-    html_samples = [
-        (
-            '<a href="https://dl.bunkr.cr/file/abc/1%20%28132%29.mp4">Download</a>',
-            "https://dl.bunkr.cr/file/abc/1%20%28132%29.mp4",
-            "dl.bunkr.cr direct CDN",
-        ),
-        (
-            '<a href="https://dl.bunkr.la/file/abc.mp4">DL</a>',
-            "https://dl.bunkr.la/file/abc.mp4",
-            "dl.bunkr.la legacy CDN",
-        ),
-        (
-            '<a href="https://media-files.bunkr.la/abc.mp4">CDN</a>',
-            None,
-            "old 'cdn' substring (not caught by new Method 2, OK)",
-        ),
-    ]
-    for html, expected, label in html_samples:
-        actual = extract_dl_bunkr(html)
-        if actual == expected:
-            results.ok(f"cdn regex: {label}", f"got {actual!r}")
-        else:
-            results.fail(f"cdn regex: {label}", f"expected {expected!r}, got {actual!r}")
-
-
-# =============================================================================
-# Test 4 — Instagram routing (3.1.28 fix)
-# =============================================================================
-def test_instagram_routing():
-    results.section("4. Instagram routing (3.1.28)")
-
-    def is_instagram(link: str) -> bool:
-        return "instagram.com" in link.lower()
-
-    cases = [
-        ("https://www.instagram.com/joj._.uk/reel/DP34SPPD6AA/", True, "reel URL"),
-        ("https://www.instagram.com/joj._.uk/p/DL4edmZPINu/", True, "post URL"),
-        ("https://instagram.com/stories/user/123/", True, "story URL"),
-        ("https://www.instagram.com/p/CABC/embed/", True, "embed URL"),
-        ("https://twitter.com/user/status/123", False, "twitter, not insta"),
-        ("https://www.pinterest.com/pin/123/", False, "pinterest, not insta"),
-    ]
-    for url, expected, label in cases:
-        actual = is_instagram(url)
-        if actual == expected:
-            results.ok(f"is_instagram: {label}", url)
-        else:
-            results.fail(f"is_instagram: {label}", f"expected {expected}, got {actual}")
-
-    # Verify the manager.py change: Instagram branch comes BEFORE gallery branch
-    manager_path = REPO_ROOT / "leechbot" / "downloader" / "manager.py"
-    if manager_path.exists():
-        text = manager_path.read_text()
-        insta_pos = text.find("elif is_instagram(link):")
-        gallery_pos = text.find("elif is_gallery(link):")
-        if insta_pos == -1:
-            results.fail("manager.py routing order", "is_instagram branch NOT found")
-        elif gallery_pos == -1:
-            results.fail("manager.py routing order", "is_gallery branch NOT found")
-        elif insta_pos < gallery_pos:
-            results.ok("manager.py routing order", f"is_instagram (pos {insta_pos}) before is_gallery (pos {gallery_pos})")
-        else:
-            results.fail(
-                "manager.py routing order",
-                f"is_instagram (pos {insta_pos}) must come BEFORE is_gallery (pos {gallery_pos})",
-            )
-
-
-# =============================================================================
-# Test 5 — All domain detection helpers
+# Test 3 — All domain detection helpers
 # =============================================================================
 def test_domain_helpers():
-    results.section("5. Domain detection helpers (is_*)")
+    results.section("3. Domain detection helpers (is_*)")
 
     # Try to import and test, but skip gracefully if config/dependency import fails
     try:
         from leechbot.utility.helper import (
             is_ytdl_link, is_google_drive, is_telegram, is_mega,
             is_terabox, is_pixeldrain, is_mediafire, is_gallery,
-            is_gofile, is_bunkr, is_catbox, is_streamtape, is_instagram,
+            is_gofile, is_catbox, is_streamtape,
         )
     except ModuleNotFoundError as e:
         # Soft-skip if optional deps (psutil, etc.) aren't installed
@@ -287,16 +178,12 @@ def test_domain_helpers():
     cases = [
         ("https://youtube.com/watch?v=abc", "is_ytdl_link", "youtube"),
         ("https://youtu.be/abc", "is_ytdl_link", "youtu.be short"),
-        ("https://www.instagram.com/p/abc/", "is_ytdl_link", "instagram (also ytdl)"),
-        ("https://www.instagram.com/p/abc/", "is_instagram", "instagram (specific check)"),
         ("https://drive.google.com/file/d/abc", "is_google_drive", "google drive"),
         ("https://mega.nz/file/abc", "is_mega", "mega"),
         ("https://terabox.com/s/abc", "is_terabox", "terabox"),
         ("https://pixeldrain.com/u/abc", "is_pixeldrain", "pixeldrain"),
         ("https://www.mediafire.com/file/abc", "is_mediafire", "mediafire"),
         ("https://gofile.io/d/abc", "is_gofile", "gofile"),
-        ("https://bunkr.cr/f/abc", "is_bunkr", "bunkr.cr (current)"),
-        ("https://bunkr.la/f/abc", "is_bunkr", "bunkr.la (legacy)"),
         ("https://catbox.moe/file/abc", "is_catbox", "catbox"),
         ("https://litterbox.catbox.moe/abc", "is_catbox", "litterbox catbox"),
         ("https://twitter.com/user/status/123", "is_gallery", "twitter (gallery)"),
@@ -411,8 +298,6 @@ def main():
     tests = [
         test_telegram_parser,
         test_thumb_maintainer,
-        test_bunkr_domains,
-        test_instagram_routing,
         test_domain_helpers,
         test_command_consistency,
         test_version_consistency,

@@ -95,7 +95,7 @@ def is_ytdl_link(link: str) -> bool:
         # Video platforms
         "youtube.com", "youtu.be", "youtube-nocookie.com",
         "facebook.com", "fb.watch", "fb.com",
-        "instagram.com", "twitter.com", "x.com",
+        "twitter.com", "x.com",
         "tiktok.com", "vimeo.com", "dailymotion.com",
         "twitch.tv", "kick.com", "rumble.com",
         "reddit.com", "redd.it", "v.redd.it",
@@ -146,13 +146,6 @@ def is_hls_stream(link: str) -> bool:
 def is_gofile(link: str) -> bool:
     return "gofile.io" in link.lower()
 
-def is_bunkr(link: str) -> bool:
-    lower = link.lower()
-    return any(d in lower for d in [
-        "bunkr.cr", "bunkr.la", "bunkr.ru", "bunkr.si", "bunkr.is", "bunkr.black",
-        "dl.bunkr.cr", "dl.bunkr.la", "dl.bunkr.si", "balbums.st",
-    ])
-
 def is_catbox(link: str) -> bool:
     lower = link.lower()
     return "catbox.moe" in lower or "litterbox.moe" in lower
@@ -173,14 +166,9 @@ def is_direct_link(link: str) -> bool:
     return any(lower.endswith(ext) for ext in direct_exts)
 
 def is_gallery(link: str) -> bool:
-    """Check if link is a photo gallery site (Instagram, Twitter, Pinterest, etc.)."""
+    """Check if link is a photo gallery site (Twitter, Pinterest, etc.)."""
     from leechbot.downloader.gallery import is_gallery_link
     return is_gallery_link(link)
-
-def is_instagram(link: str) -> bool:
-    """Check if link is an Instagram URL (any path: /p/, /reel/, /stories/, /tv/)."""
-    lower = link.lower()
-    return "instagram.com" in lower
 
 def detect_link_type(link: str) -> str:
     """Return a human-readable label for the link type."""
@@ -196,8 +184,6 @@ def detect_link_type(link: str) -> str:
         return "📡 HLS/DASH Stream"
     elif is_gofile(link):
         return "📁 GoFile"
-    elif is_bunkr(link):
-        return "🖼️ Bunkr"
     elif is_catbox(link):
         return "📦 Catbox"
     elif is_streamtape(link):
