@@ -177,6 +177,11 @@ def is_gallery(link: str) -> bool:
     from leechbot.downloader.gallery import is_gallery_link
     return is_gallery_link(link)
 
+def is_instagram(link: str) -> bool:
+    """Check if link is an Instagram URL (any path: /p/, /reel/, /stories/, /tv/)."""
+    lower = link.lower()
+    return "instagram.com" in lower
+
 def detect_link_type(link: str) -> str:
     """Return a human-readable label for the link type."""
     if is_telegram(link):

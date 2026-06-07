@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.28] - 2026-06-07
+
+### Fixed
+- **🔴 Instagram downloads silently fail — "not downloading" with no useful error** — `is_gallery()` matched `instagram.com` (since it was in `GALLERY_SITES`) and routed to `gallery-dl`. But Instagram returns a login redirect for unauthenticated requests, so `gallery-dl` produced a cryptic `AbortExtraction: HTTP redirect to login page` that was logged but never surfaced to the user — DUMP channel just showed the task header with no completion or error, and the user saw "Not Downloading". Worse, for age/region-restricted content (`This content isn't available to everyone`) even logged-in gallery-dl can't fetch, but yt-dlp gives a clear actionable error.
+
+  Fix: Added `is_instagram(link)` helper and an **Instagram-specific branch in `manager.py::downloadManager`** that tries yt-dlp first (better error messages, supports `YTDL_COOKIES_FILE` for age-restricted content) and falls back to `gallery-dl` only if yt-dlp fails. This way:
+  - Public Reels/Posts → yt-dlp succeeds
+  - Age/region-restricted content → yt-dlp gives clear error ("This content isn't available to everyone"), with cookies it works
+  - Multi-image carousels where gallery-dl has richer metadata → fallback handles them
+
+### Added
+- **`is_instagram(link)` helper in `helper.py`** — explicit `instagram.com` substring check, separate from the broader `is_gallery` check. Will be useful for future Instagram-specific features (e.g., story downloads, highlight extraction).
+
+### Notes
+- Manual reproduction confirmed: `gallery-dl -j <instagram-url>` returns `AbortExtraction` for the exact URLs the user reported (`DP34SPPD6AA` reel, `DL4edmZPINu` post). `yt-dlp -j <same-urls>` returns the much clearer `"This content isn't available to everyone"` error.
+- Recommendation for users: if the post is age-restricted or from a private account, **set Instagram cookies via `/setcookies`**. The bot already supports `YTDL_COOKIES_FILE` env var or `/setcookies` upload.
+- Twitter, Pinterest, Pixiv etc. still use gallery-dl as before (they work reliably without auth).
+
+---
+
 ## [3.1.27] - 2026-06-07
 
 ### Added
