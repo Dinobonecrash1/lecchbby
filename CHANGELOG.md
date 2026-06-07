@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.17] - 2026-06-07
+
+### Fixed
+- **YouTube thumbnail not showing on video uploads** — root cause: `Leech()` in `utility/handler.py` runs `shortFileName()` on the video (truncates to 60 chars) and renames the file on disk, then passes the shortened path to `upload_file()`. Inside `upload_file()`, `thumbMaintainer(file_path)` used `ospath.basename(file_path)` — the SHORTENED name — to look for the matching thumbnail in `Paths.thumbnail_ytdl`. But yt-dlp had saved the thumbnail with the ORIGINAL full title. Names didn't match → `ytdl_thmb` stayed `None` → ffmpeg fallback also returned nothing on most files → fell back to `Paths.HERO_IMAGE` (the random intro image). User saw intro image instead of the YouTube thumbnail. Fixed by adding an optional `original_name` parameter to `thumbMaintainer()` and passing `real_name` (the original title) from both call sites in `uploader/telegram.py` (video upload path line 90, and the document-fallback-for-video path line 138). `file_path` is still used for ffprobe/ffmpeg so duration detection and frame extraction work on the actual on-disk file. Lookup is now `lookup_name = original_name if original_name else ospath.basename(file_path)` — fully backward compatible, all existing callers unaffected.
+
+### Changed
+- **Version bump** — `config.py` `VERSION` updated to `3.1.17`.
+
+### Notes
+- **Architecture review** — confirmed the modular `leechbot/` package layout (downloader/, uploader/, utility/, web/, plus top-level commands/callbacks/handlers/debug/updater/userbot) is clean and well-separated. No restructuring needed. Comparison made against `ehraz786/tgdl` (the "forked inspiration" repo) — the LeechBot is a strict superset in features, with no remaining structural debt. Decision: keep current structure, surgical bug fix only.
+- **Audit results** — no bare `except:` clauses, no `import moviepy` (correctly removed in 3.1.16), no syntax errors across all 18 Python files. The 2 remaining `asyncio.get_event_loop()` calls (`__init__.py:55`, `__main__.py:206`) are at module top-level / entry point — the correct API for that scope (the deprecation only applies inside async functions). No other latent bugs found in the touched area.
+
+---
+
 ## [3.1.16] - 2026-05-10
 
 ### Fixed

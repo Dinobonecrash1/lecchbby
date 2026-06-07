@@ -341,9 +341,16 @@ def videoExtFix(file_path: str) -> str:
 # =============================================================================
 # Thumbnail Generation
 # =============================================================================
-def thumbMaintainer(file_path: str):
+def thumbMaintainer(file_path: str, original_name: str = None):
     """
     Generate or retrieve thumbnail for a video file.
+
+    Args:
+        file_path: actual file path on disk (may be renamed/shortened by
+            shortFileName). Used for ffprobe/ffmpeg operations.
+        original_name: original filename before renaming (the title yt-dlp
+            used when saving the thumbnail). When provided, the thumbnail
+            lookup uses this name. If None, falls back to file_path basename.
 
     Returns:
         tuple: (thumbnail_path, duration_seconds)
@@ -354,7 +361,8 @@ def thumbMaintainer(file_path: str):
         os.remove(Paths.VIDEO_FRAME)
 
     try:
-        fname, _ = ospath.splitext(ospath.basename(file_path))
+        lookup_name = original_name if original_name else ospath.basename(file_path)
+        fname, _ = ospath.splitext(lookup_name)
         # Check for thumbnail in multiple formats (yt-dlp saves as webp/jpg/png)
         ytdl_thmb = None
         for ext in (".webp", ".jpg", ".png", ".jpeg"):

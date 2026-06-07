@@ -87,7 +87,7 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
             if not BOT.Options.stream_upload:
                 file_path = videoExtFix(file_path)
 
-            thmb_path, seconds = thumbMaintainer(file_path)
+            thmb_path, seconds = thumbMaintainer(file_path, original_name=real_name)
 
             # Use thumbnail if valid, otherwise skip
             if thmb_path and ospath.exists(thmb_path):
@@ -135,7 +135,7 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
             if ospath.exists(Paths.THMB_PATH):
                 thmb_path = Paths.THMB_PATH
             elif type_ == "video":
-                thmb_path, _ = thumbMaintainer(file_path)
+                thmb_path, _ = thumbMaintainer(file_path, original_name=real_name)
             else:
                 thmb_path = None
 
