@@ -148,7 +148,10 @@ def is_gofile(link: str) -> bool:
 
 def is_bunkr(link: str) -> bool:
     lower = link.lower()
-    return any(d in lower for d in ["bunkr.la", "bunkr.ru", "bunkr.si", "bunkr.is", "bunkr.black"])
+    return any(d in lower for d in [
+        "bunkr.cr", "bunkr.la", "bunkr.ru", "bunkr.si", "bunkr.is", "bunkr.black",
+        "dl.bunkr.cr", "dl.bunkr.la", "dl.bunkr.si", "balbums.st",
+    ])
 
 def is_catbox(link: str) -> bool:
     lower = link.lower()

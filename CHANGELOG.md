@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.26] - 2026-06-07
+
+### Fixed
+- **🔴 Bunkr downloads completely broken — domain list stale** — `BUNKR_DOMAINS` in `leechbot/downloader/bunkr.py` AND the duplicated list in `is_bunkr()` in `leechbot/utility/helper.py` only contained the legacy domains `bunkr.la`, `bunkr.ru`, `bunkr.si`, `bunkr.is`, `bunkr.black`. Bunkr's current primary domain is `bunkr.cr` and the CDN lives at `dl.bunkr.cr` — neither was recognized, so `is_bunkr(link)` returned `False`, the URL fell through to a generic handler, and the task got stuck with no error log (just the task header in DUMP). Added `bunkr.cr`, `dl.bunkr.cr`, `dl.bunkr.la`, `dl.bunkr.si`, and `balbums.st` (the new album sub-site per their own notice on every file page) to both domain lists.
+
+### Changed
+- **`_get_direct_url()` — new Method 2** — the legacy "cdn" substring matcher (Method 1) only caught old `media-files.bunkr.la` style URLs. Added a dedicated `dl.bunkr.*` matcher as Method 2 so current CDN URLs (`https://dl.bunkr.cr/file/<id>/<filename>`) are caught before falling through to the generic "download" or direct-media patterns. Verified against a real Bunkr page (`https://bunkr.cr/f/...`) — correctly extracts `https://dl.bunkr.cr/file/...` link and derives filename from URL.
+
+### Notes
+- Two-place duplication (the `BUNKR_DOMAINS` list in `bunkr.py` and the inline list in `helper.py:is_bunkr`) is a known smell — flagged for future refactor (consistent with the messages.py discussion). For 3.1.26, kept them in sync manually.
+- Bunkr appears to rotate domains regularly; the page itself displays "bunkr-albums.io is now balbums.st (old domain isn't working anymore)" — added that to the list as a defensive measure.
+
+---
+
 ## [3.1.25] - 2026-06-07
 
 ### Added

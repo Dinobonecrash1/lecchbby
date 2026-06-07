@@ -28,7 +28,18 @@ from leechbot.utility.helper import sizeUnit, getTime, status_bar
 
 logger = logging.getLogger(__name__)
 
-BUNKR_DOMAINS = ["bunkr.la", "bunkr.ru", "bunkr.si", "bunkr.is", "bunkr.black"]
+BUNKR_DOMAINS = [
+    "bunkr.cr",         # current primary (2025+)
+    "bunkr.la",
+    "bunkr.ru",
+    "bunkr.si",
+    "bunkr.is",
+    "bunkr.black",
+    "dl.bunkr.cr",      # CDN direct-download subdomain
+    "dl.bunkr.la",
+    "dl.bunkr.si",
+    "balbums.st",       # album sub-site (replaces bunkr-albums.io per their notice)
+]
 _HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 _TIMEOUT = aiohttp.ClientTimeout(total=60)
 
@@ -57,21 +68,28 @@ async def _get_direct_url(session, page_url: str) -> tuple:
     """Get direct download URL from a Bunkr file page."""
     html = await _get_page(session, page_url)
 
-    # Method 1: CDN link
+    # Method 1: CDN link (legacy "cdn" pattern, e.g. media-files.bunkr.la)
     cdn_match = re.findall(r'href=["\']([^"\']*cdn[^"\']*\.\w{2,4})["\']', html)
     if cdn_match:
         url = cdn_match[0]
         filename = url.split("/")[-1].split("?")[0]
         return url, filename
 
-    # Method 2: Download button
-    dl_match = re.findall(r'href=["\']([^"\']*download[^"\']*)["\']', html)
+    # Method 2: dl.bunkr.* CDN direct link (current scheme, e.g. dl.bunkr.cr)
+    dl_match = re.findall(r'href=["\'](https?://dl\.bunkr\.[^"\']+)["\']', html)
     if dl_match:
         url = dl_match[0]
         filename = url.split("/")[-1].split("?")[0]
         return url, filename
 
-    # Method 3: Direct media link
+    # Method 3: Generic "download" link
+    gen_dl = re.findall(r'href=["\']([^"\']*download[^"\']*)["\']', html)
+    if gen_dl:
+        url = gen_dl[0]
+        filename = url.split("/")[-1].split("?")[0]
+        return url, filename
+
+    # Method 4: Direct media URL in HTML
     media_match = re.findall(
         r'(https?://[^"\'\s]*\.(?:mp4|mkv|avi|webm|jpg|jpeg|png|gif|webp))',
         html, re.IGNORECASE
