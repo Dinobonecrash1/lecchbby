@@ -48,6 +48,12 @@ async def handle_callback(client, callback_query):
         elif data.startswith("help_cmd_"):
             await _handle_help_command(client, callback_query, data[len("help_cmd_"):])
 
+        # --- About + Start navigation (3.1.35) ---
+        elif data == "about":
+            await _handle_about(client, callback_query)
+        elif data == "start_back":
+            await _handle_start_back(client, callback_query)
+
         # --- Upload type selection ---
         elif data in ("normal", "zip", "unzip", "undzip"):
             await _handle_upload_type(client, callback_query, data)
@@ -614,3 +620,92 @@ async def _handle_help_command(client, callback_query, cmd_name: str):
     except Exception as e:
         logger.debug("Help command edit failed: %s", e)
         await callback_query.answer("No changes", show_alert=False)
+
+
+# =============================================================================
+# About + Start navigation  (3.1.35)
+# =============================================================================
+ABOUT_TEXT = """**ℹ️ About LeechBot**
+
+**Version:** `{version}`
+**Build:** {build_date}
+
+**👨‍💻 Developer:** [Shinei Nouzen](https://t.me/Shineii86)
+**📂 GitHub:** [Shineii86/LeechBot](https://github.com/Shineii86/LeechBot)
+**📜 License:** MIT
+
+**📊 Stats:**
+• **{n_cmds}** commands across **{n_cats}** categories
+• Supports **2000+** download sources
+• **Pyrogram** 2.0.106 + asyncio
+
+**🛠 Features:**
+• Telegram, Google Drive, direct-URL, YouTube, galleries
+• UserBot session for private channels
+• Video conversion, archive extract, custom thumbnails
+• Per-task settings, queue, bandwidth control
+• Offline diagnostic test suite ({n_tests} checks)
+
+**⚖️ Disclaimer:**
+This bot is for personal use only. Respect copyright
+laws in your jurisdiction. The developer is not
+responsible for misuse."""
+
+
+async def _handle_about(client, callback_query):
+    """Show the About card (edits the message in place)."""
+    from leechbot.commands import HELP_CATEGORIES, HELP_COMMANDS
+    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+    import config
+
+    n_cmds = len(HELP_COMMANDS)
+    n_cats = len(HELP_CATEGORIES)
+    version = config.VERSION
+    build_date = config.BUILD_DATE
+
+    # 47 is the test count for 3.1.34-3.1.35 era; keep it loose to avoid
+    # bumping the about card on every test addition
+    n_tests = "47+"
+
+    text = ABOUT_TEXT.format(
+        version=version,
+        build_date=build_date,
+        n_cmds=n_cmds,
+        n_cats=n_cats,
+        n_tests=n_tests,
+    )
+
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("📖 Help", callback_data="help_main"),
+            InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu"),
+        ],
+        [
+            InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
+            InlineKeyboardButton("💬 Support", url="https://t.me/MaximXGroup"),
+        ],
+        [InlineKeyboardButton("⬅️ Back to Start", callback_data="start_back")],
+    ])
+
+    try:
+        await callback_query.message.edit_text(
+            text=text,
+            reply_markup=keyboard,
+            disable_web_page_preview=True,
+        )
+        await callback_query.answer()
+    except Exception as e:
+        logger.debug("About edit failed: %s", e)
+        await callback_query.answer("No changes", show_alert=False)
+
+
+async def _handle_start_back(client, callback_query):
+    """Re-show the /start welcome message in place."""
+    from leechbot.commands import _send_welcome
+
+    try:
+        await _send_welcome(client, callback_query.message, edit=True)
+        await callback_query.answer("Welcome ✓")
+    except Exception as e:
+        logger.debug("Start back failed: %s", e)
+        await callback_query.answer("Use /start", show_alert=False)

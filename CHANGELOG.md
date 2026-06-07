@@ -4,6 +4,75 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.35] - 2026-06-07
+
+### Changed
+- **📝 WELCOME_TEXT trimmed from 35 lines to 9 lines** — the `/start` message used to be a wall-of-text that duplicated what `/help` now shows. Since 3.1.34 added the category-button `/help` UI, the welcome text just needs to greet + point to the right buttons. Removed: full command list, "Advance Tools" section, "Upload To" section, developer link at the bottom. Kept: bot name, one-line tagline, one-line usage hint, button navigation.
+
+### Added
+- **🆕 ℹ️ About button in welcome message** — new inline button "ℹ️ About" on the `/start` keyboard. Clicking it shows an about card with:
+  - **Version** (read from `config.VERSION` — auto-updates)
+  - **Build date** (read from `config.BUILD_DATE`)
+  - **Stats**: live counts of commands, categories (from `HELP_CATEGORIES` + `HELP_COMMANDS`)
+  - **Developer credits**: Shinei Nouzen + GitHub link
+  - **License**: MIT
+  - **Feature list** (condensed)
+  - **Disclaimer** (copyright reminder)
+- **🆕 📖 Help button in welcome message** — "📖 Help" button (callback_data=`help_main`) opens the category-button `/help` menu from 3.1.34. Replaces the old "📂 GitHub" / "🔔 Updates" / "Support" link row at the top of the keyboard — those are now in row 3-4.
+- **🆕 `start_back` callback** — new "⬅️ Back to Start" button on the About card. Clicking it re-edits the message in place to show the welcome screen again. No need to retype `/start`.
+- **🆕 `_start_keyboard()` helper** — extracted the welcome keyboard into a function so both the `/start` command and the `start_back` callback can use the same keyboard layout. Single source of truth.
+- **🆕 `_send_welcome()` helper** — extracted the "send welcome" logic so it works for both the `/start` command and the `start_back` callback. Supports `edit=True` (re-edit message in place) and `edit=False` (delete + reply) modes.
+
+### New welcome keyboard layout (4 rows, 2 buttons + 3 link buttons)
+
+| | |
+|---|---|
+| **📖 Help** | **ℹ️ About** |
+| **🤖 Bot Settings ⚙️** | |
+| **📂 GitHub** | **🔔 Updates** |
+| **💬 Support** | |
+
+(Two new navigation buttons at the top, all 3 external link buttons still present.)
+
+### New About card layout
+
+| | |
+|---|---|
+| **📖 Help** | **⚙️ Settings** |
+| **📂 GitHub** | **💬 Support** |
+| **⬅️ Back to Start** | |
+
+(Quick-jump to Help/Settings from About, plus the link pair, plus Back to Start.)
+
+### Tests
+- **New `test_welcome_about()`** with 24 sub-checks:
+  - `WELCOME_TEXT` shortened (≤10 lines, was 35+)
+  - `WELCOME_TEXT` no longer lists commands (those moved to `/help`)
+  - `_start_keyboard()` and `_send_welcome()` helpers exist
+  - `start_command` uses `_send_welcome` helper (no inline keyboard)
+  - All 3 callback buttons present in welcome (`help_main`, `about`, `settings_menu`)
+  - `_handle_about` and `_handle_start_back` defined in `callbacks.py`
+  - `ABOUT_TEXT` template defined with all 4 placeholders (`version`, `build_date`, `n_cmds`, `n_cats`)
+  - About uses `config.VERSION`, `config.BUILD_DATE`, `HELP_CATEGORIES`, `HELP_COMMANDS` (no hardcoded values)
+  - About credits developer + mentions license
+  - "Back to Start" button present
+  - "about" and "start_back" callback patterns routed
+- **Test count:** 47 → 71 checks. All passing.
+
+### Files
+- `leechbot/commands.py` — `WELCOME_TEXT` shrunk 35→9 lines, added `_start_keyboard()` + `_send_welcome()` helpers, rewrote `start_command` to use helper.
+- `leechbot/callbacks.py` — added `_handle_about()` and `_handle_start_back()` callbacks, added `ABOUT_TEXT` template, wired 2 new callback patterns (`about`, `start_back`).
+- `tests/test_diagnostics.py` — added `test_welcome_about()` (24 sub-checks); renumbered `test_syntax` from #8 to #9.
+- `CHANGELOG.md`, `ROADMAP.md` updated.
+
+### Backwards compatibility
+- `/start` still works (just shorter text + new buttons)
+- Old "📂 GitHub" / "🔔 Updates" / "Support" buttons are still present (just in different rows)
+- No existing commands changed behavior
+- No new dependencies
+
+---
+
 ## [3.1.34] - 2026-06-07
 
 ### Added

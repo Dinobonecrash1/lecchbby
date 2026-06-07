@@ -24,6 +24,7 @@ Verifies (in order):
   5. All command count matches registration
   6. Version string consistency
   7. /help system (3.1.34 category-button UI)
+  8. Welcome / About / Start-back (3.1.35)
 """
 
 import os
@@ -636,10 +637,144 @@ def test_help_system():
 
 
 # =============================================================================
-# Test 8 — Python syntax check on all source files
+# Test 8 — Welcome / About / Start-back system (3.1.35)
+# =============================================================================
+def test_welcome_about():
+    results.section("8. Welcome / About / Start-back (3.1.35)")
+
+    cmds_src = (REPO_ROOT / "leechbot" / "commands.py").read_text()
+    cb_src = (REPO_ROOT / "leechbot" / "callbacks.py").read_text()
+
+    # --- WELCOME_TEXT shrinkage ---
+    # Find the WELCOME_TEXT string literal
+    import ast as _ast
+    tree = _ast.parse(cmds_src)
+    welcome_text = None
+    for node in _ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for tgt in node.targets:
+                if isinstance(tgt, ast.Name) and tgt.id == "WELCOME_TEXT":
+                    if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+                        welcome_text = node.value.value
+
+    if welcome_text is None:
+        results.fail("WELCOME_TEXT exists", "string literal not found")
+    else:
+        line_count = welcome_text.count("\n") + 1
+        # 3.1.34 welcome was 35 lines; new should be much shorter
+        if line_count <= 10:
+            results.ok(
+                "WELCOME_TEXT shortened",
+                f"{line_count} lines (was 35+ in 3.1.34)",
+            )
+        else:
+            results.fail(
+                "WELCOME_TEXT shortened",
+                f"{line_count} lines (should be ≤10)",
+            )
+
+        # Should not duplicate command list (those moved to /help)
+        if "/tupload" in welcome_text or "/ytupload" in welcome_text:
+            results.fail(
+                "WELCOME_TEXT no longer lists commands",
+                "still has command list — those moved to /help",
+            )
+        else:
+            results.ok(
+                "WELCOME_TEXT no longer lists commands",
+                "command list removed (now in /help)",
+            )
+
+    # --- _start_keyboard() and _send_welcome() helpers ---
+    for marker in ("def _start_keyboard", "def _send_welcome"):
+        if marker in cmds_src:
+            results.ok(f"helper: {marker}", "present in commands.py")
+        else:
+            results.fail(f"helper: {marker}", "not found")
+
+    # --- start_command now uses _send_welcome ---
+    if "_send_welcome" in cmds_src and "start_command" in cmds_src:
+        # Find start_command function body and check it calls _send_welcome
+        tree2 = _ast.parse(cmds_src)
+        found = False
+        for node in _ast.walk(tree2):
+            if isinstance(node, _ast.AsyncFunctionDef) and node.name == "start_command":
+                body_src = _ast.unparse(node)
+                if "_send_welcome" in body_src:
+                    found = True
+                    break
+        if found:
+            results.ok("start_command calls _send_welcome", "uses helper")
+        else:
+            results.fail("start_command calls _send_welcome", "still inline")
+    else:
+        results.fail("start_command structure", "could not verify")
+
+    # --- Keyboard has Help + About buttons (callback buttons) ---
+    keyboard_checks = [
+        ('callback button: "help_main"', '"help_main"'),
+        ('callback button: "about"', '"about"'),
+        ('callback button: "settings_menu"', '"settings_menu"'),
+    ]
+    for name, marker in keyboard_checks:
+        if marker in cmds_src:
+            results.ok(name, "present in commands.py")
+        else:
+            results.fail(name, "missing in commands.py")
+
+    # --- About callback handler ---
+    about_checks = [
+        ('_handle_about defined', "async def _handle_about"),
+        ('_handle_start_back defined', "async def _handle_start_back"),
+        ('ABOUT_TEXT template defined', "ABOUT_TEXT ="),
+        ('"about" callback routed', '"about"'),
+        ('"start_back" callback routed', '"start_back"'),
+        ('about uses config.VERSION', "config.VERSION"),
+        ('about uses config.BUILD_DATE', "config.BUILD_DATE"),
+        ('about uses HELP_CATEGORIES', "HELP_CATEGORIES"),
+        ('about uses HELP_COMMANDS', "HELP_COMMANDS"),
+        ('about has "Back to Start" button', '"start_back"'),
+    ]
+    for name, marker in about_checks:
+        if marker in cb_src:
+            results.ok(name, "present")
+        else:
+            results.fail(name, "missing")
+
+    # --- About text mentions required fields ---
+    about_text_in_cb = None
+    tree3 = _ast.parse(cb_src)
+    for node in _ast.walk(tree3):
+        if isinstance(node, _ast.Assign):
+            for tgt in node.targets:
+                if isinstance(tgt, _ast.Name) and tgt.id == "ABOUT_TEXT":
+                    if isinstance(node.value, _ast.Constant) and isinstance(node.value.value, str):
+                        about_text_in_cb = node.value.value
+    if about_text_in_cb is None:
+        results.fail("ABOUT_TEXT exists in callbacks.py", "not found")
+    else:
+        for field in ("version", "build_date", "n_cmds", "n_cats"):
+            if "{" + field + "}" in about_text_in_cb:
+                results.ok(f"ABOUT_TEXT has {field} placeholder", "yes")
+            else:
+                results.fail(f"ABOUT_TEXT has {field} placeholder", "missing")
+        # Should mention developer
+        if "Shinei Nouzen" in about_text_in_cb or "Shineii86" in about_text_in_cb:
+            results.ok("ABOUT_TEXT credits developer", "yes")
+        else:
+            results.fail("ABOUT_TEXT credits developer", "missing")
+        # Should mention MIT or license
+        if "MIT" in about_text_in_cb or "License" in about_text_in_cb:
+            results.ok("ABOUT_TEXT mentions license", "yes")
+        else:
+            results.fail("ABOUT_TEXT mentions license", "missing")
+
+
+# =============================================================================
+# Test 9 — Python syntax check on all source files
 # =============================================================================
 def test_syntax():
-    results.section("8. Python syntax (all .py files)")
+    results.section("9. Python syntax (all .py files)")
 
     py_files = list(REPO_ROOT.rglob("*.py"))
     # Exclude test workspace
@@ -678,6 +813,7 @@ def main():
         test_command_consistency,
         test_version_consistency,
         test_help_system,
+        test_welcome_about,
         test_syntax,
     ]
     for t in tests:

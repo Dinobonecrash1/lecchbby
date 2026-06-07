@@ -33,62 +33,70 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Welcome Text
 # =============================================================================
-WELCOME_TEXT = """**🤖 Leech Bot** — Advanced Telegram File Transloader
+WELCOME_TEXT = """**🤖 LeechBot** — Advanced Telegram File Transloader
 
-◈ **💪 Powerful • 🚀 Fast • 🔰 Secure**
+◈ Powerful · Fast · Secure
+◈ Download from 2000+ sources
+◈ Upload to Telegram or Google Drive
 
-─── Download From Anywhere ───
-• Direct Links, Google Drive, Telegram
-• YouTube, Facebook & 2000+ sites
-• Terabox, Mega, Pixeldrain, Mediafire
+**📥 Send any link to start downloading.**
 
-─── Upload To ───
-• Telegram (Unlimited Storage)
-• Google Drive (Mirror Mode)
-• Local Directory Leech
-
-─── Advance Tools ───
-• Video Converter (GPU Accelerated)
-• Archive Extractor (Zip, Rar, 7z)
-• Smart Splitting For Large Files
-• Custom Thumbnails & Captions
-• Download Queue & Bandwidth Control
-
-─── Quick Commands ───
-`/tupload` — Upload To Telegram
-`/gdupload` — Mirror To Google Drive
-`/ytupload` — Download With YT-DLP
-`/glupload` — Download Image Galleries
-`/queue` — View Download Queue
-`/format` — Set YT-DLP Quality
-`/speed` — Set Bandwidth Limit
-`/settings` — Configure Bot Preferences
-`/status` — Active Task Detail
-`/ping` — Latency & Uptime
-`/logs` — Recent Log Lines
-
-**🧑‍💻 Developer:** [Shinei Nouzen](https://t.me/Shineii86)"""
+Tap a button below to explore:"""
 
 # =============================================================================
 # /start
 # =============================================================================
+def _start_keyboard():
+    """Inline keyboard for the /start welcome message."""
+    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("📖 Help", callback_data="help_main"),
+            InlineKeyboardButton("ℹ️ About", callback_data="about"),
+        ],
+        [InlineKeyboardButton("🤖 Bot Settings ⚙️", callback_data="settings_menu")],
+        [
+            InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
+            InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
+        ],
+        [InlineKeyboardButton("💬 Support", url="https://t.me/MaximXGroup")],
+    ])
+
+
+async def _send_welcome(client, message, edit: bool = False):
+    """Send (or re-edit) the welcome message.
+
+    Args:
+        client: pyrogram Client
+        message: pyrogram Message (or callback.message)
+        edit: if True, edit the message in place; if False, delete + reply
+    """
+    if edit:
+        try:
+            await message.edit_text(
+                WELCOME_TEXT,
+                reply_markup=_start_keyboard(),
+                disable_web_page_preview=True,
+            )
+            return
+        except Exception:
+            # Message edit failed (e.g. was a callback without message text)
+            pass
+    try:
+        await message.delete()
+    except Exception:
+        pass
+    await message.reply_text(
+        WELCOME_TEXT,
+        reply_markup=_start_keyboard(),
+        disable_web_page_preview=True,
+    )
+
+
 @app.on_message(filters.command("start") & filters.private)
 async def start_command(client, message):
     """Handle the /start command."""
-    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
-    await message.delete()
-
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("📂 GitHub Repository ✨", url="https://github.com/Shineii86/LeechBot")],
-        [
-            InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
-            InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
-        ],
-        [InlineKeyboardButton("🤖 Bot Settings ⚙️", callback_data="settings_menu")],
-    ])
-
-    await message.reply_text(WELCOME_TEXT, reply_markup=keyboard, disable_web_page_preview=True)
+    await _send_welcome(client, message, edit=False)
 
 # =============================================================================
 # /tupload
