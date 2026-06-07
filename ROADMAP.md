@@ -87,6 +87,8 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 
 | Feature | Version |
 |---------|---------|
+| **Telegram parser ported from [xditya/GetRestrictedMessages](https://github.com/xditya/GetRestrictedMessages)** — added slug form (`t.me/s/...`), discussion threads (`t.me/c/.../msg/thread`), `http://` and `telegram.me` support, friendlier error messages | **3.1.33** |
+| **Fixed noisy `CancelledError` traceback on shutdown** — `BOT.State.shutting_down` flag blocks new tasks; `upload_file` catches `CancelledError` gracefully | **3.1.32** |
 | **Removed Bunkr + Instagram downloaders (broken, untestable)** — see [CHANGELOG 3.1.31](CHANGELOG.md) | **3.1.31** |
 | 3 utility commands: `/status`, `/restart`, `/logs` + rotating file logger | 3.1.30 |
 | 35-check offline diagnostic test suite (`tests/test_diagnostics.py`) | 3.1.29 |

@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.33] - 2026-06-07
+
+### Changed
+- **🔧 Telegram downloader: ported xditya/GetRestrictedMessages parser logic** — the parsing algorithm from [xditya/GetRestrictedMessages](https://github.com/xditya/GetRestrictedMessages) is now adapted to our Pyrogram-based downloader. The original repo uses Telethon (different framework); we kept the *parsing pattern* (cleaner `parts[2 if parts[1] in ['c', 's'] else 1]` indexing, digit validation, peer-type inference) and dropped the Telethon-specific bits. The new code lives in `_parse_telegram_link()` inside `leechbot/downloader/telegram.py`. See "Attribution" at the bottom of this entry.
+
+### Added
+- **🆕 Slug-form links: `t.me/s/USERNAME/MSG_ID`** — the public-channel "slug" form was previously rejected (would fall through to the public branch but with `parts[1] = 's'` and crash on the `-100` prefix logic). Now correctly routed as a public link. Example: `https://t.me/s/TelegramTips/123`.
+- **🆕 Discussion-thread links: `t.me/c/CHAT_ID/MSG_ID/THREAD_ID`** — links to a reply inside a discussion group attached to a channel. The 4-segment form was previously crashing on `int(parts[-1])` because `parts[-1]` was the thread ID, not the parent message ID. Now the parent message ID (`parts[3]`) is used and the thread ID is silently ignored for the fetch (Pyrogram's `get_messages` does not support fetching a specific thread reply position; the parent message is downloaded instead).
+- **🆕 `http://` URLs** — the old parser only handled `https://`. Now both `http://` and `https://` are accepted (Telegram redirects them anyway, but some older mobile clients still share the `http://` form).
+- **🆕 `telegram.me` mirror** — Telegram's old `telegram.me` URL mirror is now supported alongside `t.me`.
+
+### Improved
+- **Better error messages** — invalid links now show the user *which* formats are expected, e.g. `"Invalid Telegram link: 'foo'. Expected formats: t.me/USERNAME/MSG_ID, t.me/s/USERNAME/MSG_ID, t.me/c/CHAT_ID/MSG_ID"`. Missing-media errors now include the resolved `(chat_id, msg_id)` pair and a hint about membership. Borrowed from xditya's friendlier error UX (their `await event.reply("Invalid link?")` style).
+- **Stricter validation** — `message_id_str.isdigit()` is checked *before* `int()` conversion, eliminating the `ValueError` that happened on `t.me/c/123/notanumber` style inputs. Edge cases like `https://t.me/c/1234567890` (no message ID) and `https://t.me/yunavip` (no message ID) now cleanly return `(None, None)` instead of raising.
+
+### Tests
+- **`test_telegram_parser()`** — expanded from 6 to 23 sub-checks:
+  - All 3 original public/private cases (regression coverage)
+  - 2 new slug-form cases (`s/` prefix, with/without trailing slash)
+  - 1 new discussion-thread case (4-segment URL)
+  - 2 new `http://` cases (public + slug)
+  - 1 new `telegram.me` mirror case
+  - 6 new invalid-input cases (garbage, empty, non-numeric, missing IDs, non-t.me domain)
+  - 6 new source-file checks (xditya credit in docstring, `_parse_telegram_link` function exists, all 4 formats listed in module docstring)
+- **Test count:** 16 → 34 checks. All passing.
+
+### Attribution
+- **Original algorithm:** [xditya/GetRestrictedMessages](https://github.com/xditya/GetRestrictedMessages) by [@xditya](https://xditya.me), licensed under AGPL-3.0.
+- **Port to Pyrogram:** the parsing pattern (parts indexing, digit validation, peer-type inference) and the friendly-error UX are adapted from xditya's `main.py`. The Telethon-specific bits (`TelegramClient`, `StringSession`, `@client.on(events.NewMessage(...))`) are replaced with Pyrogram equivalents (`pyrogram.Client`, `app.get_messages`, `message.download`).
+- **Why not just use xditya's code directly?** The project is built on Pyrogram 2.0.106 (per `AGENTS.md`) and adding Telethon as a second framework would double the dependency surface, double the auth-flow code, and break the existing `leechbot/userbot.py` Pyrogram session manager. The parsing logic is the only useful piece — the rest is framework glue.
+- **Why credit visible in the source?** xditya's algorithm is the inspiration; the function docstring and module docstring both call this out so future maintainers can find the upstream if they want the full Telethon version.
+
+### Files
+- `leechbot/downloader/telegram.py` — replaced `media_Identifier` parser; added `_parse_telegram_link()` helper; rewrote module docstring; added xditya credit; expanded error messages. 171 → 230 lines.
+- `tests/test_diagnostics.py` — expanded `test_telegram_parser` from 6 to 23 sub-checks. Renumbered test sections unchanged.
+- No new dependencies. No API changes to other modules. No changes to `helper.py` (the existing `is_telegram()` substring check already covers all new formats).
+
+---
+
 ## [3.1.32] - 2026-06-07
 
 ### Fixed

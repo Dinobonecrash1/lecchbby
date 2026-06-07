@@ -545,10 +545,14 @@ Live and on-demand streaming protocols are fully supported via yt-dlp:
 |-----------|---------|--------------------------|
 | **Public channel** | `https://t.me/MaximXStickers/1281` | ❌ No — works without joining |
 | **Public group** | `https://t.me/publicgroup/12345` | ❌ No — works without joining |
+| **Public slug** (new in 3.1.33) | `https://t.me/s/TelegramTips/123` | ❌ No — works without joining |
 | **Private channel** | `https://t.me/c/1234567890/421` | ✅ Yes — bot must be a member |
 | **Private group** | `https://t.me/c/1234567890/421` | ✅ Yes — bot must be a member |
+| **Discussion thread** (new in 3.1.33) | `https://t.me/c/1234567890/421/789` | ✅ Yes — bot must be a member |
 
 > 💡 **Public links** use the channel username (e.g., `t.me/username/msg`). **Private links** use numeric IDs (e.g., `t.me/c/123456/msg`). The bot can download from any public channel/group without being a member.
+
+> 💡 **Slug form** (`t.me/s/...`) and **discussion thread** links (`t.me/c/.../msg/thread`) are now supported as of 3.1.33. The parser was ported from [xditya/GetRestrictedMessages](https://github.com/xditya/GetRestrictedMessages) and adapted to Pyrogram. `http://` and `telegram.me` mirrors are also accepted.
 
 > 💡 **Want to download from private channels without adding the bot as a member?** Use the **UserBot** feature — see [UserBot Setup](#-userbot-setup-for-private-channels) below.
 

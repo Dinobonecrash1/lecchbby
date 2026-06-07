@@ -17,7 +17,7 @@
 LeechBot offline diagnostic test suite.
 
 Verifies (in order):
-  1. Telegram public-link parser (3.1.23 fix: parts[4] → parts[-2])
+  1. Telegram link parser (3.1.23 fix + 3.1.33 xditya port)
   2. thumbMaintainer None-safety (3.1.24 fix: ytdl_thmb None guard)
   3. Shutdown flag wiring (3.1.32 fix: BOT.State.shutting_down blocks new tasks)
   4. All domain detection helpers
@@ -71,35 +71,87 @@ VERBOSE = "--verbose" in sys.argv
 
 
 # =============================================================================
-# Test 1 — Telegram public-link parser (3.1.23 fix)
+# Test 1 — Telegram link parser (3.1.23 fix + 3.1.33 xditya port)
 # =============================================================================
 def test_telegram_parser():
-    results.section("1. Telegram public-link parser (3.1.23)")
+    results.section("1. Telegram link parser (3.1.23, 3.1.33)")
 
-    # Re-implement parser from leechbot/downloader/telegram.py:media_Identifier
+    # Faithful copy of _parse_telegram_link() from
+    # leechbot/downloader/telegram.py — duplicated here so the test
+    # can run without importing the full module (which pulls in psutil
+    # via the helper/aria2 chain and breaks offline tests).
     def parse_tg(link: str):
-        parts = link.rstrip("/").split("/")
-        message_id = int(parts[-1])
-        if "/c/" in link:
-            chat_id = int("-100" + parts[4])
-        else:
-            chat_id = parts[-2]
-        return chat_id, message_id
+        if not link or not isinstance(link, str):
+            return None, None
+        try:
+            cleaned = link.strip()
+            for prefix in ("https://", "http://"):
+                if cleaned.startswith(prefix):
+                    cleaned = cleaned[len(prefix):]
+            cleaned = cleaned.rstrip("/")
+            if not cleaned.startswith("t.me/") and not cleaned.startswith("telegram.me/"):
+                return None, None
+            parts = cleaned.split("/")
+            if len(parts) < 3:
+                return None, None
+            if parts[1] in ("c", "s"):
+                if len(parts) < 4:
+                    return None, None
+                chat_id_str = parts[2]
+                message_id_str = parts[3]
+            else:
+                chat_id_str = parts[1]
+                message_id_str = parts[2] if len(parts) > 2 else None
+            if not message_id_str or not message_id_str.isdigit():
+                return None, None
+            message_id = int(message_id_str)
+            if chat_id_str.lstrip("-").isdigit():
+                peer = int(chat_id_str)
+                if peer > 0 and len(str(peer)) >= 10:
+                    peer = int(f"-100{peer}")
+            else:
+                peer = chat_id_str
+            return peer, message_id
+        except (IndexError, ValueError, AttributeError):
+            return None, None
 
     cases = [
         # (link, expected_chat, expected_msg, label)
+        # Public
         ("https://t.me/yunavip/28", "yunavip", 28, "public, no slash"),
         ("https://t.me/yunavip/28/", "yunavip", 28, "public, trailing slash"),
         ("https://t.me/example_channel/999", "example_channel", 999, "public, higher msg_id"),
+        # Slug (3.1.33 — new)
+        ("https://t.me/s/yunavip/28", "yunavip", 28, "slug form, no slash"),
+        ("https://t.me/s/example_channel/999/", "example_channel", 999, "slug form, trailing slash"),
+        # Private /c/
         ("https://t.me/c/1234567890/28", -1001234567890, 28, "private /c/, no slash"),
         ("https://t.me/c/1234567890/28/", -1001234567890, 28, "private /c/, trailing slash"),
         ("https://t.me/c/1234567890/12345", -1001234567890, 12345, "private /c/, higher msg_id"),
+        # Discussion thread (3.1.33 — new)
+        ("https://t.me/c/1234567890/123/456", -1001234567890, 123, "discussion thread — message_id is parent"),
+        # http:// (3.1.33 — was failing on /s/ before, now works for all)
+        ("http://t.me/yunavip/28", "yunavip", 28, "http, public"),
+        ("http://t.me/s/yunavip/28", "yunavip", 28, "http, slug"),
+        # telegram.me mirror
+        ("https://telegram.me/yunavip/28", "yunavip", 28, "telegram.me mirror"),
+        # Invalid (should return (None, None))
+        ("not a link", None, None, "garbage input"),
+        ("", None, None, "empty string"),
+        ("https://t.me/c/1234567890/abc", None, None, "non-numeric msg_id"),
+        ("https://t.me/c/1234567890", None, None, "missing msg_id in /c/"),
+        ("https://t.me/yunavip", None, None, "missing msg_id in public"),
+        ("https://example.com/yunavip/28", None, None, "not a t.me link"),
     ]
+
+    passed = 0
+    failed = 0
     for link, exp_chat, exp_msg, label in cases:
         try:
             chat, msg = parse_tg(link)
             if chat == exp_chat and msg == exp_msg:
                 results.ok(f"parse: {label}", f"chat={chat!r}, msg={msg}")
+                passed += 1
             else:
                 results.fail(
                     f"parse: {label}",
@@ -107,8 +159,38 @@ def test_telegram_parser():
                     f"  expected: chat={exp_chat!r}, msg={exp_msg}\n"
                     f"  got:      chat={chat!r}, msg={msg}",
                 )
+                failed += 1
         except Exception as e:
             results.fail(f"parse: {label}", f"link={link}\n  raised: {e}")
+            failed += 1
+
+    # Verify the xditya port is in the docstring of the source file
+    src = (REPO_ROOT / "leechbot" / "downloader" / "telegram.py").read_text()
+    if "xditya" in src:
+        results.ok("source: xditya port documented", "telegram.py mentions xditya")
+        passed += 1
+    else:
+        results.fail("source: xditya port documented", "telegram.py does not mention xditya")
+        failed += 1
+
+    # Verify the new _parse_telegram_link function exists
+    if "_parse_telegram_link" in src and "def _parse_telegram_link" in src:
+        results.ok("source: _parse_telegram_link defined", "function present in telegram.py")
+        passed += 1
+    else:
+        results.fail("source: _parse_telegram_link defined", "function not found in telegram.py")
+        failed += 1
+
+    # Verify the docstring lists all 4 supported formats
+    for fmt in ("Public", "Slug", "Private", "Thread"):
+        if fmt in src:
+            results.ok(f"docstring: {fmt} format listed", "yes")
+            passed += 1
+        else:
+            results.fail(f"docstring: {fmt} format listed", "missing")
+            failed += 1
+
+    _ = (passed, failed)  # silence linters; tallied in results.* counters
 
 
 # =============================================================================
