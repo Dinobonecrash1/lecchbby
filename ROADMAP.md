@@ -2,9 +2,11 @@
 
 Future plans and ideas for LeechBot. Not promises — just direction.
 
-> Have a suggestion? [Open an issue](https://github.com/Shineii86/LeechBot/issues) or [join the discussion](https://t.me/MaximXGroup).
+> Have a suggestion? [Open an issue](https://github.com/Shineii86/LeechBot/issues) or [join the discussion](https://github.com/Shineii86/LeechBot/discussions).
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 📋 Planned
 
@@ -77,18 +79,26 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 | Multi-bot cluster | Complexity vs benefit doesn't justify it |
 | User registration system | No accounts, no database — keep it simple |
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## ✅ Done (Recent)
 
 | Feature | Version |
 |---------|---------|
 | 3 utility commands: `/status`, `/restart`, `/logs` + rotating file logger | 3.1.30 |
+| 35-check offline diagnostic test suite (`tests/test_diagnostics.py`) | 3.1.29 |
+| Instagram routing fix (yt-dlp first, gallery-dl fallback) | 3.1.28 |
+| `TERMUX.md` deployment guide (513 lines) | 3.1.27 |
+| Bunkr stale domain fix (`bunkr.cr`, `dl.bunkr.cr`, `balbums.st`) | 3.1.26 |
+| `/ping` command (latency bar + uptime + version) | 3.1.25 |
+| `thumbMaintainer` None crash fix | 3.1.24 |
+| Telegram public-link parser off-by-one fix (`parts[4]` → `parts[-2]`) | 3.1.23 |
 | 4 unwired features exposed: `/formats`, `/preview`, multi-link URL extraction, lifetime stats in `/stats` | 3.1.21 |
-| YTDL thread-safety (loop.call_soon_threadsafe for progress hook) | 3.1.21 |
-| `/cancel` mid-ffmpeg no longer leaks orphan subprocesses | 3.1.20 |
+| YTDL thread-safety (`loop.call_soon_threadsafe` for progress hook) | 3.1.21 |
+| `/cancel` mid-ffmpeg no longer leaks orphan subprocesses (`_terminate_subprocess`) | 3.1.20 |
 | `/stats` cumulative bytes now show real totals (was always 0) | 3.1.20 |
-| 4 dead style helpers removed (`style_text`, `style_button`, `mini_stats_bar`, `mini_bar`) | 3.1.20 |
 | Comprehensive static analysis report (`AUDIT_REPORT.md`) — 1 critical, 8 dead, 1 thread-safety, 4 resource-leak | 3.1.19 |
 | Latent `NameError` fix in `task_manager.py` (would have crashed first task) | 3.1.18 |
 | YouTube thumbnail bug fix (used original filename instead of truncated) | 3.1.17 |
@@ -106,6 +116,8 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 | YouTube PO Token auto-generation | 3.0.2 |
 | gallery-dl integration (100+ sites) | 3.0.3 |
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 > 📋 Full history: [CHANGELOG.md](CHANGELOG.md)

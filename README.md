@@ -1,11 +1,22 @@
 <div align="center">
 
 <!-- Animated Logo Banner -->
-<img src="https://capsule-render.vercel.app/api?type=waving&height=300&color=gradient&text=𝗟𝗲𝗲𝗰𝗵%20𝗕𝗼𝘁&fontAlignY=30&fontSize=100&desc=𝖠𝖽𝗏𝖺𝗇𝖼𝖾𝖽%20𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆%20𝖥𝗂𝗅𝖾%20𝖳𝗋𝖺𝗇𝗌𝗅𝗈𝖺𝖽𝖾𝗋&descSize=30" />
+<img src="https://capsule-render.vercel.app/api?type=waving&height=300&color=gradient&text=𝗟𝗲𝗲𝗰𝗵%20𝗕𝗼𝘁&fontAlignY=30&fontSize=100&desc=𝖠𝖽𝗏𝖺𝗇𝖼𝖾𝖽%20𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆%20𝖥𝗂𝗅𝖾%20𝖳𝗋𝖺𝗇𝗌𝗅𝑜𝖺𝖽𝖾𝗋&descSize=30" />
 
 <p align="center">
   <strong>A Pyrogram‑based Telegram Bot to transfer files / folders to Telegram and Google Drive, powered by Google Colab</strong>
 </p>
+
+> [!NOTE]
+> **🧪 This repository is currently in BETA / active development.**
+>
+> Things may break, features may change, and bugs may appear. If you deploy this bot and run into an error, a crash, or unexpected behavior:
+>
+> 1. **Open an Issue** → [github.com/Shineii86/LeechBot/issues/new](https://github.com/Shineii86/LeechBot/issues/new) (please paste `/logs 50` output and the failing link)
+> 2. **Join the Telegram support group** → [t.me/Shineii86](https://t.me/Shineii86)
+> 3. **DM the developer** → [@Shineii86](https://t.me/Shineii86)
+>
+> Bug reports with logs get fixed fastest. Feature requests go to [GitHub Discussions](https://github.com/Shineii86/LeechBot/discussions) 💡.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Version-3.1.30-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
@@ -67,6 +78,10 @@
 
 ---
 
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
+
 ## 🚀 Features
 
 | Feature | Description |
@@ -94,7 +109,9 @@
 | 📸 **Photo Galleries** | Instagram, Twitter, Pinterest, Pixiv via gallery-dl |
 | 🌐 **Web Dashboard** | Real-time browser monitoring and control |
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 🔗 Supported Sources
 
@@ -184,7 +201,9 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 
 📖 [Full dashboard guide](GUIDE.md#-web-dashboard)
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 📥 How to Deploy
 
@@ -284,7 +303,9 @@ conda install -c conda-forge libtorrent
 
 📖 [Full setup guide](GUIDE.md#-installation)
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 📋 Commands
 

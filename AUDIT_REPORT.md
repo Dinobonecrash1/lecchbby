@@ -31,7 +31,9 @@
 
 **Overall verdict:** Production-ready and significantly more hardened than the 3.1.19 baseline. All 6 recommendations from the original audit (§10) have been addressed except item 3 (dead style helpers — kept for now, can be removed in a future cleanup). Four new latent bugs surfaced from real user reports and were fixed across 3.1.23–3.1.28. A 35-check offline diagnostic test suite (3.1.29) now catches regressions at code-write time, and `/status` + `/logs` (3.1.30) give operators live insight without SSH access.
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 1. Critical bug — `Transfer` stats never accumulate — ✅ FIXED 3.1.20
 
@@ -240,7 +242,9 @@ These were found from real user reports (not static analysis) and fixed in dedic
 **Fix:** Added `is_instagram` check BEFORE `is_gallery` in `manager.py`. yt-dlp is tried first (better error messages, cookie support); gallery-dl is fallback for multi-image carousels.
 **Commit:** `f1de0a6` — `fix: Instagram downloads silently fail — route to yt-dlp first with gallery-dl fallback (3.1.28)`
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 12. New features added in 3.1.23–3.1.30
 
@@ -289,7 +293,9 @@ A 35-check offline test suite was added so this audit doesn't have to be re-run 
 
 **My top 3 picks for 3.1.31:** #4 (15 min, easy win) → #1 (refactor, sets foundation) → #2 (high value, but test carefully).
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 15. What changed since the 3.1.19 audit
 
@@ -327,5 +333,9 @@ LeechBot 3.1.30 is **production-ready** and significantly more hardened than 3.1
 - ✅ 148 async functions, 118 sync, 0 thread-safety concerns
 - ✅ Resource leak risk mitigated (Popen cleanup on cancel)
 - ✅ File logger with rotation cap (8 MB max)
+
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 **No blocking issues. Bot is ready for production use at v3.1.30.**

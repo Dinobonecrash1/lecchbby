@@ -139,7 +139,9 @@ Now edit `.env` with your credentials (see [Configuration](#-configuration)).
 
 Docker support is planned for a future release.
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## ⚙️ Configuration
 
@@ -255,7 +257,9 @@ sudo systemctl status leechbot
 sudo journalctl -u leechbot -f
 ```
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 🌐 Web Dashboard
 
@@ -361,7 +365,9 @@ For advanced users or custom integrations:
 curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 ```
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 📥 Commands Reference
 
@@ -464,7 +470,9 @@ Example: Set prefix to `🎬` → caption becomes `🎬 filename.mp4`
 - Set delay between 5-300 seconds
 - Useful for keeping chats clean
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 🌐 Supported Sites
 
@@ -637,7 +645,9 @@ from google.colab import drive
 drive.mount('/content/drive')
 ```
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 🎬 YouTube Authentication
 
@@ -674,6 +684,10 @@ Supported browsers: `chrome`, `firefox`, `edge`, `brave`, `opera`, `safari`, `vi
 Send `/cookies` to see which authentication method is active.
 
 ---
+
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 🎬 Demos
 
@@ -1421,11 +1435,13 @@ Bot:   🚀 Initializing Task...
        ████████████ 100% | 52.1 MB/s
 
        ✅ Task Complete
-       📦 Size: 234 MB
-       ⏱️ Time: 01:12
+        📦 Size: 234 MB
+        ⏱️ Time: 01:12
 ```
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## ❓ Troubleshooting
 
@@ -1530,7 +1546,9 @@ LeechBot/
     └── index.html           # Web dashboard (real-time monitoring)
 ```
 
----
+<p align="center">
+  <img src="assets/divider.svg" width="600" alt="---divider---"/>
+</p>
 
 ## 🤝 Credits
 
