@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.24] - 2026-06-07
+
+### Fixed
+- **🔴 `thumbMaintainer` crashes with `os.stat(None)` for non-yt-dlp downloads** — `leechbot/utility/helper.py::thumbMaintainer()` initialized `ytdl_thmb = None` and only overwrote it if a matching `.webp/.jpg/.png/.jpeg` file existed in `Paths.thumbnail_ytdl`. The next check was `elif ospath.exists(ytdl_thmb):` — which calls `os.stat(None)` and raises `TypeError: stat: path should be string, bytes, os.PathLike or integer, not NoneType`. The TypeError was swallowed by the surrounding `try/except Exception` and logged as "Thumbnail generation error", leaving the upload to proceed with no thumbnail. Triggered by any non-yt-dlp video download (pixeldrain video, direct link, torrent with .mp4, etc.). Fixed by adding a None guard: `elif ytdl_thmb and ospath.exists(ytdl_thmb):`.
+
+### Notes
+- One-character fix (added `ytdl_thmb and` short-circuit). The error was cosmetic — uploads still succeeded, just with the system default thumbnail instead of a generated one.
+- Reproduced in isolation: `os.path.exists(None)` raises the exact TypeError string the user saw in their DUMP channel.
+- No test suite exists (per `AGENTS.md`), so this kind of `None` regression in low-traffic code paths is easy to miss. The fix prevents the log spam but a proper test would be useful for future regressions.
+
+---
+
 ## [3.1.23] - 2026-06-07
 
 ### Fixed

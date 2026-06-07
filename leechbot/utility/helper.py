@@ -386,7 +386,7 @@ def thumbMaintainer(file_path: str, original_name: str = None):
 
         if ospath.exists(Paths.THMB_PATH):
             return Paths.THMB_PATH, duration
-        elif ospath.exists(ytdl_thmb):
+        elif ytdl_thmb and ospath.exists(ytdl_thmb):
             return convertIMG(ytdl_thmb), duration
         else:
             # Extract frame at midpoint via ffmpeg
