@@ -26,6 +26,7 @@ Verifies (in order):
   7. /help system (3.1.34 category-button UI)
   8. Welcome / About / Start-back (3.1.35)
   9. Colab notebook (notebooks/LeechBot.ipynb)
+  10. Status bar layout (3.1.36)
 """
 
 import os
@@ -874,10 +875,116 @@ def test_notebook():
 
 
 # =============================================================================
-# Test 10 — Python syntax check on all source files
+# Test 10 — Status bar layout (3.1.36)
+# =============================================================================
+def test_status_bar():
+    results.section("10. Status bar layout (3.1.36)")
+
+    helper_src = (REPO_ROOT / "leechbot" / "utility" / "helper.py").read_text()
+
+    # Find the status_bar function body
+    import ast as _ast
+    tree = _ast.parse(helper_src)
+    status_bar_func = None
+    for node in _ast.walk(tree):
+        if isinstance(node, _ast.AsyncFunctionDef) and node.name == "status_bar":
+            status_bar_func = node
+            break
+
+    if status_bar_func is None:
+        results.fail("status_bar function exists", "not found in helper.py")
+        return
+
+    # Check the function docstring mentions the new layout
+    docstring = _ast.get_docstring(status_bar_func) or ""
+    if "no backticks" in docstring.lower() or "no auto" in docstring.lower() or "on-demand" in docstring.lower():
+        results.ok("status_bar docstring mentions no auto-append", "on-demand")
+    else:
+        results.fail(
+            "status_bar docstring mentions no auto-append",
+            "should mention system info is on-demand",
+        )
+
+    # The function body should NOT use Messages.task_msg
+    func_src = _ast.unparse(status_bar_func)
+    if "Messages.task_msg" in func_src:
+        results.fail(
+            "status_bar does NOT use Messages.task_msg",
+            "still references Messages.task_msg (was redundant)",
+        )
+    else:
+        results.ok(
+            "status_bar does NOT use Messages.task_msg",
+            "removed redundancy",
+        )
+
+    # The function body should NOT append sysINFO() to the message
+    if "sysINFO()" in func_src:
+        results.fail(
+            "status_bar does NOT append sysINFO()",
+            "still appends sysINFO() to every update",
+        )
+    else:
+        results.ok(
+            "status_bar does NOT append sysINFO()",
+            "system info removed from default view",
+        )
+
+    # The function should NOT use backticks on the progress bar
+    if "`{bar}`" in func_src:
+        results.fail(
+            "progress bar has no backticks",
+            "still uses `{bar}` (backticks on the bar)",
+        )
+    else:
+        results.ok(
+            "progress bar has no backticks",
+            "uses {bar} directly (clean bar)",
+        )
+
+    # Info should be compressed to 2 lines (not 3)
+    # Count the lines in the text template
+    text_match = None
+    for node in _ast.walk(status_bar_func):
+        if isinstance(node, _ast.JoinedStr):
+            parts = [_ast.unparse(p) for p in node.values]
+            joined = "".join(parts)
+            if "speed" in joined.lower() or "done" in joined.lower():
+                text_match = joined
+                break
+
+    if text_match:
+        # Count lines with stats (lines containing ⚡, 📦, 🔧, ⏳, ⏱️)
+        stat_lines = [l for l in text_match.split("\n") if any(e in l for e in ["⚡", "📦", "🔧"])]
+        if len(stat_lines) <= 3:
+            results.ok("info compressed to ≤3 lines", f"{len(stat_lines)} lines")
+        else:
+            results.fail("info compressed to ≤3 lines", f"{len(stat_lines)} lines (should be ≤3)")
+    else:
+        results.fail("status bar text template found", "could not parse")
+
+    # status_keyboard() should exist with expected buttons
+    if "def status_keyboard" in helper_src:
+        results.ok("status_keyboard() defined", "present")
+    else:
+        results.fail("status_keyboard() defined", "not found")
+
+    if '"sys_refresh"' in helper_src and '"sys_stats"' in helper_src:
+        results.ok("status_keyboard has Refresh + Stats buttons", "both present")
+    else:
+        results.fail("status_keyboard has Refresh + Stats buttons", "missing")
+
+    if '"cancel"' in helper_src:
+        results.ok("status_keyboard has Cancel button", "present")
+    else:
+        results.fail("status_keyboard has Cancel button", "missing")
+
+
+# =============================================================================
+# Test 11 — Python syntax check on all source files
 # =============================================================================
 def test_syntax():
-    results.section("10. Python syntax (all .py files)")
+    results.section("11. Python syntax (all .py files)")
 
     py_files = list(REPO_ROOT.rglob("*.py"))
     # Exclude test workspace
@@ -918,6 +1025,7 @@ def main():
         test_help_system,
         test_welcome_about,
         test_notebook,
+        test_status_bar,
         test_syntax,
     ]
     for t in tests:

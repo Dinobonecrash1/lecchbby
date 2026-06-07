@@ -700,7 +700,21 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
 # =============================================================================
 async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
                      done: str, left: str, engine: str):
-    """Update the live download/upload status bar message."""
+    """Update the live download/upload status bar message.
+
+    Layout (3.1.36):
+        {down_msg}                          ← heading + file name (set by caller)
+
+        ████████░░░░ **75.0%**              ← progress bar (no backticks)
+
+        ⚡ `5.2 MB/s` · ⏳ `10s`           ← speed + ETA
+        📦 `156 / 208 MB` · ⏱️ `30s`       ← done/total + elapsed
+        🔧 `yt-dlp`                        ← engine
+
+    System info (CPU / RAM / disk) is shown on-demand via the
+    "📊 Stats" or "🔄 Refresh" buttons — no longer auto-appended
+    to every progress update (was noisy).
+    """
     bar_length = 12
     filled = int(percentage / 100 * bar_length)
     bar = "█" * filled + "░" * (bar_length - filled)
@@ -708,17 +722,16 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
     elapsed = getTime((datetime.now() - BotTimes.start_time).total_seconds())
 
     text = f"""
+{bar} **{percentage:.1f}%**
 
-`{bar}` **{percentage:.1f}%**
-
-• ⚡ `{speed}` · 📦 `{done}` / `{left}`
-• ⏳ `{eta}` · ⏱️ `{elapsed}`
-• 🔧 `{engine}`"""
+⚡ `{speed}` · ⏳ `{eta}`
+📦 `{done}` / `{left}` · ⏱️ `{elapsed}`
+🔧 `{engine}`"""
 
     try:
         if isTimeOver():
             await MSG.status_msg.edit_text(
-                text=Messages.task_msg + down_msg + text + sysINFO(),
+                text=down_msg + text,
                 disable_web_page_preview=True,
                 reply_markup=status_keyboard()
             )
@@ -737,7 +750,15 @@ def keyboard():
     ])
 
 def status_keyboard():
-    """Status keyboard with Refresh, Stats, and Cancel buttons."""
+    """Status keyboard with Refresh, Stats, and Cancel buttons.
+
+    - **🔄 Refresh**: Appends compact system info (CPU / RAM / disk) below
+      the progress bar. Useful for quick health checks.
+    - **📊 Stats**: Replaces the progress bar with detailed system info
+      (CPU, RAM, disk, network, uptime). Click again or send /status
+      to return to the progress view.
+    - **❌ Cancel**: Aborts the current task.
+    """
     return InlineKeyboardMarkup([
         [
             InlineKeyboardButton("🔄 Refresh", callback_data="sys_refresh"),

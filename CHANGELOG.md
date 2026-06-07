@@ -4,6 +4,77 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.36] - 2026-06-07
+
+### Changed
+- **📊 Status bar upgraded** — the download/upload progress bar is now cleaner and less noisy:
+  - **Progress bar without backticks** — the bar was previously wrapped in backticks (`\`████░░░░\``), which looked ugly in Telegram. Now renders as plain `████░░░░` (cleaner monospace in Telegram's fixed-width font).
+  - **Compressed info: 3 lines → 2 lines** — speed + ETA on one line, done/total + elapsed on one second. Less scrolling, same information density.
+  - **System info removed from default view** — `sysINFO()` (CPU / RAM / disk) was previously appended to every 3-second progress update. This was noisy and distracted from the actual download progress. System info is now shown **on-demand** only when the user clicks:
+    - **🔄 Refresh** — appends compact system info inline
+    - **📊 Stats** — replaces the progress bar with detailed system info (CPU, RAM, disk, network, uptime)
+  - **Removed `Messages.task_msg` prefix** — the status bar used to prepend `Messages.task_msg` (e.g. "**🎯 Task Mode:** ") to every update. This was redundant — downloaders already set `Messages.status_head` which contains the heading. Removed from the status bar; still used by other callers (gallery, manager, converters, handler).
+
+### New status bar layout
+```
+📥 Downloading Link 01
+
+`video.mp4`
+
+████████░░░░ **75.0%**
+
+⚡ `5.2 MB/s` · ⏳ `10s`
+📦 `156 / 208 MB` · ⏱️ `30s`
+🔧 `yt-dlp`
+```
+
+**Before (3.1.35):**
+```
+📥 Downloading Link 01
+
+`video.mp4`
+`████████░░░░` **75.0%**
+
+• ⚡ `5.2 MB/s` · 📦 `156 MB` / `208 MB`
+• ⏳ `10s` · ⏱️ `30s`
+• 🔧 `yt-dlp`
+
+─── System ───
+• 🖥️ `23%` · 💾 `45 MB RAM` · 💽 `2.3 GB free`
+```
+
+**After (3.1.36):**
+```
+📥 Downloading Link 01
+
+`video.mp4`
+
+████████░░░░ **75.0%**
+
+⚡ `5.2 MB/s` · ⏳ `10s`
+📦 `156 / 208 MB` · ⏱️ `30s`
+🔧 `yt-dlp`
+```
+
+(No more system info on every update — click "📊 Stats" to see it.)
+
+### Tests
+- **New `test_status_bar()`** with 8 sub-checks:
+  - `status_bar` docstring mentions on-demand system info
+  - `Messages.task_msg` NOT used in status bar (removed redundancy)
+  - `sysINFO()` NOT appended to default status bar (on-demand only)
+  - Progress bar has no backticks (clean monospace)
+  - Info compressed to ≤3 lines (was 3 with bullet points)
+  - `status_keyboard()` defined with expected buttons
+  - Refresh + Stats + Cancel buttons all present
+- **Test count:** 83 → 91 checks. All passing.
+
+### Files
+- `leechbot/utility/helper.py` — rewrote `status_bar()` (removed backticks, compressed info, removed `Messages.task_msg` and `sysINFO()` from message), updated `status_keyboard()` docstring.
+- `tests/test_diagnostics.py` — added `test_status_bar()` (8 sub-checks); renumbered `test_syntax` from #10 to #11.
+
+---
+
 ## [3.1.35] - 2026-06-07
 
 ### Changed

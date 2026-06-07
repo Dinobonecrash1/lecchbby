@@ -87,6 +87,7 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 
 | Feature | Version |
 |---------|---------|
+| **Status bar upgraded** — progress bar without backticks, info compressed to 2 lines, system info (CPU/RAM/disk) removed from default view (shown on-demand via "📊 Stats" button) | **3.1.36** |
 | **Welcome message trimmed + new Help & About buttons** — `WELCOME_TEXT` shrunk from 35→9 lines; added `📖 Help` + `ℹ️ About` inline buttons; new `About` card with version, build date, stats, dev credits, license, disclaimer; "Back to Start" navigation | **3.1.35** |
 | **Category-button `/help` UI** — 6 categories (Downloads, Files, Status, Account, Cookies, Admin) with inline keyboard drill-down, deep-link `/help <command>` for direct help, in-place message editing (no spam) | **3.1.34** |
 | **Telegram parser ported from [xditya/GetRestrictedMessages](https://github.com/xditya/GetRestrictedMessages)** — added slug form (`t.me/s/...`), discussion threads (`t.me/c/.../msg/thread`), `http://` and `telegram.me` support, friendlier error messages | **3.1.33** |
