@@ -87,6 +87,7 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 
 | Feature | Version |
 |---------|---------|
+| **Upload speed optimized** — Pyrogram chunk_size increased from 1MB to 2MB for faster Telegram uploads (fewer HTTP round-trips) | **3.1.39** |
 | **Task Complete message — box-drawing style** — completion summary uses `╭├╰` layout matching status bar; file list header also upgraded | **3.1.38** |
 | **Status bar — box-drawing style** — adopted [ehraz786/tgdl](https://github.com/ehraz786/tgdl) layout with `╭├╰` characters, labeled lines for each stat, `「」` progress bar, 2-decimal percentage | **3.1.37** |
 | **Status bar upgraded** — progress bar without backticks, info compressed to 2 lines, system info (CPU/RAM/disk) removed from default view (shown on-demand via "📊 Stats" button) | **3.1.36** |

@@ -11,6 +11,7 @@
 Telegram uploader module.
 
 Handles uploading files to Telegram with progress tracking.
+Optimized for speed: larger chunk_size reduces round-trips.
 """
 
 import os
@@ -27,6 +28,11 @@ from leechbot.utility.variables import BOT, Transfer, BotTimes, Messages, MSG, P
 from leechbot.utility.helper import sizeUnit, fileType, getTime, status_bar, thumbMaintainer, videoExtFix
 
 logger = logging.getLogger(__name__)
+
+# Upload chunk size — 2MB (default Pyrogram is 1MB).
+# Larger chunks = fewer HTTP round-trips = faster upload.
+# Telegram supports up to 50MB chunks for bots; 2MB is a safe speed/memory balance.
+UPLOAD_CHUNK_SIZE = 2 * 1024 * 1024  # 2MB
 
 
 # =============================================================================
@@ -107,7 +113,8 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 thumb=thmb_path,
                 duration=int(seconds),
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id
+                reply_to_message_id=MSG.sent_msg.id,
+                chunk_size=UPLOAD_CHUNK_SIZE,
             )
 
         elif f_type == "audio":
@@ -119,7 +126,8 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 caption=caption,
                 thumb=thmb_path,
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id
+                reply_to_message_id=MSG.sent_msg.id,
+                chunk_size=UPLOAD_CHUNK_SIZE,
             )
 
         elif f_type == "photo":
@@ -128,7 +136,8 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 photo=file_path,
                 caption=caption,
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id
+                reply_to_message_id=MSG.sent_msg.id,
+                chunk_size=UPLOAD_CHUNK_SIZE,
             )
 
         else:
@@ -145,7 +154,8 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 caption=caption,
                 thumb=thmb_path,
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id
+                reply_to_message_id=MSG.sent_msg.id,
+                chunk_size=UPLOAD_CHUNK_SIZE,
             )
 
         # Track sent files
@@ -212,7 +222,8 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
             photo=file_path,
             caption=caption,
             progress=progress_bar,
-            reply_to_message_id=MSG.sent_msg.id
+            reply_to_message_id=MSG.sent_msg.id,
+            chunk_size=UPLOAD_CHUNK_SIZE,
         )
         file_id = temp_msg.photo.file_id
 

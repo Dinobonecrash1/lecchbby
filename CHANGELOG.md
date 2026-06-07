@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.39] - 2026-06-07
+
+### Changed
+- **📤 Upload speed optimized** — increased Pyrogram chunk_size from 1MB (default) to 2MB:
+  - Larger chunks = fewer HTTP round-trips = faster upload
+  - Telegram supports up to 50MB chunks for bots; 2MB is a safe speed/memory balance
+  - Applied to all upload types: video, audio, photo, document, batch photos
+
+---
+
 ## [3.1.38] - 2026-06-07
 
 ### Changed
