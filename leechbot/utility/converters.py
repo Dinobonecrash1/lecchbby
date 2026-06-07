@@ -17,7 +17,8 @@ import GPUtil
 import shutil
 import logging
 import subprocess
-from asyncio import sleep
+import asyncio
+from asyncio import sleep, CancelledError
 from threading import Thread
 from datetime import datetime
 from os import makedirs, path as ospath
@@ -35,6 +36,31 @@ from leechbot.utility.variables import BOT, MSG, BotTimes, Paths, Messages
 from leechbot.utility.helper import getSize, fileType, keyboard, multipartArchive, sizeUnit, speedETA, status_bar, getTime, sysINFO
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Subprocess Helper
+# =============================================================================
+def _terminate_subprocess(proc: subprocess.Popen):
+    """
+    Best-effort cleanup of a subprocess. Sends SIGTERM, waits 5s,
+    falls back to SIGKILL. Use in CancelledError handlers to avoid
+    leaving orphan ffmpeg/zip/7z processes when the user hits /cancel.
+    """
+    if proc.poll() is not None:
+        return
+    try:
+        proc.terminate()
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        try:
+            proc.kill()
+            proc.wait(timeout=2)
+        except Exception:
+            pass
+    except Exception:
+        pass
+
 
 # =============================================================================
 # Video Conversion
@@ -103,11 +129,14 @@ async def videoConverter(file: str) -> str:
     # Run ffmpeg
     proc = subprocess.Popen(cmd)
     counter = 0
-
-    while proc.poll() is None:
-        await msg_updater(counter, "1st", "FFmpeg", core)
-        counter = (counter + 1) % 12
-        await sleep(3)
+    try:
+        while proc.poll() is None:
+            await msg_updater(counter, "1st", "FFmpeg", core)
+            counter = (counter + 1) % 12
+            await sleep(3)
+    except CancelledError:
+        _terminate_subprocess(proc)
+        raise
 
     # Check result
     error = False
@@ -218,21 +247,24 @@ async def archive(path: str, is_split: bool, remove: bool):
 
     proc = subprocess.Popen(cmd)
     total_size = getSize(path)
-
-    while proc.poll() is None:
-        speed_string, eta, percentage = speedETA(
-            BotTimes.task_start, getSize(Paths.temp_zpath), total_size
-        )
-        await status_bar(
-            Messages.status_head,
-            speed_string,
-            percentage,
-            getTime(eta),
-            sizeUnit(getSize(Paths.temp_zpath)),
-            sizeUnit(total_size),
-            "Zip 🗜️"
-        )
-        await sleep(1)
+    try:
+        while proc.poll() is None:
+            speed_string, eta, percentage = speedETA(
+                BotTimes.task_start, getSize(Paths.temp_zpath), total_size
+            )
+            await status_bar(
+                Messages.status_head,
+                speed_string,
+                percentage,
+                getTime(eta),
+                sizeUnit(getSize(Paths.temp_zpath)),
+                sizeUnit(total_size),
+                "Zip 🗜️"
+            )
+            await sleep(1)
+    except CancelledError:
+        _terminate_subprocess(proc)
+        raise
 
     if remove:
         if ospath.isfile(path):
@@ -291,21 +323,24 @@ async def extract(zip_filepath: str, remove: bool):
 
     BotTimes.task_start = datetime.now()
     proc = subprocess.Popen(cmd)
-
-    while proc.poll() is None:
-        speed_string, eta, percentage = speedETA(
-            BotTimes.task_start, getSize(Paths.temp_unzip_path), total
-        )
-        await status_bar(
-            Messages.status_head,
-            speed_string,
-            percentage,
-            getTime(eta),
-            sizeUnit(getSize(Paths.temp_unzip_path)),
-            sizeUnit(total),
-            "Unzip 📂"
-        )
-        await sleep(1)
+    try:
+        while proc.poll() is None:
+            speed_string, eta, percentage = speedETA(
+                BotTimes.task_start, getSize(Paths.temp_unzip_path), total
+            )
+            await status_bar(
+                Messages.status_head,
+                speed_string,
+                percentage,
+                getTime(eta),
+                sizeUnit(getSize(Paths.temp_unzip_path)),
+                sizeUnit(total),
+                "Unzip 📂"
+            )
+            await sleep(1)
+    except CancelledError:
+        _terminate_subprocess(proc)
+        raise
 
     if remove:
         multipartArchive(zip_filepath, file_pattern, True)
@@ -402,21 +437,24 @@ async def splitVideo(file_path: str, max_size: int, remove: bool):
 
     proc = subprocess.Popen(cmd)
     total_size = getSize(file_path)
-
-    while proc.poll() is None:
-        speed_string, eta, percentage = speedETA(
-            BotTimes.task_start, getSize(Paths.temp_zpath), total_size
-        )
-        await status_bar(
-            Messages.status_head,
-            speed_string,
-            percentage,
-            getTime(eta),
-            sizeUnit(getSize(Paths.temp_zpath)),
-            sizeUnit(total_size),
-            "Split ✂️"
-        )
-        await sleep(1)
+    try:
+        while proc.poll() is None:
+            speed_string, eta, percentage = speedETA(
+                BotTimes.task_start, getSize(Paths.temp_zpath), total_size
+            )
+            await status_bar(
+                Messages.status_head,
+                speed_string,
+                percentage,
+                getTime(eta),
+                sizeUnit(getSize(Paths.temp_zpath)),
+                sizeUnit(total_size),
+                "Split ✂️"
+            )
+            await sleep(1)
+    except CancelledError:
+        _terminate_subprocess(proc)
+        raise
 
     if remove and ospath.exists(file_path):
         try:

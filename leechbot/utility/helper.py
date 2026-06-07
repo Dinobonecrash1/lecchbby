@@ -522,11 +522,6 @@ def format_stats() -> str:
 • ❌ **Failed Tasks:** `{BotStats.failed_tasks}`
 • ⏱️ **Uptime:** `{uptime}`"""
 
-def mini_bar(percentage: float, length: int = 10) -> str:
-    """Generate a mini text progress bar."""
-    filled = int(percentage / 100 * length)
-    return "█" * filled + "░" * (length - filled)
-
 # =============================================================================
 # Multipart Archive Handling
 # =============================================================================

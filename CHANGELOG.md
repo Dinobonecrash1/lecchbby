@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.20] - 2026-06-07
+
+### Fixed
+- **CRITICAL: `/stats` and `/botstats` always showed 0 bytes** — `task_manager.py:288-289, 332` accumulated `BotStats.total_downloaded` / `BotStats.total_uploaded` from `Transfer.down_bytes[0]` / `Transfer.up_bytes[0]`. But `Transfer.down_bytes` and `Transfer.up_bytes` are initialized to `[0, 0]` (the `[0]` is the running total stub, the `[1]` is the per-file size), and per-file sizes are appended via `.append(...)` — so `down_bytes[0]` was **always 0**. Cumulative stats never incremented past 0 in production. Fixed by replacing with `sum(Transfer.down_bytes)` / `sum(Transfer.up_bytes)`. This is a one-line semantic change (the total bytes transferred) with no performance cost. Now `/stats` and `/botstats` will show real lifetime totals across all tasks. (Audit report §1)
+- **Orphan ffmpeg/zip/7z processes on /cancel** — `converters.py` had 4 `subprocess.Popen(...)` calls (video converter, zip, unzip, video split) wrapped in `while proc.poll() is None: await ...` polling loops with no `CancelledError` handler. If a user hit `/cancel` while ffmpeg/zip/7z was actively running, the cancellation would propagate up but the subprocess would keep running in the background until completion (or until the OOM killer got it). Fixed by adding a shared `_terminate_subprocess(proc)` helper (SIGTERM → 5s wait → SIGKILL) and wrapping each polling loop in `try/except CancelledError` that calls the helper then re-raises. Cleanup is best-effort and self-contained — no signal handlers, no global state. (Audit report §2)
+
+### Removed
+- **4 dead style helpers** — verified zero call sites across the codebase via `grep -rn`:
+  - `style.py::style_text` — never imported, no callers
+  - `style.py::style_button` — never imported, no callers
+  - `style.py::mini_stats_bar` — never imported, no callers
+  - `helper.py::mini_bar` — never imported, no callers
+  Survivors in `style.py` (`to_small_caps`, `style_title`, `progress_text_bar`) are kept since `to_small_caps` is still used internally by `style_title` and the file remains the canonical home for Unicode-style helpers. Net code reduction: 25 lines, no behavior change. (Audit report §3)
+
+### Changed
+- **`shutil.copy` in `handler.py:146` is now defensive** — wrapped in `try/except (OSError, shutil.SameFileError) as e: logger.warning(...)`. If the source file is missing (e.g. user hit `/cancel` mid-download, or a symlink is broken), the upload pipeline previously crashed with `FileNotFoundError`. Now it logs a warning and falls back to the original path. `shutil.SameFileError` is also caught (some filesystems raise this when src == dst). (Audit report §6)
+
+### Notes
+- All changes are derived from `AUDIT_REPORT.md` §10 recommendations 1, 2, 3, and 6. Items 4 (wire up 4 unwired features) and 5 (PyPy/no-GIL hardening) are intentionally deferred — bigger effort, not what "Fix" means in a maintenance release.
+- Smoke tests re-run: all 4 modified files pass `ast.parse()`, no stale symbol references. Popen + `/cancel` cleanup is testable manually by running a large zip and hitting `/cancel` mid-archive (verify with `pgrep -af ffmpeg\|zip\|7z` that the process is gone within ~5s).
+
+---
+
 ## [3.1.19] - 2026-06-07
 
 ### Added

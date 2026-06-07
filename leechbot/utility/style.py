@@ -30,11 +30,6 @@ def to_small_caps(text: str) -> str:
     return ''.join(SMALL_CAPS_MAP.get(c, c) for c in text)
 
 
-def style_text(text: str) -> str:
-    """Convert lowercase letters to small caps while preserving original case."""
-    return to_small_caps(text)
-
-
 def style_title(text: str) -> str:
     """Convert text to Title Case with small caps for lowercase letters."""
     words = text.split(' ')
@@ -48,19 +43,7 @@ def style_title(text: str) -> str:
     return ' '.join(styled_words)
 
 
-def style_button(text: str) -> str:
-    """Style button text using Title Case with small caps."""
-    return style_title(text)
-
-
 def progress_text_bar(percentage: float, length: int = 12, filled_char: str = "█", empty_char: str = "░") -> str:
     """Generate a visual progress bar string."""
     filled = int(percentage / 100 * length)
     return filled_char * filled + empty_char * (length - filled)
-
-
-def mini_stats_bar(label: str, value: float, max_value: float, length: int = 8) -> str:
-    """Generate a mini labeled stats bar for inline display."""
-    pct = min((value / max_value * 100), 100) if max_value > 0 else 0
-    bar = progress_text_bar(pct, length)
-    return f"`{bar}` {pct:.0f}% — {label}"

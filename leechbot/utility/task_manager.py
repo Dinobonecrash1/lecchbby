@@ -285,8 +285,8 @@ async def Do_Leech(source, is_dir: bool, is_ytdl: bool, is_zip: bool, is_unzip: 
             await Leech(Paths.down_path, True)
 
     await SendLogs(True)
-    BotStats.total_downloaded += Transfer.down_bytes[0]
-    BotStats.total_uploaded += Transfer.up_bytes[0]
+    BotStats.total_downloaded += sum(Transfer.down_bytes)
+    BotStats.total_uploaded += sum(Transfer.up_bytes)
 
 
 # =============================================================================
@@ -329,4 +329,4 @@ async def Do_Mirror(source, is_ytdl: bool, is_zip: bool, is_unzip: bool, is_dual
         shutil.copytree(Paths.down_path, Paths.mirror_dir, dirs_exist_ok=True)
 
     await SendLogs(False)
-    BotStats.total_downloaded += Transfer.down_bytes[0]
+    BotStats.total_downloaded += sum(Transfer.down_bytes)

@@ -143,7 +143,10 @@ async def Leech(folder_path: str, remove: bool):
                 makedirs(Paths.temp_files_dir)
 
             if not remove:
-                file_path = shutil.copy(file_path, Paths.temp_files_dir)
+                try:
+                    file_path = shutil.copy(file_path, Paths.temp_files_dir)
+                except (OSError, shutil.SameFileError) as e:
+                    logger.warning(f"Copy failed, using original: {e}")
 
             file_name = ospath.basename(file_path)
             new_path = shortFileName(file_path)
