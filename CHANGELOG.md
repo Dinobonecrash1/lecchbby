@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.27] - 2026-06-07
+
+### Added
+- **`TERMUX.md` — complete Termux deployment guide** — 250+ line walkthrough covering: F-Droid install vs Play Store warning, `pkg` setup, system packages (python/git/ffmpeg/aria2/p7zip/rust), repo clone with version pinning, `requirements.txt` install with compile fallback, `.env` configuration with DUMP_ID/OWNER_ID explanation, foreground sanity check, 3 methods to run 24/7 (`nohup` + `termux-wake-lock`, `tmux`, `screen`), Termux:Boot auto-start on phone boot, storage permission setup (`termux-setup-storage`), 10+ common issues + fixes (libtorrent, ffmpeg, permission denied, recursion error, address in use, etc.), update flow, uninstall flow, resource usage table.
+
+### Notes
+- Docs-only release, no code changes.
+- Mentions Termux's known limitation: `libtorrent` is optional — default `ENABLE_TORRENTS=false` uses `aria2c` as fallback for magnet links.
+- Tested setup commands against current Termux 0.118 (noble, Python 3.11-3.13) on Android 10+.
+
+---
+
 ## [3.1.26] - 2026-06-07
 
 ### Fixed
