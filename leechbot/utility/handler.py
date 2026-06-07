@@ -341,6 +341,7 @@ async def SendLogs(is_leech: bool):
         is_leech: whether this was a leech task
     """
     from leechbot.utility.variables import BOT, BotTimes, Messages, MSG, Transfer
+    import config
 
     elapsed_secs = (datetime.now() - BotTimes.start_time).total_seconds()
     elapsed = getTime(int(elapsed_secs))
@@ -352,13 +353,16 @@ async def SendLogs(is_leech: bool):
     avg_speed = sizeUnit(total_bytes / elapsed_secs) if elapsed_secs > 0 else "0 B"
 
     summary = (
-        f"\n\n✅ **Task Complete**\n"
-        f"\n╭📛 **Name** » `{Messages.download_name or 'Unknown'}`"
-        f"\n├📦 **Size** » `{size}`"
-        f"{f'\n├📋 **Files** » `{file_count_num}`' if is_leech else ''}"
-        f"\n├⚡ **Speed** » `{avg_speed}/s`"
-        f"\n├⏱️ **Time** » `{elapsed}`"
-        f"\n╰🤖 **By** » [LeechBot](https://github.com/Shineii86/LeechBot)"
+        f"\n\n┌───────────────────────────────┐"
+        f"\n      ✅  **TASK COMPLETE**"
+        f"\n├───────────────────────────────┤"
+        f"\n  📛  **Name**    →  `{Messages.download_name or 'Unknown'}`"
+        f"\n  📦  **Size**    →  `{size}`"
+        f"{f'\n  📋  **Files**   →  `{file_count_num}`' if is_leech else ''}"
+        f"\n  ⚡  **Speed**   →  `{avg_speed}/s`"
+        f"\n  ⏱️  **Time**    →  `{elapsed}`"
+        f"\n└───────────────────────────────┘"
+        f"\n  🤖  [LeechBot](https://github.com/Shineii86/LeechBot)  •  v{config.VERSION}"
     )
 
     if not BOT.State.task_going:
@@ -366,7 +370,7 @@ async def SendLogs(is_leech: bool):
 
     # Send summary reply
     try:
-        src_line = f"\n🔗 **Source** » [Here]({Messages.src_link})" if Messages.src_link else ""
+        src_line = f"\n  🔗  **Source**  →  [Here]({Messages.src_link})" if Messages.src_link else ""
         await MSG.sent_msg.reply_text(text=src_line + summary)
     except Exception as e:
         logger.error("Failed to send source reply: %s", e)
@@ -390,7 +394,7 @@ async def SendLogs(is_leech: bool):
 
     # Send file list if leech task
     if is_leech and Transfer.sent_file:
-        final_text = f"╭📋 **Files** » `{file_count_num}`\n╰📜 **Logs:**\n"
+        final_text = f"┌───────────────────────────────┐\n  📋  **FILES**  →  `{file_count_num}`\n└───────────────────────────────┘\n"
         try:
             final_texts = []
             for i in range(len(Transfer.sent_file)):

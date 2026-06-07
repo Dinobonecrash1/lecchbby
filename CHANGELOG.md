@@ -4,6 +4,45 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.42] - 2026-06-07
+
+### Changed
+- **🎨 Professional UI rewrite** — status bar and task complete message redesigned with clean box-drawing:
+
+**Status Bar (3.1.42):**
+```
+┌───────────────────────────────┐
+  ████░░░░  **75.00%**
+├───────────────────────────────┤
+  ⚡  **Speed**      →  `5.2 MB/s`
+  ⏳  **ETA**        →  `10s`
+  📦  **Processed**  →  `156 / 208 MB`
+  ⏱️  **Elapsed**    →  `30s`
+  🔧  **Engine**     →  `yt-dlp`
+└───────────────────────────────┘
+```
+
+**Task Complete (3.1.42):**
+```
+┌───────────────────────────────┐
+      ✅  **TASK COMPLETE**
+├───────────────────────────────┤
+  📛  **Name**    →  `IMG_5746.MOV`
+  📦  **Size**    →  `5.95 MiB`
+  📋  **Files**   →  `1`
+  ⚡  **Speed**   →  `6.6 MB/s`
+  ⏱️  **Time**    →  `1m 30s`
+└───────────────────────────────┘
+  🤖  LeechBot  •  v3.1.42
+```
+
+- Aligned labels with padding for clean column look
+- Arrow `→` instead of `»` for better readability
+- Double-line box borders `┌├└` for professional appearance
+- Version shown in task complete footer
+
+---
+
 ## [3.1.41] - 2026-06-07
 
 ### Changed

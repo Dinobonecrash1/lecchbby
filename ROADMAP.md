@@ -87,6 +87,7 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 
 | Feature | Version |
 |---------|---------|
+| **Professional UI rewrite** — status bar + task complete redesigned with `┌├└` box borders, aligned labels, `→` arrows, version footer | **3.1.42** |
 | **Task Complete message upgraded** — added average speed (⚡ **Speed**), source link now inline | **3.1.41** |
 | **Upload chunk_size increased to 5MB** — 5x fewer round-trips than original 1MB default, ~2.5x faster than 2MB | **3.1.40** |
 | **Upload speed optimized** — Pyrogram chunk_size increased from 1MB to 2MB for faster Telegram uploads (fewer HTTP round-trips) | **3.1.39** |
