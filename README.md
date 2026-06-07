@@ -7,7 +7,7 @@
   <strong>A Pyrogram‑based Telegram Bot to transfer files / folders to Telegram and Google Drive, powered by Google Colab</strong>
 </p>
 
-> [!NOTE]
+> [!IMPORTANT]
 > **🧪 This repository is currently in BETA / active development.**
 >
 > Things may break, features may change, and bugs may appear. If you deploy this bot and run into an error, a crash, or unexpected behavior:
