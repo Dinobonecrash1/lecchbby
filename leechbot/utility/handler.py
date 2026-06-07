@@ -349,12 +349,12 @@ async def SendLogs(is_leech: bool):
     file_count_line = f"• 📋 **Files:** `{file_count_num}`\n" if is_leech else ""
 
     summary = (
-        f"\n\n✅ **Task Complete**\n\n"
-        f"• 📛 **Name:** `{Messages.download_name or 'Unknown'}`\n"
-        f"• 📦 **Size:** `{size}`\n"
-        f"{file_count_line}"
-        f"• ⏱️ **Time:** `{elapsed}`\n"
-        f"• 🤖 **By:** [LeechBot](https://github.com/Shineii86/LeechBot)"
+        f"\n\n✅ **Task Complete**\n"
+        f"\n╭📛 **Name** » `{Messages.download_name or 'Unknown'}`"
+        f"\n├📦 **Size** » `{size}`"
+        f"{f'\n├📋 **Files** » `{file_count_num}`' if is_leech else ''}"
+        f"\n├⏱️ **Time** » `{elapsed}`"
+        f"\n╰🤖 **By** » [LeechBot](https://github.com/Shineii86/LeechBot)"
     )
 
     if not BOT.State.task_going:
@@ -386,7 +386,7 @@ async def SendLogs(is_leech: bool):
 
     # Send file list if leech task
     if is_leech and Transfer.sent_file:
-        final_text = f"**📋 File List:** `{file_count_num}`\n\n**📜 Logs:**\n"
+        final_text = f"╭📋 **Files** » `{file_count_num}`\n╰📜 **Logs:**\n"
         try:
             final_texts = []
             for i in range(len(Transfer.sent_file)):

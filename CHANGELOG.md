@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.38] - 2026-06-07
+
+### Changed
+- **✅ Task Complete message — box-drawing style** — completion summary now matches the status bar's `╭├╰` layout:
+
+**Before:**
+```
+✅ **Task Complete**
+
+• 📛 **Name:** `IMG_5746.MOV`
+• 📦 **Size:** `5.95 MiB`
+• 📋 **Files:** `1`
+• ⏱️ **Time:** `1m 30s`
+• 🤖 **By:** LeechBot
+```
+
+**After:**
+```
+✅ **Task Complete**
+
+╭📛 **Name** » `IMG_5746.MOV`
+├📦 **Size** » `5.95 MiB`
+├📋 **Files** » `1`
+├⏱️ **Time** » `1m 30s`
+╰🤖 **By** » LeechBot
+```
+
+- File list header also uses box-drawing: `╭📋 **Files** » 3` / `╰📜 **Logs:**`
+
+---
+
 ## [3.1.37] - 2026-06-07
 
 ### Changed
