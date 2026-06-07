@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.18] - 2026-06-07
+
+### Fixed
+- **NameError on every task start** — `task_manager.py:155-157` used `os.path.join(...)` 3 times but the `os` module was never imported (only `from os import makedirs, path as ospath` was present). The first time `taskScheduler()` ran and tried to pick the random hero image, it would have crashed with `NameError: name 'os' is not defined`. Caught only because pyflakes flagged it during a full audit — not via runtime, which means it had been latent and would have hit the user on the first `/tupload` or `/glupload`. Fixed by replacing all 3 calls with `ospath.join(...)` (which is the same `os.path` module, just already imported as `ospath`). Zero behavior change, just uses the binding that was already in scope.
+
+### Audit
+- **Full static + smoke audit completed** across all 35 Python files in `leechbot/`:
+  - 257 functions (142 async / 115 sync), 20 classes, 9,229 total lines
+  - 0 syntax errors, 0 bare `except:` clauses, 0 `import moviepy` (cleanly removed in 3.1.16)
+  - 15 downloader modules all routed in `manager.py:downloadManager()` (gdrive, telegram, gallery, hls, gofile, bunkr, catbox, streamtape, youtube, mega, terabox, pixeldrain, mediafire, torrent, default-aria2)
+  - 15 link-detection helpers in `helper.py` all working (`is_google_drive`, `is_telegram`, `is_ytdl_link`, `is_mega`, `is_terabox`, `is_torrent`, `is_pixeldrain`, `is_mediafire`, `is_streamtape`, `is_hls_stream`, `is_gofile`, `is_bunkr`, `is_catbox`, `is_gallery`, `is_direct_link`)
+  - Smoke tests passed: `sizeUnit` 9/9, `getTime` 8/8, `fileType` 10/10, link detection 9/9
+  - `thumbMaintainer` fix from 3.1.17 verified end-to-end: bug reproduces without `original_name`, fix works with it, custom THMB_PATH still takes priority
+  - The 2 remaining `asyncio.get_event_loop()` calls (`__init__.py:55`, `__main__.py:206`) are at module-level / entry-point — correct API for that scope (deprecation only applies inside `async def`)
+  - `pyflakes` false positives on function-local `from … import …` patterns in `commands.py`, `manager.py` — verified the imports ARE used later in the function bodies
+
+### Changed
+- **Version bump** — `config.py` `VERSION` updated to `3.1.18`.
+
+---
+
 ## [3.1.17] - 2026-06-07
 
 ### Fixed

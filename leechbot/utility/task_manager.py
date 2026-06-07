@@ -152,9 +152,9 @@ async def taskScheduler():
     # Pick random hero image from assets/images/
     try:
         import glob as _glob
-        images = _glob.glob(os.path.join(Paths.ASSETS_IMAGES, "*.jpg")) + \
-                 _glob.glob(os.path.join(Paths.ASSETS_IMAGES, "*.png")) + \
-                 _glob.glob(os.path.join(Paths.ASSETS_IMAGES, "*.webp"))
+        images = _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.jpg")) + \
+                 _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.png")) + \
+                 _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.webp"))
         if images:
             Paths.HERO_IMAGE = random.choice(images)
             Paths.DEFAULT_HERO = images[0]
