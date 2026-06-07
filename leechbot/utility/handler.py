@@ -342,17 +342,21 @@ async def SendLogs(is_leech: bool):
     """
     from leechbot.utility.variables import BOT, BotTimes, Messages, MSG, Transfer
 
-    elapsed = getTime(int((datetime.now() - BotTimes.start_time).total_seconds()))
+    elapsed_secs = (datetime.now() - BotTimes.start_time).total_seconds()
+    elapsed = getTime(int(elapsed_secs))
     file_count_num = len(Transfer.sent_file) if is_leech else 0
     size = sizeUnit(sum(Transfer.up_bytes)) if is_leech else sizeUnit(Transfer.total_down_size)
 
-    file_count_line = f"• 📋 **Files:** `{file_count_num}`\n" if is_leech else ""
+    # Average speed
+    total_bytes = sum(Transfer.up_bytes) if is_leech else Transfer.total_down_size
+    avg_speed = sizeUnit(total_bytes / elapsed_secs) if elapsed_secs > 0 else "0 B"
 
     summary = (
         f"\n\n✅ **Task Complete**\n"
         f"\n╭📛 **Name** » `{Messages.download_name or 'Unknown'}`"
         f"\n├📦 **Size** » `{size}`"
         f"{f'\n├📋 **Files** » `{file_count_num}`' if is_leech else ''}"
+        f"\n├⚡ **Speed** » `{avg_speed}/s`"
         f"\n├⏱️ **Time** » `{elapsed}`"
         f"\n╰🤖 **By** » [LeechBot](https://github.com/Shineii86/LeechBot)"
     )
@@ -362,8 +366,8 @@ async def SendLogs(is_leech: bool):
 
     # Send summary reply
     try:
-        src_text = f"**🔗 Source:** [Here]({Messages.src_link})" if Messages.src_link else "**🔗 Source:** N/A"
-        await MSG.sent_msg.reply_text(text=src_text + summary)
+        src_line = f"\n🔗 **Source** » [Here]({Messages.src_link})" if Messages.src_link else ""
+        await MSG.sent_msg.reply_text(text=src_line + summary)
     except Exception as e:
         logger.error("Failed to send source reply: %s", e)
 

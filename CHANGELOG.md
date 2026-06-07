@@ -4,6 +4,39 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.41] - 2026-06-07
+
+### Changed
+- **✅ Task Complete message upgraded** — added average speed and cleaned up layout:
+
+**Before:**
+```
+✅ **Task Complete**
+
+╭📛 **Name** » `IMG_5746.MOV`
+├📦 **Size** » `5.95 MiB`
+├📋 **Files** » `1`
+├⏱️ **Time** » `1m 30s`
+╰🤖 **By** » LeechBot
+```
+
+**After:**
+```
+✅ **Task Complete**
+
+╭📛 **Name** » `IMG_5746.MOV`
+├📦 **Size** » `5.95 MiB`
+├📋 **Files** » `1`
+├⚡ **Speed** » `6.6 MB/s`
+├⏱️ **Time** » `1m 30s`
+╰🤖 **By** » LeechBot
+```
+
+- Source link now inline: `🔗 **Source** » [Here](link)`
+- Average speed calculated from total bytes / elapsed time
+
+---
+
 ## [3.1.40] - 2026-06-07
 
 ### Changed
