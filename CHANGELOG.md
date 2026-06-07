@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.40] - 2026-06-07
+
+### Changed
+- **📤 Upload chunk_size increased to 5MB** — from 2MB (previous) / 1MB (original default):
+  - 5x fewer HTTP round-trips than original
+  - ~2.5x faster than 2MB setting
+  - Telegram supports up to 50MB for bots; 5MB is optimal speed/memory balance
+
+---
+
 ## [3.1.39] - 2026-06-07
 
 ### Changed

@@ -29,10 +29,10 @@ from leechbot.utility.helper import sizeUnit, fileType, getTime, status_bar, thu
 
 logger = logging.getLogger(__name__)
 
-# Upload chunk size — 2MB (default Pyrogram is 1MB).
+# Upload chunk size — 5MB (default Pyrogram is 1MB).
 # Larger chunks = fewer HTTP round-trips = faster upload.
-# Telegram supports up to 50MB chunks for bots; 2MB is a safe speed/memory balance.
-UPLOAD_CHUNK_SIZE = 2 * 1024 * 1024  # 2MB
+# Telegram supports up to 50MB chunks for bots; 5MB is a good speed/memory balance.
+UPLOAD_CHUNK_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 # =============================================================================
