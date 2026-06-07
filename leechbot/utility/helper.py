@@ -702,18 +702,20 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
                      done: str, left: str, engine: str):
     """Update the live download/upload status bar message.
 
-    Layout (3.1.36):
+    Layout (3.1.37) — inspired by ehraz786/tgdl box-drawing style:
+
         {down_msg}                          ← heading + file name (set by caller)
 
-        ████████░░░░ **75.0%**              ← progress bar (no backticks)
-
-        ⚡ `5.2 MB/s` · ⏳ `10s`           ← speed + ETA
-        📦 `156 / 208 MB` · ⏱️ `30s`       ← done/total + elapsed
-        🔧 `yt-dlp`                        ← engine
+        ╭「████████░░░░」 **»** __75.00%__
+        ├⚡️ **Speed »** __5.2 MB/s__
+        ├⚙️ **Engine »** __yt-dlp__
+        ├⏳ **Time Left »** __10s__
+        ├🍃 **Time Spent »** __30s__
+        ├✅ **Processed »** __156 MB__
+        ╰📦 **Total Size »** __208 MB__
 
     System info (CPU / RAM / disk) is shown on-demand via the
-    "📊 Stats" or "🔄 Refresh" buttons — no longer auto-appended
-    to every progress update (was noisy).
+    "📊 Stats" or "🔄 Refresh" buttons — no longer auto-appended.
     """
     bar_length = 12
     filled = int(percentage / 100 * bar_length)
@@ -721,12 +723,15 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
 
     elapsed = getTime((datetime.now() - BotTimes.start_time).total_seconds())
 
-    text = f"""
-{bar} **{percentage:.1f}%**
-
-⚡ `{speed}` · ⏳ `{eta}`
-📦 `{done}` / `{left}` · ⏱️ `{elapsed}`
-🔧 `{engine}`"""
+    text = (
+        f"\n╭「{bar}」 **»** __{percentage:.2f}%__"
+        f"\n├⚡️ **Speed »** __{speed}__"
+        f"\n├⚙️ **Engine »** __{engine}__"
+        f"\n├⏳ **Time Left »** __{eta}__"
+        f"\n├🍃 **Time Spent »** __{elapsed}__"
+        f"\n├✅ **Processed »** __{done}__"
+        f"\n╰📦 **Total Size »** __{left}__"
+    )
 
     try:
         if isTimeOver():

@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.37] - 2026-06-07
+
+### Changed
+- **📊 Status bar — box-drawing style** — adopted [ehraz786/tgdl](https://github.com/ehraz786/tgdl) layout for cleaner visual hierarchy:
+  - `╭├╰` box-drawing characters create a structured vertical list
+  - Each stat (Speed, Engine, Time Left, Time Spent, Processed, Total Size) on its own labeled line
+  - Progress bar wrapped in `「」` brackets
+  - Percentage now shows 2 decimal places (`75.00%` instead of `75.0%`)
+
+**Before (3.1.36):**
+```
+████████░░░░ **75.0%**
+
+⚡ `5.2 MB/s` · ⏳ `10s`
+📦 `156 / 208 MB` · ⏱️ `30s`
+🔧 `yt-dlp`
+```
+
+**After (3.1.37):**
+```
+╭「████████░░░░」 **»** __75.00%__
+├⚡️ **Speed »** __5.2 MB/s__
+├⚙️ **Engine »** __yt-dlp__
+├⏳ **Time Left »** __10s__
+├🍃 **Time Spent »** __30s__
+├✅ **Processed »** __156 MB__
+╰📦 **Total Size »** __208 MB__
+```
+
+---
+
 ## [3.1.36] - 2026-06-07
 
 ### Changed

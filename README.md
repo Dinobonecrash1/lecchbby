@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.35-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.37-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -55,28 +55,13 @@
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
 
-## ✨ What's New in v3.1.35
+## ✨ What's New in v3.1.37
 
-### 🎨 Category‑Button `/help` UI
-- `/help` no longer shows a wall‑of‑text — now an **interactive inline‑keyboard menu** with 6 categories (Downloads, Files, Status, Account, Cookies, Admin), each with per‑command help cards, usage, and examples.
-- **Deep‑link:** `/help <command>` jumps straight to that command's help card.
-- Same drill‑down UX as BotFather: click → edit in place, no message spam.
-
-### 🏠 Fresh Welcome + ℹ️ About
-- `/start` message trimmed from 35 lines → 9 lines with **📖 Help** + **ℹ️ About** buttons.
-- About card shows live version, build date, command/category counts, developer credits, license, disclaimer.
-- "⬅️ Back to Start" navigation — no need to retype `/start`.
-
-### 🗺️ Telegram Link Parser (ported from xditya/GetRestrictedMessages)
-- **New formats:** `t.me/s/USERNAME/MSG_ID` (slug), `t.me/c/CHAT/MSG/THREAD` (discussion threads), `http://` URLs, `telegram.me` mirror.
-- Stricter validation, friendlier error messages.
-
-### 🛡️ Graceful Shutdown
-- `BOT.State.shutting_down` flag blocks new tasks during shutdown.
-- `upload_file` catches `CancelledError` cleanly — no scary tracebacks on Colab runtime disconnect.
-
-### 🧹 Removed Broken Downloaders
-- **Bunkr + Instagram** removed — both sites changed their APIs and were untestable.
+### 📊 Status Bar — Box-Drawing Style
+- Adopted [ehraz786/tgdl](https://github.com/ehraz786/tgdl) layout for cleaner visual hierarchy
+- `╭├╰` box-drawing characters create a structured vertical list
+- Each stat (Speed, Engine, Time Left, Time Spent, Processed, Total Size) on its own labeled line
+- Progress bar wrapped in `「」` brackets, percentage shows 2 decimal places
 
 > 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **30 commands across 6 categories**
 
