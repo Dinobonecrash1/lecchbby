@@ -4,6 +4,63 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.34] - 2026-06-07
+
+### Added
+- **🎨 Category-button /help UI** — `/help` no longer dumps a wall of text. It now opens an interactive inline-keyboard menu with 6 categories:
+  - 📥 **Downloads** (10 commands) — tupload, gdupload, drupload, ytupload, glupload, setname, format, formats, preview, speed
+  - 🗂 **Files** (5 commands) — zipaswd, unzipaswd, queue, cancel, cancel_all
+  - ⚙️ **Status & Settings** (7 commands) — settings, status, stats, logs, ping, restart, update
+  - 👤 **Account** (3 commands) — userbot, userbot_status, userbot_logout
+  - 🍪 **Cookies** (3 commands) — cookies, setcookies, clearcookies
+  - 🛠 **Admin** (2 commands) — admin, broadcast
+- **🆕 Deep-link help: `/help <command>`** — type `/help ytupload` to get a detailed help card for that command directly, skipping the menu. If the command doesn't exist, the user gets the category menu + a "command not found" warning so they can still browse.
+- **🆕 Per-command detail card** — clicking any command button in a category shows:
+  - Title + category badge
+  - One-line description
+  - Usage: `/command <args>`
+  - 1-3 worked examples
+  - "Back to category" + "Main menu" + "Close" navigation buttons
+- **🆕 Navigation pattern** — same UX as `BotFather`, `SpamBot`, and modern Telegram bots. Click button → message **edits in place** (no spam, no scroll-back). No new messages for each click.
+- **🆕 Close button** — the ❌ button at the bottom of every help view deletes the help message (cleaner than leaving it open).
+
+### Changed
+- **`/help` command rewritten** — from 56-line static `help_text` + 3-link keyboard to 6-category dynamic menu backed by `HELP_CATEGORIES` and `HELP_COMMANDS` data tables.
+- **Data-driven help** — all 30 commands now live in `HELP_COMMANDS` dict in `leechbot/commands.py` with `category`, `title`, `short`, `usage`, `examples` fields. Adding a new command = add one entry to both dicts, and it auto-appears in `/help`. No more editing wall-of-text.
+- **Inline keyboard navigation** — `help_main` shows categories, `help_cat_<key>` shows commands in that category, `help_cmd_<name>` shows command detail. Three-tier drill-down.
+
+### Why category buttons (not WilliamButcherBot's plugin loader)
+- The plugin-loader pattern (`__MODULE__` + `__HELP__` per file) is great for *modular* bots where anyone can drop in a `.py` file. LeechBot is a *single-codebase* downloader bot — adding the plugin loader would be 300+ lines of refactor for a UX that ships in 200 lines of new code here.
+- The category-button pattern is **the actual UX win** (drill-down, in-place editing, visual grouping) — that's what we adopted.
+
+### Tests
+- **New `test_help_system()`** with 13 sub-checks:
+  - `HELP_CATEGORIES` exists (6 categories verified)
+  - `HELP_COMMANDS` exists (30 commands verified)
+  - Every category command has a `HELP_COMMANDS` entry (no orphans)
+  - Every `HELP_COMMANDS.category` references a valid `HELP_CATEGORIES` key (no broken refs)
+  - Every `HELP_COMMANDS` entry has all required fields (`category`, `title`, `short`, `usage`)
+  - `help_command` uses all 3 renderers (`_help_render_main`, `_help_render_category`, `_help_render_command`) + deep-link branch
+  - All 3 callback handlers defined in `callbacks.py` (`_handle_help_main`, `_handle_help_category`, `_handle_help_command`)
+  - All 4 callback patterns routed (`help_main`, `help_close`, `help_cat_` prefix, `help_cmd_` prefix)
+- **Test count:** 34 → 47 checks. All passing.
+- Uses **AST parsing** of the source file to verify the data tables — no need to import `commands.py` (which pulls in `psutil` and breaks offline tests).
+
+### Files
+- `leechbot/commands.py` — added `HELP_CATEGORIES` dict (6 entries, 30 cmds), `HELP_COMMANDS` dict (30 entries with title/short/usage/examples), 3 renderer functions (`_help_render_main`, `_help_render_category`, `_help_render_command`), rewrote `help_command` (15 lines vs 56 lines).
+- `leechbot/callbacks.py` — added 3 callback handlers (`_handle_help_main`, `_handle_help_category`, `_handle_help_command`), wired 4 callback patterns in the main router.
+- `tests/test_diagnostics.py` — added `test_help_system` (13 sub-checks); renumbered `test_syntax` from #7 to #8.
+- `CHANGELOG.md`, `GUIDE.md`, `ROADMAP.md` updated.
+
+### Backwards compatibility
+- `/help` still works (now with category menu instead of wall of text)
+- `/help <command>` is **new** — old behavior was just to show the same wall of text
+- No existing commands changed behavior
+- No new dependencies
+- No API breakage
+
+---
+
 ## [3.1.33] - 2026-06-07
 
 ### Changed

@@ -40,8 +40,16 @@ async def handle_callback(client, callback_query):
     logger.debug("Callback: %s", data)
 
     try:
+        # --- Help system (3.1.34) ---
+        if data == "help_main" or data == "help_close":
+            await _handle_help_main(client, callback_query)
+        elif data.startswith("help_cat_"):
+            await _handle_help_category(client, callback_query, data[len("help_cat_"):])
+        elif data.startswith("help_cmd_"):
+            await _handle_help_command(client, callback_query, data[len("help_cmd_"):])
+
         # --- Upload type selection ---
-        if data in ("normal", "zip", "unzip", "undzip"):
+        elif data in ("normal", "zip", "unzip", "undzip"):
             await _handle_upload_type(client, callback_query, data)
 
         # --- Settings navigation ---
@@ -534,4 +542,75 @@ async def _handle_sys_stats(client, callback_query):
         await callback_query.answer("Detailed stats ✓")
     except Exception as e:
         logger.debug("Sys stats error: %s", e)
+        await callback_query.answer("No changes", show_alert=False)
+
+
+# =============================================================================
+# /help inline keyboard handlers  (3.1.34)
+# =============================================================================
+async def _handle_help_main(client, callback_query):
+    """Show the help main menu, or close the help message."""
+    from leechbot.commands import _help_render_main
+
+    if callback_query.data == "help_close":
+        try:
+            await callback_query.message.delete()
+        except Exception as e:
+            logger.debug("Help close (delete) failed: %s", e)
+            await callback_query.message.edit_text("✅ Help closed.")
+        await callback_query.answer("Closed")
+        return
+
+    text, keyboard = _help_render_main()
+    try:
+        await callback_query.message.edit_text(
+            text=text,
+            reply_markup=keyboard,
+            disable_web_page_preview=True,
+        )
+        await callback_query.answer()
+    except Exception as e:
+        logger.debug("Help main edit failed: %s", e)
+        await callback_query.answer("No changes", show_alert=False)
+
+
+async def _handle_help_category(client, callback_query, cat_key: str):
+    """Show the commands in a help category."""
+    from leechbot.commands import _help_render_category
+
+    text, keyboard = _help_render_category(cat_key)
+    if text is None:
+        await callback_query.answer("Unknown category", show_alert=True)
+        return
+
+    try:
+        await callback_query.message.edit_text(
+            text=text,
+            reply_markup=keyboard,
+            disable_web_page_preview=True,
+        )
+        await callback_query.answer()
+    except Exception as e:
+        logger.debug("Help category edit failed: %s", e)
+        await callback_query.answer("No changes", show_alert=False)
+
+
+async def _handle_help_command(client, callback_query, cmd_name: str):
+    """Show detailed help for a single command."""
+    from leechbot.commands import _help_render_command
+
+    text, keyboard = _help_render_command(cmd_name)
+    if text is None:
+        await callback_query.answer("Unknown command", show_alert=True)
+        return
+
+    try:
+        await callback_query.message.edit_text(
+            text=text,
+            reply_markup=keyboard,
+            disable_web_page_preview=True,
+        )
+        await callback_query.answer()
+    except Exception as e:
+        logger.debug("Help command edit failed: %s", e)
         await callback_query.answer("No changes", show_alert=False)

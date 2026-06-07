@@ -87,6 +87,7 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 
 | Feature | Version |
 |---------|---------|
+| **Category-button `/help` UI** — 6 categories (Downloads, Files, Status, Account, Cookies, Admin) with inline keyboard drill-down, deep-link `/help <command>` for direct help, in-place message editing (no spam) | **3.1.34** |
 | **Telegram parser ported from [xditya/GetRestrictedMessages](https://github.com/xditya/GetRestrictedMessages)** — added slug form (`t.me/s/...`), discussion threads (`t.me/c/.../msg/thread`), `http://` and `telegram.me` support, friendlier error messages | **3.1.33** |
 | **Fixed noisy `CancelledError` traceback on shutdown** — `BOT.State.shutting_down` flag blocks new tasks; `upload_file` catches `CancelledError` gracefully | **3.1.32** |
 | **Removed Bunkr + Instagram downloaders (broken, untestable)** — see [CHANGELOG 3.1.31](CHANGELOG.md) | **3.1.31** |

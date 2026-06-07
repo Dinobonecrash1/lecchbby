@@ -23,6 +23,7 @@ Verifies (in order):
   4. All domain detection helpers
   5. All command count matches registration
   6. Version string consistency
+  7. /help system (3.1.34 category-button UI)
 """
 
 import os
@@ -490,10 +491,155 @@ def test_version_consistency():
 
 
 # =============================================================================
-# Test 7 — Python syntax check on all source files
+# Test 7 — /help system (3.1.34 category-button UI)
+# =============================================================================
+def test_help_system():
+    results.section("7. /help system (3.1.34 category-button UI)")
+
+    import ast
+    src_path = REPO_ROOT / "leechbot" / "commands.py"
+    src = src_path.read_text()
+    tree = ast.parse(src)
+
+    # Find HELP_CATEGORIES and HELP_COMMANDS dicts
+    cats_node = None
+    cmds_node = None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for tgt in node.targets:
+                if isinstance(tgt, ast.Name):
+                    if tgt.id == "HELP_CATEGORIES":
+                        cats_node = node.value
+                    elif tgt.id == "HELP_COMMANDS":
+                        cmds_node = node.value
+
+    if cats_node is None or not isinstance(cats_node, ast.Dict):
+        results.fail("HELP_CATEGORIES exists", "not a dict literal in commands.py")
+        return
+    if cmds_node is None or not isinstance(cmds_node, ast.Dict):
+        results.fail("HELP_COMMANDS exists", "not a dict literal in commands.py")
+        return
+
+    results.ok("HELP_CATEGORIES exists", f"{len(cats_node.keys)} categories")
+    results.ok("HELP_COMMANDS exists", f"{len(cmds_node.keys)} commands")
+
+    # Every command listed in a category must have a HELP_COMMANDS entry
+    cat_keys = {k.value for k in cats_node.keys if isinstance(k, ast.Constant)}
+    cmd_keys = {k.value for k in cmds_node.keys if isinstance(k, ast.Constant)}
+
+    all_cat_cmds = set()
+    missing_in_cmds = []
+    for cat_key_node, cat_val in zip(cats_node.keys, cats_node.values):
+        cat_key = cat_key_node.value
+        if not isinstance(cat_val, ast.Dict):
+            continue
+        # Find the "commands" key in this category
+        for sub_key, sub_val in zip(cat_val.keys, cat_val.values):
+            if isinstance(sub_key, ast.Constant) and sub_key.value == "commands":
+                if isinstance(sub_val, ast.List):
+                    for cmd_node in sub_val.elts:
+                        if isinstance(cmd_node, ast.Constant):
+                            cmd_name = cmd_node.value
+                            all_cat_cmds.add(cmd_name)
+                            if cmd_name not in cmd_keys:
+                                missing_in_cmds.append(f"{cat_key}/{cmd_name}")
+
+    if not missing_in_cmds:
+        results.ok(
+            "every category command has HELP_COMMANDS entry",
+            f"{len(all_cat_cmds)} commands all backed",
+        )
+    else:
+        results.fail(
+            "every category command has HELP_COMMANDS entry",
+            "missing: " + ", ".join(missing_in_cmds[:5]) +
+            (f" (+{len(missing_in_cmds)-5} more)" if len(missing_in_cmds) > 5 else ""),
+        )
+
+    # No HELP_COMMANDS entry references an unknown category
+    unknown_cat_refs = []
+    for cmd_key_node, cmd_val in zip(cmds_node.keys, cmds_node.values):
+        cmd_name = cmd_key_node.value
+        if not isinstance(cmd_val, ast.Dict):
+            continue
+        for sub_key, sub_val in zip(cmd_val.keys, cmd_val.values):
+            if isinstance(sub_key, ast.Constant) and sub_key.value == "category":
+                if isinstance(sub_val, ast.Constant) and sub_val.value not in cat_keys:
+                    unknown_cat_refs.append(f"{cmd_name}→{sub_val.value}")
+
+    if not unknown_cat_refs:
+        results.ok(
+            "every HELP_COMMANDS.category is a known HELP_CATEGORIES key",
+            f"{len(cmd_keys)} commands all reference valid categories",
+        )
+    else:
+        results.fail(
+            "every HELP_COMMANDS.category is a known HELP_CATEGORIES key",
+            "bad refs: " + ", ".join(unknown_cat_refs[:5]),
+        )
+
+    # Every HELP_COMMANDS entry has required fields
+    required_fields = {"category", "title", "short", "usage"}
+    missing_fields = []
+    for cmd_key_node, cmd_val in zip(cmds_node.keys, cmds_node.values):
+        cmd_name = cmd_key_node.value
+        if not isinstance(cmd_val, ast.Dict):
+            continue
+        present = {
+            sub_key.value for sub_key in cmd_val.keys
+            if isinstance(sub_key, ast.Constant)
+        }
+        miss = required_fields - present
+        if miss:
+            missing_fields.append(f"{cmd_name} missing {miss}")
+
+    if not missing_fields:
+        results.ok(
+            "every HELP_COMMANDS entry has required fields",
+            f"all {len(cmd_keys)} have category/title/short/usage",
+        )
+    else:
+        results.fail(
+            "every HELP_COMMANDS entry has required fields",
+            "; ".join(missing_fields[:3]),
+        )
+
+    # Verify the new help_command function uses _help_render_main/category/command
+    has_main = "_help_render_main" in src
+    has_cat = "_help_render_category" in src
+    has_cmd = "_help_render_command" in src
+    has_deep_link = "message.command" in src and "len(message.command) > 1" in src
+    if has_main and has_cat and has_cmd and has_deep_link:
+        results.ok("help_command uses all 3 renderers + deep link", "main/category/command/deep")
+    else:
+        results.fail(
+            "help_command uses all 3 renderers + deep link",
+            f"main={has_main} cat={has_cat} cmd={has_cmd} deep_link={has_deep_link}",
+        )
+
+    # Verify callbacks.py has the help handlers
+    cb_src = (REPO_ROOT / "leechbot" / "callbacks.py").read_text()
+    cb_checks = [
+        ("_handle_help_main defined", "async def _handle_help_main"),
+        ("_handle_help_category defined", "async def _handle_help_category"),
+        ("_handle_help_command defined", "async def _handle_help_command"),
+        ('help_main callback routed', '"help_main"'),
+        ('help_close callback routed', '"help_close"'),
+        ("help_cat_ prefix routed", 'startswith("help_cat_")'),
+        ("help_cmd_ prefix routed", 'startswith("help_cmd_")'),
+    ]
+    for name, marker in cb_checks:
+        if marker in cb_src:
+            results.ok(name, "present")
+        else:
+            results.fail(name, f"missing marker: {marker}")
+
+
+# =============================================================================
+# Test 8 — Python syntax check on all source files
 # =============================================================================
 def test_syntax():
-    results.section("7. Python syntax (all .py files)")
+    results.section("8. Python syntax (all .py files)")
 
     py_files = list(REPO_ROOT.rglob("*.py"))
     # Exclude test workspace
@@ -531,6 +677,7 @@ def main():
         test_domain_helpers,
         test_command_consistency,
         test_version_consistency,
+        test_help_system,
         test_syntax,
     ]
     for t in tests:

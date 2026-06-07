@@ -426,7 +426,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 | `/restart` | Gracefully restart the bot (wrapper will respawn) |
 | `/logs [N]` | Show last N log lines (default 30, max 100) |
 | `/update` | Check for bot updates |
-| `/help` | Show help menu |
+| `/help` | **Category-button help menu** (6 categories, 30 commands). Try `/help ytupload` for direct command help. |
 
 ---
 

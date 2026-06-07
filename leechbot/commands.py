@@ -238,67 +238,421 @@ async def settings_command(client, message):
         await send_settings(client, message, message.id, True)
 
 # =============================================================================
-# /help
+# /help  (3.1.34 — category-button UI)
 # =============================================================================
-@app.on_message(filters.command("help") & filters.private)
-async def help_command(client, message):
-    """Handle the /help command."""
+HELP_CATEGORIES = {
+    "downloads": {
+        "name": "📥 Downloads",
+        "description": "Download from various sources",
+        "commands": [
+            "tupload", "gdupload", "drupload", "ytupload", "glupload",
+            "setname", "format", "formats", "preview", "speed",
+        ],
+    },
+    "files": {
+        "name": "🗂 Files",
+        "description": "Archive, queue and task control",
+        "commands": [
+            "zipaswd", "unzipaswd", "queue", "cancel", "cancel_all",
+        ],
+    },
+    "status": {
+        "name": "⚙️ Status & Settings",
+        "description": "Bot status, configuration, maintenance",
+        "commands": [
+            "settings", "status", "stats", "logs", "ping",
+            "restart", "update",
+        ],
+    },
+    "account": {
+        "name": "👤 Account",
+        "description": "UserBot session management",
+        "commands": [
+            "userbot", "userbot_status", "userbot_logout",
+        ],
+    },
+    "cookies": {
+        "name": "🍪 Cookies",
+        "description": "YT-DLP authentication",
+        "commands": [
+            "cookies", "setcookies", "clearcookies",
+        ],
+    },
+    "admin": {
+        "name": "🛠 Admin",
+        "description": "Owner-only commands",
+        "commands": [
+            "admin", "broadcast",
+        ],
+    },
+}
+
+HELP_COMMANDS = {
+    "tupload": {
+        "category": "downloads",
+        "title": "Telegram to Telegram",
+        "short": "Download a Telegram file and re-upload it.",
+        "usage": "/tupload <link>",
+        "examples": [
+            "/tupload https://t.me/c/1234567890/123",
+            "/tupload https://t.me/s/yunavip/28",
+        ],
+    },
+    "gdupload": {
+        "category": "downloads",
+        "title": "Mirror to Google Drive",
+        "short": "Download a link and mirror it to Google Drive.",
+        "usage": "/gdupload <link>",
+        "examples": ["/gdupload https://drive.google.com/file/d/..."],
+    },
+    "drupload": {
+        "category": "downloads",
+        "title": "Direct URL upload",
+        "short": "Download a direct HTTP(S) link and re-upload.",
+        "usage": "/drupload <direct_url>",
+        "examples": ["/drupload https://example.com/file.zip"],
+    },
+    "ytupload": {
+        "category": "downloads",
+        "title": "YT-DLP video download",
+        "short": "Download video/audio from YouTube and 2000+ sites.",
+        "usage": "/ytupload <video_url>",
+        "examples": ["/ytupload https://youtu.be/dQw4w9WgXcQ"],
+    },
+    "glupload": {
+        "category": "downloads",
+        "title": "Gallery download",
+        "short": "Download image galleries (Imgur, Pixiv, etc.).",
+        "usage": "/glupload <gallery_url>",
+        "examples": ["/glupload https://imgur.com/a/abc123"],
+    },
+    "setname": {
+        "category": "downloads",
+        "title": "Set custom filename",
+        "short": "Set a custom filename for the next download.",
+        "usage": "/setname <filename>",
+        "examples": ["/setname myvideo.mp4"],
+    },
+    "format": {
+        "category": "downloads",
+        "title": "Set YT-DLP quality",
+        "short": "Pick video format/quality (best, worst, 720p, etc.).",
+        "usage": "/format <quality>",
+        "examples": ["/format 720p", "/format best", "/format worst"],
+    },
+    "formats": {
+        "category": "downloads",
+        "title": "List available formats",
+        "short": "List all formats available for a video URL.",
+        "usage": "/formats <video_url>",
+        "examples": ["/formats https://youtu.be/dQw4w9WgXcQ"],
+    },
+    "preview": {
+        "category": "downloads",
+        "title": "Preview gallery",
+        "short": "Dry-run a gallery URL to see what would be downloaded.",
+        "usage": "/preview <gallery_url>",
+        "examples": ["/preview https://imgur.com/a/abc123"],
+    },
+    "speed": {
+        "category": "downloads",
+        "title": "Set bandwidth limit",
+        "short": "Throttle download speed (in MB/s). 0 = unlimited.",
+        "usage": "/speed <mbps>",
+        "examples": ["/speed 5", "/speed 0 (unlimited)"],
+    },
+    "zipaswd": {
+        "category": "files",
+        "title": "Set zip password",
+        "short": "Password-protect the next .zip archive.",
+        "usage": "/zipaswd <password>",
+        "examples": ["/zipaswd mySecret123"],
+    },
+    "unzipaswd": {
+        "category": "files",
+        "title": "Set unzip password",
+        "short": "Password to use when extracting the next archive.",
+        "usage": "/unzipaswd <password>",
+        "examples": ["/unzipaswd mySecret123"],
+    },
+    "queue": {
+        "category": "files",
+        "title": "View queue",
+        "short": "Show current and pending tasks in the queue.",
+        "usage": "/queue",
+        "examples": ["/queue"],
+    },
+    "cancel": {
+        "category": "files",
+        "title": "Cancel current task",
+        "short": "Cancel the currently running task.",
+        "usage": "/cancel",
+        "examples": ["/cancel"],
+    },
+    "cancel_all": {
+        "category": "files",
+        "title": "Cancel all tasks",
+        "short": "Cancel the running task AND clear the queue.",
+        "usage": "/cancel_all",
+        "examples": ["/cancel_all"],
+    },
+    "settings": {
+        "category": "status",
+        "title": "Bot settings",
+        "short": "Open the settings menu (thumb, caption, format, etc.).",
+        "usage": "/settings",
+        "examples": ["/settings"],
+    },
+    "status": {
+        "category": "status",
+        "title": "Current task status",
+        "short": "Show live progress, speed, ETA of the current task.",
+        "usage": "/status",
+        "examples": ["/status"],
+    },
+    "stats": {
+        "category": "status",
+        "title": "Bot statistics",
+        "short": "Lifetime stats: tasks, downloaded, uploaded, uptime.",
+        "usage": "/stats",
+        "examples": ["/stats"],
+    },
+    "logs": {
+        "category": "status",
+        "title": "View logs",
+        "short": "Get the last 50 lines of bot logs as a file.",
+        "usage": "/logs",
+        "examples": ["/logs"],
+    },
+    "ping": {
+        "category": "status",
+        "title": "Latency check",
+        "short": "Show Telegram API latency + bot uptime + version.",
+        "usage": "/ping",
+        "examples": ["/ping"],
+    },
+    "restart": {
+        "category": "status",
+        "title": "Restart bot",
+        "short": "Restart the bot process (owner only).",
+        "usage": "/restart",
+        "examples": ["/restart"],
+    },
+    "update": {
+        "category": "status",
+        "title": "Check for updates",
+        "short": "Pull latest code from GitHub and restart (owner only).",
+        "usage": "/update",
+        "examples": ["/update"],
+    },
+    "userbot": {
+        "category": "account",
+        "title": "UserBot login",
+        "short": "Login as your user account to access private channels.",
+        "usage": "/userbot",
+        "examples": ["/userbot", "(then send phone number)"],
+    },
+    "userbot_status": {
+        "category": "account",
+        "title": "UserBot status",
+        "short": "Check if a user session is active and which account.",
+        "usage": "/userbot_status",
+        "examples": ["/userbot_status"],
+    },
+    "userbot_logout": {
+        "category": "account",
+        "title": "UserBot logout",
+        "short": "Log out the user session and delete the session file.",
+        "usage": "/userbot_logout",
+        "examples": ["/userbot_logout"],
+    },
+    "cookies": {
+        "category": "cookies",
+        "title": "Cookies status",
+        "short": "Check cookie auth status and get a setup guide.",
+        "usage": "/cookies",
+        "examples": ["/cookies"],
+    },
+    "setcookies": {
+        "category": "cookies",
+        "title": "Upload cookies.txt",
+        "short": "Upload a cookies.txt file as a YT-DLP auth fallback.",
+        "usage": "/setcookies (then attach cookies.txt)",
+        "examples": ["/setcookies", "(reply with cookies.txt)"],
+    },
+    "clearcookies": {
+        "category": "cookies",
+        "title": "Clear cookies",
+        "short": "Delete stored cookies from disk.",
+        "usage": "/clearcookies",
+        "examples": ["/clearcookies"],
+    },
+    "admin": {
+        "category": "admin",
+        "title": "Admin panel",
+        "short": "Manage authorized users (owner only).",
+        "usage": "/admin",
+        "examples": ["/admin"],
+    },
+    "broadcast": {
+        "category": "admin",
+        "title": "Broadcast message",
+        "short": "Send a file or message to multiple chats (owner only).",
+        "usage": "/broadcast <message>",
+        "examples": ["/broadcast Hello all users!"],
+    },
+}
+
+
+def _help_render_main():
+    """Render the main help menu (category buttons)."""
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-    help_text = """**📖 LeechBot Help Menu**
+    lines = [
+        "**📖 LeechBot Help**",
+        "",
+        f"_{len(HELP_COMMANDS)} commands across {len(HELP_CATEGORIES)} categories._",
+        "",
+        "**Pick a category to browse:**",
+        "",
+    ]
 
-─── Download Commands ───
-• `/start` — Start the bot
-• `/tupload` — Upload to Telegram
-• `/gdupload` — Mirror to Google Drive
-• `/drupload` — Upload local directory
-• `/ytupload` — Download with YT-DLP
-• `/glupload` — Download image galleries
-• `/preview` — Dry-run a gallery URL to see what would be downloaded
+    buttons = []
+    # 2-column grid of category buttons
+    cat_items = list(HELP_CATEGORIES.items())
+    for i in range(0, len(cat_items), 2):
+        row = []
+        for key, cat in cat_items[i:i + 2]:
+            n_cmds = len(cat["commands"])
+            row.append(InlineKeyboardButton(
+                f"{cat['name']} ({n_cmds})",
+                callback_data=f"help_cat_{key}",
+            ))
+        buttons.append(row)
+    buttons.append([InlineKeyboardButton("❌ Close", callback_data="help_close")])
 
-─── Queue & Control ───
-• `/queue` — View download queue
-• `/cancel` — Cancel current task
-• `/cancel_all` — Cancel & clear queue
-
-─── Settings ───
-• `/settings` — Bot settings menu
-• `/setname` — Set custom filename
-• `/zipaswd` — Set zip password
-• `/unzipaswd` — Set unzip password
-• `/format` — Set YT-DLP quality
-• `/formats` — List available formats for a video URL
-• `/speed` — Set bandwidth limit
-
-─── Admin ───
-• `/admin` — Manage allowed users
-• `/broadcast` — Send file to multiple chats
-• `/stats` — Bot & system statistics
-• `/update` — Check for updates
-• `/help` — Show this help message
-
-─── YT-DLP Auth ───
-• `/cookies` — Check auth status & setup guide
-• `/setcookies` — Upload cookies.txt as fallback
-• `/clearcookies` — Delete stored cookies
-
-**🖼️ Thumbnail:** Send any image to set as thumbnail
-
-─── Supported Sites ───
-Direct Links, Google Drive, Telegram
-YouTube, Facebook & 2000+ sites
-Terabox, Mega, Pixeldrain, Mediafire"""
-
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("📂 GitHub Repository ✨", url="https://github.com/Shineii86/LeechBot")],
-        [
-            InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
-            InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
-        ],
-        [InlineKeyboardButton("🧑‍💻 Developer ✨", url="https://t.me/Shineii86")],
+    # Footer info
+    lines.extend([
+        "**💡 Tips:**",
+        "• `/help <cmd>` — direct help for one command",
+        "• `/start` — welcome & main menu",
+        "",
+        "**🔗 Links:**",
     ])
 
-    msg = await message.reply_text(help_text, reply_markup=keyboard)
+    return (
+        "\n".join(lines),
+        InlineKeyboardMarkup(buttons + [
+            [
+                InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
+                InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
+            ],
+        ]),
+    )
+
+
+def _help_render_category(cat_key: str):
+    """Render a category detail (command buttons in that category)."""
+    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+    if cat_key not in HELP_CATEGORIES:
+        return None, None
+
+    cat = HELP_CATEGORIES[cat_key]
+    lines = [
+        f"**{cat['name']}**",
+        f"_{cat['description']}_",
+        "",
+        f"_{len(cat['commands'])} commands. Pick one for details:_",
+        "",
+    ]
+
+    buttons = []
+    # 2-column grid of command buttons
+    cmds = cat["commands"]
+    for i in range(0, len(cmds), 2):
+        row = []
+        for cmd in cmds[i:i + 2]:
+            row.append(InlineKeyboardButton(
+                f"/{cmd}",
+                callback_data=f"help_cmd_{cmd}",
+            ))
+        buttons.append(row)
+
+    # Navigation row
+    buttons.append([
+        InlineKeyboardButton("⬅️ Back", callback_data="help_main"),
+        InlineKeyboardButton("❌ Close", callback_data="help_close"),
+    ])
+
+    return ("\n".join(lines), InlineKeyboardMarkup(buttons))
+
+
+def _help_render_command(cmd_name: str):
+    """Render a single command's detailed help."""
+    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+    if cmd_name not in HELP_COMMANDS:
+        return None, None
+
+    cmd = HELP_COMMANDS[cmd_name]
+    cat = HELP_CATEGORIES.get(cmd["category"], {})
+
+    lines = [
+        f"**/{cmd_name}** — {cmd['title']}",
+        f"_{cat.get('name', 'Unknown')}_",
+        "",
+        f"**📝 Description:**",
+        cmd["short"],
+        "",
+        f"**⌨️ Usage:**",
+        f"`{cmd['usage']}`",
+    ]
+
+    if cmd.get("examples"):
+        lines.extend(["", "**📚 Examples:**"])
+        for ex in cmd["examples"]:
+            lines.append(f"• `{ex}`")
+
+    cat_key = cmd["category"]
+    buttons = [[
+        InlineKeyboardButton("⬅️ Back to category", callback_data=f"help_cat_{cat_key}"),
+        InlineKeyboardButton("🏠 Main menu", callback_data="help_main"),
+    ], [
+        InlineKeyboardButton("❌ Close", callback_data="help_close"),
+    ]]
+
+    return ("\n".join(lines), InlineKeyboardMarkup(buttons))
+
+
+@app.on_message(filters.command("help") & filters.private)
+async def help_command(client, message):
+    """
+    Handle the /help command.
+
+    Usage:
+        /help           — show category menu
+        /help <command> — show detailed help for that command
+    """
+    # Deep-link: /help <command>
+    if len(message.command) > 1:
+        cmd_name = message.command[1].lstrip("/").lower()
+        if cmd_name in HELP_COMMANDS:
+            text, keyboard = _help_render_command(cmd_name)
+            msg = await message.reply_text(text, reply_markup=keyboard)
+            await message_deleter(message, msg)
+            return
+        # Unknown command — fall through to category menu + mention the typo
+        from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+        text, keyboard = _help_render_main()
+        text = f"⚠️ Command `/{cmd_name}` not found.\n\n" + text
+        msg = await message.reply_text(text, reply_markup=keyboard)
+        await message_deleter(message, msg)
+        return
+
+    # Default: category menu
+    text, keyboard = _help_render_main()
+    msg = await message.reply_text(text, reply_markup=keyboard)
     await message_deleter(message, msg)
 
 # =============================================================================
