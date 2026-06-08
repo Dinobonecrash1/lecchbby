@@ -41,7 +41,6 @@
 - [✨ What's New?](#-whats-new-in-v3145)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
-- [👤 UserBot — Private Channels](#-userbot--private-channels)
 - [🌐 Web Dashboard](#-web-dashboard)
 - [📥 How to Deploy](#-how-to-deploy)
 - [📋 Commands](#-commands)
@@ -74,7 +73,6 @@
 |---------|-------------|
 | 📤 **Telegram Upload** | Upload any file/folder to Telegram (video, audio, document, photo) |
 | ☁️ **Google Drive Mirror** | Mirror downloads directly to Google Drive |
-| 👤 **UserBot Session** | Access private channels via your own Telegram account |
 | 📡 **HLS/DASH Streams** | Download `.m3u8` and `.mpd` streaming URLs |
 | 📁 **Directory Leech** | Upload entire local directories recursively |
 | 🎬 **Video Converter** | Convert to MP4/MKV with FFmpeg (GPU accelerated) |
@@ -114,7 +112,6 @@
 | Crunchyroll, TubiTV, Odysee | yt-dlp | ✅ |
 | Reddit, VK, Dailymotion, Vimeo | yt-dlp | ✅ |
 | Google Drive | GDrive API | ✅ Files, folders, shared drives |
-| Telegram (public + private) | Pyrogram | ✅ With UserBot support |
 | Twitter, Pinterest | gallery-dl | ✅ 100+ gallery sites |
 | Pixiv, DeviantArt, ArtStation | gallery-dl | ✅ Art galleries |
 | Mega.nz | megatools | ✅ Files + folders, async |
@@ -135,33 +132,6 @@
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
-
-## 👤 UserBot — Private Channels
-
-Download from private Telegram channels/groups **without adding the bot as a member**.
-
-```
-Normal:  Bot → Private Channel → ❌ not a member
-UserBot: Bot → Your Account → Private Channel → ✅ you're a member
-```
-
-### Setup (one-time)
-1. Send `/userbot` to the bot
-2. Enter your phone number (`+1234567890`)
-3. Enter the OTP code from Telegram
-4. Enter 2FA password if enabled
-5. Done! Session saved locally
-
-### Commands
-| Command | Description |
-|---------|-------------|
-| `/userbot` | Start login flow |
-| `/userbot_status` | Check session status |
-| `/userbot_logout` | Disconnect and remove session |
-
-📖 [Full UserBot guide](GUIDE.md#-userbot-setup-for-private-channels)
-
----
 
 ## 🌐 Web Dashboard
 
