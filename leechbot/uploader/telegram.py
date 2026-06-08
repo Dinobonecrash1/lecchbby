@@ -114,7 +114,6 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 duration=int(seconds),
                 progress=progress_bar,
                 reply_to_message_id=MSG.sent_msg.id,
-                chunk_size=UPLOAD_CHUNK_SIZE,
             )
 
         elif f_type == "audio":
@@ -127,7 +126,6 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 thumb=thmb_path,
                 progress=progress_bar,
                 reply_to_message_id=MSG.sent_msg.id,
-                chunk_size=UPLOAD_CHUNK_SIZE,
             )
 
         elif f_type == "photo":
@@ -137,7 +135,6 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 caption=caption,
                 progress=progress_bar,
                 reply_to_message_id=MSG.sent_msg.id,
-                chunk_size=UPLOAD_CHUNK_SIZE,
             )
 
         else:
@@ -155,7 +152,6 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 thumb=thmb_path,
                 progress=progress_bar,
                 reply_to_message_id=MSG.sent_msg.id,
-                chunk_size=UPLOAD_CHUNK_SIZE,
             )
 
         # Track sent files
@@ -223,7 +219,6 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
             caption=caption,
             progress=progress_bar,
             reply_to_message_id=MSG.sent_msg.id,
-            chunk_size=UPLOAD_CHUNK_SIZE,
         )
         file_id = temp_msg.photo.file_id
 
