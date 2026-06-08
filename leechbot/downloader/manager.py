@@ -83,7 +83,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
     from leechbot.downloader.mega import megadl
     from leechbot.downloader.gallery import gallery_download
 
-    merge_msg = "\n**⏳ Please Wait...**\n`Merging YT-DLP Video...`"
+    merge_msg = "\n<b>⏳ Please Wait...</b>\n<code>Merging YT-DLP Video...</code>"
     BotTimes.task_start = datetime.now()
 
     if is_ytdl:
@@ -187,7 +187,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
 
                 else:
                     # Default: aria2c (HTTP/FTP/torrent)
-                    aria_msg = f"**⏳ Getting Info...**\n\n`{link}`"
+                    aria_msg = f"<b>⏳ Getting Info...</b>\n\n<code>{link}</code>"
                     try:
                         await MSG.status_msg.edit_text(
                             text=aria_msg + sysINFO(),

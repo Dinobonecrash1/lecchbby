@@ -54,7 +54,7 @@ async def catbox_download(link: str, num: int):
     dest = ospath.join(Paths.down_path, filename)
 
     BotTimes.task_start = datetime.now()
-    Messages.status_head = f"**📥 Catbox** `{num}`\n\n`{filename}`\n"
+    Messages.status_head = f"<b>📥 Catbox</b> <code>{num}</code>\n\n<code>{filename}</code>\n"
 
     async with aiohttp.ClientSession(timeout=_TIMEOUT) as session:
         async with session.get(link, headers=_HEADERS) as resp:

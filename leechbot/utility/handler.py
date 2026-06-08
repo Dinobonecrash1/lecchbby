@@ -73,7 +73,7 @@ async def Leech(folder_path: str, remove: bool):
             # Group mode: batch upload in groups of 10 (Telegram limit)
             try:
                 MSG.status_msg = await MSG.status_msg.edit_text(
-                    text=Messages.task_msg + "\n**📸 Uploading photos in batches...**" + sysINFO(),
+                    text=Messages.task_msg + "\n<b>📸 Uploading photos in batches...</b>" + sysINFO(),
                     reply_markup=keyboard()
                 )
             except Exception as e:
@@ -85,7 +85,7 @@ async def Leech(folder_path: str, remove: bool):
             for idx, photo_path in enumerate(photo_files, 1):
                 photo_name = ospath.basename(photo_path)
                 BotTimes.current_time = time()
-                Messages.status_head = f"**📸 Uploading photo** `{idx}/{len(photo_files)}`\n\n`{photo_name}`\n"
+                Messages.status_head = f"<b>📸 Uploading photo</b> <code>{idx}/{len(photo_files)}</code>\n\n<code>{photo_name}</code>\n"
 
                 try:
                     MSG.status_msg = await MSG.status_msg.edit_text(
@@ -122,7 +122,7 @@ async def Leech(folder_path: str, remove: bool):
                     logger.warning(f"Rename failed: {e}")
 
                 BotTimes.current_time = time()
-                Messages.status_head = f"**📤 Uploading Split** `{count}/{len(dir_list)}`\n\n`{file_name}`\n"
+                Messages.status_head = f"<b>📤 Uploading Split</b> <code>{count}/{len(dir_list)}</code>\n\n<code>{file_name}</code>\n"
 
                 try:
                     MSG.status_msg = await MSG.status_msg.edit_text(
@@ -157,7 +157,7 @@ async def Leech(folder_path: str, remove: bool):
                 new_path = file_path
 
             BotTimes.current_time = time()
-            Messages.status_head = f"**📤 Uploading**\n\n`{file_name}`\n"
+            Messages.status_head = f"<b>📤 Uploading</b>\n\n<code>{file_name}</code>\n"
 
             try:
                 MSG.status_msg = await MSG.status_msg.edit_text(
@@ -203,7 +203,7 @@ async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
     """
     from leechbot.utility.variables import BOT, Messages, MSG, Transfer
 
-    Messages.status_head = f"**🗜️ Zipping**\n\n`{Messages.download_name}`\n"
+    Messages.status_head = f"<b>🗜️ Zipping</b>\n\n<code>{Messages.download_name}</code>\n"
 
     try:
         MSG.status_msg = await MSG.status_msg.edit_text(
@@ -240,7 +240,7 @@ async def Unzip_Handler(down_path: str, remove: bool):
     """
     from leechbot.utility.variables import MSG, Messages
 
-    Messages.status_head = f"\n**📂 Extracting**\n\n`{Messages.download_name}`\n"
+    Messages.status_head = f"\n<b>📂 Extracting</b>\n\n<code>{Messages.download_name}</code>\n"
 
     MSG.status_msg = await MSG.status_msg.edit_text(
         text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
@@ -284,14 +284,14 @@ async def cancelTask(reason: str):
     elapsed = getTime(int((datetime.now() - BotTimes.start_time).total_seconds()))
     mode_label = BOT.Mode.mode.capitalize() if BOT.Mode.mode else "Unknown"
 
-    src_line = f"• 🔗 **Source:** [Here]({Messages.src_link})\n" if Messages.src_link else ""
+    src_line = f"• 🔗 <b>Source:</b> <a href=\"{Messages.src_link}\">Here</a>\n" if Messages.src_link else ""
 
     text = (
-        f"🚫 **Task Cancelled**\n\n"
+        f"🚫 <b>Task Cancelled</b>\n\n"
         f"{src_line}"
-        f"• 🎯 **Mode:** `{mode_label}`\n"
-        f"• ⚠️ **Reason:** `{reason}`\n"
-        f"• ⏱️ **Elapsed:** `{elapsed}`"
+        f"• 🎯 <b>Mode:</b> <code>{mode_label}</code>\n"
+        f"• ⚠️ <b>Reason:</b> <code>{reason}</code>\n"
+        f"• ⏱️ <b>Elapsed:</b> <code>{elapsed}</code>"
     )
 
     if BOT.State.task_going:
@@ -353,16 +353,13 @@ async def SendLogs(is_leech: bool):
     avg_speed = sizeUnit(total_bytes / elapsed_secs) if elapsed_secs > 0 else "0 B"
 
     summary = (
-        f"\n\n┌───────────────────────────────┐"
-        f"\n      ✅  **TASK COMPLETE**"
-        f"\n├───────────────────────────────┤"
-        f"\n  📛  **Name**    →  `{Messages.download_name or 'Unknown'}`"
-        f"\n  📦  **Size**    →  `{size}`"
-        f"{f'\n  📋  **Files**   →  `{file_count_num}`' if is_leech else ''}"
-        f"\n  ⚡  **Speed**   →  `{avg_speed}/s`"
-        f"\n  ⏱️  **Time**    →  `{elapsed}`"
-        f"\n└───────────────────────────────┘"
-        f"\n  🤖  [LeechBot](https://github.com/Shineii86/LeechBot)  •  v{config.VERSION}"
+        f"\n\n<b>✅ TASK COMPLETE</b>\n\n"
+        f"📛 <b>Name:</b> <code>{Messages.download_name or 'Unknown'}</code>\n"
+        f"📦 <b>Size:</b> <code>{size}</code>\n"
+        f"{f'📋 <b>Files:</b> <code>{file_count_num}</code>\n' if is_leech else ''}"
+        f"⚡ <b>Speed:</b> <code>{avg_speed}/s</code>\n"
+        f"⏱️ <b>Time:</b> <code>{elapsed}</code>\n\n"
+        f"🤖 <a href=\"https://github.com/Shineii86/LeechBot\">LeechBot</a> • v{config.VERSION}"
     )
 
     if not BOT.State.task_going:
@@ -370,7 +367,7 @@ async def SendLogs(is_leech: bool):
 
     # Send summary reply
     try:
-        src_line = f"\n  🔗  **Source**  →  [Here]({Messages.src_link})" if Messages.src_link else ""
+        src_line = f"\n🔗 <b>Source:</b> <a href=\"{Messages.src_link}\">Here</a>" if Messages.src_link else ""
         await MSG.sent_msg.reply_text(text=src_line + summary)
     except Exception as e:
         logger.error("Failed to send source reply: %s", e)
@@ -394,7 +391,7 @@ async def SendLogs(is_leech: bool):
 
     # Send file list if leech task
     if is_leech and Transfer.sent_file:
-        final_text = f"┌───────────────────────────────┐\n  📋  **FILES**  →  `{file_count_num}`\n└───────────────────────────────┘\n"
+        final_text = f"<b>📋 FILES</b> » <code>{file_count_num}</code>\n\n"
         try:
             final_texts = []
             for i in range(len(Transfer.sent_file)):
@@ -416,7 +413,7 @@ async def SendLogs(is_leech: bool):
         except Exception as e:
             logger.error("File list send error: %s", e)
             try:
-                await MSG.status_msg.reply_text(text=f"**❌ Log Error:** `{e}`")
+                await MSG.status_msg.reply_text(text=f"<b>❌ Log Error:</b> <code>{e}</code>")
             except Exception:
                 pass
 

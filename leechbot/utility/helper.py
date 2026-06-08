@@ -462,8 +462,8 @@ def sysINFO() -> str:
 
         return f"""
 
-─── System ───
-• 🖥️ `{cpu_usage}%` · 💾 `{sizeUnit(ram_usage)} RAM` · 💽 `{sizeUnit(disk_usage.free)} free`"""
+<b>─── System ───</b>
+• 🖥️ <code>{cpu_usage}%</code> · 💾 <code>{sizeUnit(ram_usage)} RAM</code> · 💽 <code>{sizeUnit(disk_usage.free)} free</code>"""
     except Exception:
         return ""
 
@@ -484,12 +484,12 @@ def sysINFO_full() -> str:
 
         return f"""
 
-📊 **System Info (Detailed)**
-• 🖥️ **CPU:** `{psutil.cpu_percent()}%` (cores: {core_str})
-• 💽 **RAM:** `{sizeUnit(ram.used)} / {sizeUnit(ram.total)}` ({ram.percent}%)
-• 💾 **Disk:** `{sizeUnit(disk.used)} / {sizeUnit(disk.total)}` ({disk.percent}%)
-• 🌐 **Net:** ↓`{sizeUnit(net.bytes_recv)}` ↑`{sizeUnit(net.bytes_sent)}`
-• ⏱️ **Uptime:** `{getTime(int(time() - psutil.boot_time()))}`"""
+<b>📊 System Info (Detailed)</b>
+• 🖥️ <b>CPU:</b> <code>{psutil.cpu_percent()}%</code> (cores: {core_str})
+• 💽 <b>RAM:</b> <code>{sizeUnit(ram.used)} / {sizeUnit(ram.total)}</code> ({ram.percent}%)
+• 💾 <b>Disk:</b> <code>{sizeUnit(disk.used)} / {sizeUnit(disk.total)}</code> ({disk.percent}%)
+• 🌐 <b>Net:</b> ↓<code>{sizeUnit(net.bytes_recv)}</code> ↑<code>{sizeUnit(net.bytes_sent)}</code>
+• ⏱️ <b>Uptime:</b> <code>{getTime(int(time() - psutil.boot_time()))}</code>"""
     except Exception:
         return sysINFO()
 
@@ -502,13 +502,13 @@ def format_stats() -> str:
 
     uptime = getTime(int((datetime.now() - BotStats.start_time).total_seconds()))
 
-    return f"""📊 **Bot Statistics**
+    return f"""<b>📊 Bot Statistics</b>
 
-• 📥 **Total Downloads:** `{BotStats.total_tasks}`
-• 📤 **Data Downloaded:** `{sizeUnit(BotStats.total_downloaded)}`
-• 📥 **Data Uploaded:** `{sizeUnit(BotStats.total_uploaded)}`
-• ❌ **Failed Tasks:** `{BotStats.failed_tasks}`
-• ⏱️ **Uptime:** `{uptime}`"""
+• 📥 <b>Total Downloads:</b> <code>{BotStats.total_tasks}</code>
+• 📤 <b>Data Downloaded:</b> <code>{sizeUnit(BotStats.total_downloaded)}</code>
+• 📥 <b>Data Uploaded:</b> <code>{sizeUnit(BotStats.total_uploaded)}</code>
+• ❌ <b>Failed Tasks:</b> <code>{BotStats.failed_tasks}</code>
+• ⏱️ <b>Uptime:</b> <code>{uptime}</code>"""
 
 # =============================================================================
 # Multipart Archive Handling
@@ -662,17 +662,17 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
     thmb = "✅" if BOT.Setting.thumbnail else "❎"
     auto_del = f"{BOT.Setting.auto_delete_delay}s" if BOT.Setting.auto_delete else "Off"
 
-    text = f"""⚙️ **Bot Settings**
+    text = f"""<b>⚙️ Bot Settings</b>
 
-• 📤 **Upload:** `{BOT.Setting.stream_upload}`
-• ✂️ **Split:** `{BOT.Setting.split_video}`
-• 🔄 **Convert:** `{BOT.Setting.convert_video}`
-• 📝 **Caption:** `{BOT.Setting.caption}`
-• ➕ **Prefix:** {pr}
-• ➕ **Suffix:** {su}
-• 🖼️ **Thumb:** {thmb}
-• 📸 **Photos:** `{BOT.Setting.photo_mode}`
-• ⏳ **Auto-Delete:** `{auto_del}`"""
+• 📤 <b>Upload:</b> <code>{BOT.Setting.stream_upload}</code>
+• ✂️ <b>Split:</b> <code>{BOT.Setting.split_video}</code>
+• 🔄 <b>Convert:</b> <code>{BOT.Setting.convert_video}</code>
+• 📝 <b>Caption:</b> <code>{BOT.Setting.caption}</code>
+• ➕ <b>Prefix:</b> {pr}
+• ➕ <b>Suffix:</b> {su}
+• 🖼️ <b>Thumb:</b> {thmb}
+• 📸 <b>Photos:</b> <code>{BOT.Setting.photo_mode}</code>
+• ⏳ <b>Auto-Delete:</b> <code>{auto_del}</code>"""
 
     try:
         if is_command:
@@ -720,15 +720,13 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
     elapsed = getTime((datetime.now() - BotTimes.start_time).total_seconds())
 
     text = (
-        f"\n┌───────────────────────────────┐"
-        f"\n  {bar}  **{percentage:.2f}%**"
-        f"\n├───────────────────────────────┤"
-        f"\n  ⚡  **Speed**      →  `{speed}`"
-        f"\n  ⏳  **ETA**        →  `{eta}`"
-        f"\n  📦  **Processed**  →  `{done}` / `{left}`"
-        f"\n  ⏱️  **Elapsed**    →  `{elapsed}`"
-        f"\n  🔧  **Engine**     →  `{engine}`"
-        f"\n└───────────────────────────────┘"
+        f"\n<b>━━━ Progress ━━━</b>\n"
+        f"{bar}  <b>{percentage:.2f}%</b>\n\n"
+        f"⚡ <b>Speed:</b> <code>{speed}</code>\n"
+        f"⏳ <b>ETA:</b> <code>{eta}</code>\n"
+        f"📦 <b>Processed:</b> <code>{done}</code> / <code>{left}</code>\n"
+        f"⏱️ <b>Elapsed:</b> <code>{elapsed}</code>\n"
+        f"🔧 <b>Engine:</b> <code>{engine}</code>"
     )
 
     try:

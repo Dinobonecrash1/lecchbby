@@ -122,8 +122,8 @@ async def mediafire_download(link: str, num: int):
 
     Messages.download_name = filename
     Messages.status_head = (
-        f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n"
-        f"**🏷️ Name:** `{filename}`\n"
+        f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n"
+        f"<b>🏷️ Name:</b> <code>{filename}</code>\n"
     )
 
     file_path = ospath.join(Paths.down_path, filename)

@@ -197,8 +197,8 @@ async def aria2_Download(link: str, num: int):
     name_d = get_Aria2c_Name(url if out is None else out)
     BotTimes.task_start = datetime.now()
     Messages.status_head = (
-        f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n"
-        f"**🏷️ Name:** `{name_d}`\n"
+        f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n"
+        f"<b>🏷️ Name:</b> <code>{name_d}</code>\n"
     )
 
     bandwidth = BOT.Options.bandwidth_limit

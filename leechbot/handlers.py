@@ -103,7 +103,7 @@ async def handle_url(client, message):
 
             MSG.status_msg = await app.send_message(
                 chat_id=OWNER,
-                text="**🚀 Initializing Gallery Download...**\n\nPlease Wait While I Prepare Your Download",
+                text="<b>🚀 Initializing Gallery Download...</b>\n\nPlease wait while I prepare your download",
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
                 ),
@@ -134,18 +134,18 @@ async def handle_url(client, message):
         ])
 
         mode_text = BOT.Mode.mode.capitalize()
-        options_text = f"""**🎯 Select Upload Type For {mode_text}**
+        options_text = f"""<b>🎯 Select Upload Type For {mode_text}</b>
 
-📄 **Regular** — Normal file upload
-🗜️ **Compress** — Zip file upload
-📂 **Extract** — Extract archive before upload
-🔄 **Unzip+Zip** — Extract then compress"""
+📄 <b>Regular</b> — Normal file upload
+🗜️ <b>Compress</b> — Zip file upload
+📂 <b>Extract</b> — Extract archive before upload
+🔄 <b>Unzip+Zip</b> — Extract then compress"""
 
         await message.reply_text(text=options_text, reply_markup=keyboard, quote=True)
 
     elif BOT.State.started:
         await message.delete()
-        msg = await message.reply_text("**⏳ I'm Already Working! Please Wait...**")
+        msg = await message.reply_text("<b>⏳ I'm Already Working! Please Wait...</b>")
         await message_deleter(message, msg)
 
 
@@ -155,13 +155,13 @@ async def handle_url(client, message):
 @app.on_message(filters.photo & filters.private)
 async def handle_photo(client, message):
     """Handle photo messages to set thumbnail."""
-    msg = await message.reply_text("**🖼️ Processing Thumbnail...**")
+    msg = await message.reply_text("<b>🖼️ Processing Thumbnail...</b>")
     success = await setThumbnail(message)
     if success:
-        await msg.edit_text("**✅ Thumbnail Set Successfully**")
+        await msg.edit_text("<b>✅ Thumbnail Set Successfully</b>")
         await message.delete()
     else:
-        await msg.edit_text("**❎ Failed To Set Thumbnail**")
+        await msg.edit_text("<b>❎ Failed To Set Thumbnail</b>")
     await message_deleter(message, msg)
 
 
@@ -176,17 +176,17 @@ async def handle_document(client, message):
 
     file_name = message.document.file_name or ""
     if file_name.lower() == "cookies.txt":
-        msg = await message.reply_text("**🍪 Downloading cookies file...**")
+        msg = await message.reply_text("<b>🍪 Downloading cookies file...</b>")
         try:
             await message.download(file_name=Paths.COOKIE_FILE)
             await msg.edit_text(
-                "**✅ Cookies file saved!**\n\n"
+                "<b>✅ Cookies file saved!</b>\n\n"
                 "YouTube downloads should now work.\n"
-                "Use `/cookies` to verify status."
+                "Use <code>/cookies</code> to verify status."
             )
             logger.info("Cookies file uploaded and saved to %s", Paths.COOKIE_FILE)
         except Exception as e:
-            await msg.edit_text(f"**❌ Failed to save cookies:** `{e}`")
+            await msg.edit_text(f"<b>❌ Failed to save cookies:</b> <code>{e}</code>")
             logger.error("Cookie file save error: %s", e)
         await message_deleter(message, msg)
 
@@ -211,11 +211,11 @@ async def handle_text_input(client, message):
             if 5 <= delay <= 300:
                 BOT.Setting.auto_delete_delay = delay
                 BOT.State.setting_autodelete_delay = False
-                await message.reply_text(f"**✅ Auto-delete delay set to {delay} seconds.**")
+                await message.reply_text(f"<b>✅ Auto-delete delay set to {delay} seconds.</b>")
                 await message.delete()
             else:
-                await message.reply_text("**⚠️ Please enter a number between 5 and 300.**")
+                await message.reply_text("<b>⚠️ Please enter a number between 5 and 300.</b>")
                 await message.delete()
         except ValueError:
-            await message.reply_text("**⚠️ Invalid number. Please try again.**")
+            await message.reply_text("<b>⚠️ Invalid number. Please try again.</b>")
             await message.delete()

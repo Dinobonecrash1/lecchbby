@@ -53,8 +53,8 @@ async def _download_file(url: str, dest: str, filename: str, file_num: int, tota
             downloaded = 0
 
             Messages.status_head = (
-                f"**📥 GoFile** `{file_num}/{total}`\n\n"
-                f"`{filename}`\n"
+                f"<b>📥 GoFile</b> <code>{file_num}/{total}</code>\n\n"
+                f"<code>{filename}</code>\n"
             )
 
             with open(dest, 'wb') as f:

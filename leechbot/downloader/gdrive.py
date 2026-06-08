@@ -264,8 +264,8 @@ async def g_DownLoad(link: str, num: int):
     meta = await _run_sync(_getFileMetadata, file_id)
     Messages.download_name = meta.get("name", "GDrive File")
     Messages.status_head = (
-        f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n"
-        f"**🏷️ Name:** `{Messages.download_name}`\n"
+        f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n"
+        f"<b>🏷️ Name:</b> <code>{Messages.download_name}</code>\n"
     )
 
     if meta.get("mimeType") == "application/vnd.google-apps.folder":

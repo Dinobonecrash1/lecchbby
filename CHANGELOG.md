@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.47] - 2026-06-08
+
+### Changed
+- **🎨 Full UI redesign — HTML formatting** — migrated ALL bot messages from Markdown (`**bold**`, `` `code` ``) to HTML (`<b>bold</b>`, `<code>code</code>`) across 20+ files:
+  - `callbacks.py`: HELP_TEXT, ABOUT_TEXT, all callback messages (prefix, suffix, autodelete, format, bandwidth, video, caption, thumb, photo mode, upload, update, system info)
+  - `commands.py`: WELCOME_TEXT, help_text, /format, /speed, /tupload, /gdupload, /drupload, /ytupload, /glupload, /setname, /formats, /preview, /zipaswd, /unzipaswd, /ping, /status, /cancel, /cancel_all, /admin, /broadcast, /cookies, /setcookies, /clearcookies, /restart, /logs, /update
+  - `handlers.py`: gallery init, upload type selector, thumbnail, cookies, auto-delete delay
+  - `utility/helper.py`: sysINFO, sysINFO_full, format_stats, settings menu, status bar
+  - `utility/handler.py`: all upload status messages, cancel notification, task complete summary, file list
+  - `utility/task_manager.py`: task init messages
+  - `utility/converters.py`: video conversion, zipping, extracting, splitting
+  - `downloader/*.py`: all status_head messages (aria2, ytdl, gallery, gdrive, mega, catbox, gofile, mediafire, pixeldrain, streamtape, torrent)
+  - `uploader/telegram.py`: photo upload status
+  - `debug.py`: error reporting messages
+- **🔄 Arrow replacement** — changed `→` to `»` in all user-facing messages for better readability
+- **🧭 Consistent navigation buttons** — all keyboards now use `⌂ Home` + `🔒 Close` pattern (Help, About, Settings menus)
+- **💡 Tips added** — helpful tips in prefix, suffix, autodelete, format, caption messages
+
+---
+
 ## [3.1.46] - 2026-06-08
 
 ### Removed

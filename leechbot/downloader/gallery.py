@@ -94,8 +94,8 @@ async def gallery_download(url: str, num: int):
         makedirs(gallery_dir)
 
     Messages.status_head = (
-        f"**📸 Downloading Gallery** `Link {str(num).zfill(2)}`\n\n"
-        f"`{url[:80]}`\n"
+        f"<b>📸 Downloading Gallery</b> <code>Link {str(num).zfill(2)}</code>\n\n"
+        f"<code>{url[:80]}</code>\n"
     )
 
     BotTimes.task_start = datetime.now()
@@ -204,8 +204,8 @@ async def gallery_download(url: str, num: int):
         try:
             await MSG.status_msg.edit_text(
                 text=Messages.task_msg + Messages.status_head +
-                f"\n✅ **Complete:** `{len(files)} files` ({total_size})\n"
-                f"⏱️ **Time:** `{elapsed}`" + sysINFO(),
+                f"\n✅ <b>Complete:</b> <code>{len(files)} files</code> ({total_size})\n"
+                f"⏱️ <b>Time:</b> <code>{elapsed}</code>" + sysINFO(),
                 reply_markup=keyboard()
             )
         except Exception:
@@ -273,9 +273,9 @@ async def list_gallery_content(url: str) -> str:
             # Truncate for Telegram
             if len(output) > 3000:
                 output = output[:3000] + "\n... (truncated)"
-            return f"```\n{output}\n```"
+            return f"<code>\n{output}\n</code>"
         else:
-            return f"**❌ Error:** `{stderr.decode().strip()[:200]}`"
+            return f"<b>❌ Error:</b> <code>{stderr.decode().strip()[:200]}</code>"
 
     except Exception as e:
-        return f"**❌ Error:** `{e}`"
+        return f"<b>❌ Error:</b> <code>{e}</code>"

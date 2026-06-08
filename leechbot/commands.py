@@ -34,13 +34,13 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # /start
 # =============================================================================
-WELCOME_TEXT = """**🤖 LeechBot** — Advanced Telegram File Transloader
+WELCOME_TEXT = """<b>🤖 LeechBot</b> — Advanced Telegram File Transloader
 
 ◈ Powerful · Fast · Secure
 ◈ Download from 2000+ sources
 ◈ Upload to Telegram or Google Drive
 
-**📥 Send any link to start downloading.**
+<b>📥 Send any link to start downloading.</b>
 
 Tap a button below to explore:"""
 
@@ -51,7 +51,7 @@ def _start_keyboard():
             InlineKeyboardButton("📖 Help", callback_data="help_main"),
             InlineKeyboardButton("ℹ️ About", callback_data="about"),
         ],
-        [InlineKeyboardButton("🤖 Bot Settings ⚙️", callback_data="settings_menu")],
+        [InlineKeyboardButton("⚙️ Bot Settings", callback_data="settings_menu")],
         [
             InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
             InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
@@ -91,57 +91,61 @@ async def start_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("help") & filters.private)
 async def help_command(client, message):
-    help_text = """**📖 LeechBot Help Menu**
+    help_text = """<b>📖 LeechBot Help Menu</b>
 
-─── Download Commands ───
-• `/start` — Start the bot
-• `/tupload` — Upload to Telegram
-• `/gdupload` — Mirror to Google Drive
-• `/drupload` — Upload local directory
-• `/ytupload` — Download with YT-DLP
-• `/glupload` — Download image galleries
-• `/preview` — Dry-run a gallery URL to see what would be downloaded
+<b>─── Download Commands ───</b>
+• /start — Start the bot
+• /tupload — Upload to Telegram
+• /gdupload — Mirror to Google Drive
+• /drupload — Upload local directory
+• /ytupload — Download with YT-DLP
+• /glupload — Download image galleries
+• /preview — Dry-run a gallery URL to see what would be downloaded
 
-─── Queue & Control ───
-• `/queue` — View download queue
-• `/cancel` — Cancel current task
-• `/cancel_all` — Cancel & clear queue
+<b>─── Queue &amp; Control ───</b>
+• /queue — View download queue
+• /cancel — Cancel current task
+• /cancel_all — Cancel &amp; clear queue
 
-─── Settings ───
-• `/settings` — Bot settings menu
-• `/setname` — Set custom filename
-• `/zipaswd` — Set zip password
-• `/unzipaswd` — Set unzip password
-• `/format` — Set YT-DLP quality
-• `/formats` — List available formats for a video URL
-• `/speed` — Set bandwidth limit
+<b>─── Settings ───</b>
+• /settings — Bot settings menu
+• /setname — Set custom filename
+• /zipaswd — Set zip password
+• /unzipaswd — Set unzip password
+• /format — Set YT-DLP quality
+• /formats — List available formats for a video URL
+• /speed — Set bandwidth limit
 
-─── Admin ───
-• `/admin` — Manage allowed users
-• `/broadcast` — Send file to multiple chats
-• `/stats` — Bot & system statistics
-• `/update` — Check for updates
-• `/help` — Show this help message
+<b>─── Admin ───</b>
+• /admin — Manage allowed users
+• /broadcast — Send file to multiple chats
+• /stats — Bot &amp; system statistics
+• /update — Check for updates
+• /help — Show this help message
 
-─── YT-DLP Auth ───
-• `/cookies` — Check auth status & setup guide
-• `/setcookies` — Upload cookies.txt as fallback
-• `/clearcookies` — Delete stored cookies
+<b>─── YT-DLP Auth ───</b>
+• /cookies — Check auth status &amp; setup guide
+• /setcookies — Upload cookies.txt as fallback
+• /clearcookies — Delete stored cookies
 
-**🖼️ Thumbnail:** Send any image to set as thumbnail
+<b>🖼️ Thumbnail:</b> Send any image to set as thumbnail
 
-─── Supported Sites ───
+<b>─── Supported Sites ───</b>
 Direct Links, Google Drive
-YouTube, Facebook & 2000+ sites
+YouTube, Facebook &amp; 2000+ sites
 Terabox, Mega, Pixeldrain, Mediafire"""
 
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("📂 GitHub Repository ✨", url="https://github.com/Shineii86/LeechBot")],
         [
-            InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
-            InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
+            InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
+            InlineKeyboardButton("💬 Support", url="https://t.me/MaximXGroup"),
         ],
-        [InlineKeyboardButton("🧑‍💻 Developer ✨", url="https://t.me/Shineii86")],
+        [
+            InlineKeyboardButton("🧑‍💻 Developer", url="https://t.me/Shineii86"),
+            InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
+        ],
+        [InlineKeyboardButton("⌂ Home", callback_data="start_back"),
+         InlineKeyboardButton("🔒 Close", callback_data="close")],
     ])
 
     msg = await message.reply_text(help_text, reply_markup=keyboard, quote=True)
@@ -180,10 +184,10 @@ async def format_command(client, message):
 
     current_fmt = getattr(BOT.Setting, "ytdl_format", "bestvideo+bestaudio/best")
     await message.reply_text(
-        f"**🎬 YT-DLP Format Selection**\n\n"
-        f"**Current:** `{current_fmt}`\n\n"
+        f"<b>🎬 YT-DLP Format Selection</b>\n\n"
+        f"<b>Current:</b> <code>{current_fmt}</code>\n\n"
         f"Choose the quality for video downloads:\n\n"
-        f"💡 **Tip:** Lower quality = faster download & smaller size",
+        f"💡 <b>Tip:</b> Lower quality = faster download &amp; smaller size",
         reply_markup=keyboard,
         quote=True,
     )
@@ -214,8 +218,8 @@ async def speed_command(client, message):
 
     current = config.BANDWIDTH_LIMIT or "Unlimited"
     await message.reply_text(
-        f"**⚡ Bandwidth Limiter**\n\n"
-        f"**Current Limit:** `{current}`\n\n"
+        f"<b>⚡ Bandwidth Limiter</b>\n\n"
+        f"<b>Current Limit:</b> <code>{current}</code>\n\n"
         f"Set maximum download speed to avoid saturating your connection.\n"
         f"This applies to aria2c and YT-DLP downloads.",
         reply_markup=keyboard,
@@ -231,9 +235,9 @@ async def telegram_upload_command(client, message):
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
 
-    text = """**⚡ Send Download Link(s)** 🔗
+    text = """<b>⚡ Send Download Link(s)</b> 🔗
 
-📋 **Follow The Pattern Below:**
+📋 <b>Follow The Pattern Below:</b>
 
 <code>https://example.com/file1.mp4
 https://example.com/file2.mp4
@@ -241,11 +245,11 @@ https://example.com/file2.mp4
 {Zip Password}
 (Unzip Password)</code>
 
-─── Tips ───
+<b>─── Tips ───</b>
 • Multiple Links Supported
-• Use `[ ]` For Custom Filename
-• Use `{ }` For Zip Password
-• Use `( )` For Extract Password"""
+• Use [ ] For Custom Filename
+• Use { } For Zip Password
+• Use ( ) For Extract Password"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -258,9 +262,9 @@ async def gdrive_upload_command(client, message):
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
 
-    text = """**♻️ Send Download Link(s)** 🔗
+    text = """<b>♻️ Send Download Link(s)</b> 🔗
 
-📋 **Follow The Pattern Below:**
+📋 <b>Follow The Pattern Below:</b>
 
 <code>https://example.com/file1.mp4
 https://example.com/file2.mp4
@@ -268,7 +272,7 @@ https://example.com/file2.mp4
 {Zip Password}
 (Unzip Password)</code>
 
-─── Tips ───
+<b>─── Tips ───</b>
 • Multiple Links Supported
 • Files Will Be Mirrored To Your GDrive
 • Make Sure GDrive Is Mounted"""
@@ -284,13 +288,13 @@ async def directory_upload_command(client, message):
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
 
-    text = """**📁 Send Folder Path**
+    text = """<b>📁 Send Folder Path</b>
 
-📋 **Example:**
+📋 <b>Example:</b>
 
 <code>/home/user/Downloads/myfolder</code>
 
-─── Note ───
+<b>─── Note ───</b>
 • Provide Absolute Path To The Folder
 • Ensure The Bot Has Read Permissions"""
     src_request_msg = await task_starter(message, text)
@@ -305,16 +309,16 @@ async def ytdl_upload_command(client, message):
     BOT.Mode.ytdl = True
     BOT.Mode.gallery = False
 
-    text = """**🏮 Send YT-DLP Link(s)** 🔗
+    text = """<b>🏮 Send YT-DLP Link(s)</b> 🔗
 
-📋 **Follow The Pattern Below:**
+📋 <b>Follow The Pattern Below:</b>
 
 <code>https://youtube.com/watch?v=xxxxx
 https://youtu.be/xxxxx
 [Custom Name.mp4]
 {Zip Password}</code>
 
-─── Supported Sites ───
+<b>─── Supported Sites ───</b>
 • YouTube, Facebook
 • Twitter, TikTok, Vimeo, Dailymotion
 • And 2000+ more sites"""
@@ -330,9 +334,9 @@ async def gallery_upload_command(client, message):
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = True
 
-    text = """**📸 Send Gallery Link(s)** 🖼️
+    text = """<b>📸 Send Gallery Link(s)</b> 🖼️
 
-📋 **Follow The Pattern Below:**
+📋 <b>Follow The Pattern Below:</b>
 
 <code>https://twitter.com/username
 https://pinterest.com/user/board
@@ -340,17 +344,17 @@ https://pixiv.net/users/123456
 [Custom Name]
 {Zip Password}</code>
 
-─── Supported Sites ───
+<b>─── Supported Sites ───</b>
 • Twitter / X, Pinterest
 • Pixiv, DeviantArt, ArtStation, Flickr
 • Reddit, Tumblr, Imgur, TikTok
 • Bluesky, Newgrounds, Danbooru
 • And 100+ more gallery sites
 
-─── Tips ───
+<b>─── Tips ───</b>
 • Multiple Links Supported
-• Use `[ ]` For Custom Folder Name
-• Use `{ }` For Zip Password"""
+• Use [ ] For Custom Folder Name
+• Use { } For Zip Password"""
     src_request_msg = await task_starter(message, text)
     BOT._src_request_msg = src_request_msg
 
@@ -361,13 +365,13 @@ https://pixiv.net/users/123456
 async def setname_command(client, message):
     if len(message.command) < 2:
         msg = await message.reply_text(
-            "**⚠️ Usage:** `/setname <filename>`\n\n"
-            "**📝 Example:** `/setname movie.mp4`",
+            "<b>⚠️ Usage:</b> <code>/setname &lt;filename&gt;</code>\n\n"
+            "<b>📝 Example:</b> <code>/setname movie.mp4</code>",
             quote=True,
         )
     else:
         BOT.Options.file_name = " ".join(message.command[1:])
-        msg = await message.reply_text(f"**📝 Filename set to:** `{BOT.Options.file_name}` ✓", quote=True)
+        msg = await message.reply_text(f"<b>📝 Filename set to:</b> <code>{BOT.Options.file_name}</code> ✓", quote=True)
     await message_deleter(message, msg)
 
 # =============================================================================
@@ -383,21 +387,21 @@ async def formats_command(client, message):
     parts = (message.text or "").split(maxsplit=1)
     if len(parts) < 2 or not parts[1].strip():
         msg = await message.reply_text(
-            "**⚠️ Usage:** `/formats <url>`\n\n"
-            "Example: `/formats https://youtube.com/watch?v=...`",
+            "<b>⚠️ Usage:</b> <code>/formats &lt;url&gt;</code>\n\n"
+            "Example: <code>/formats https://youtube.com/watch?v=...</code>",
             quote=True,
         )
         await message_deleter(message, msg)
         return
 
     url = parts[1].strip()
-    status = await message.reply_text("**🔍 Fetching available formats...**", quote=True)
+    status = await message.reply_text("<b>🔍 Fetching available formats...</b>", quote=True)
     try:
         text = await list_formats(url)
         await status.edit_text(text, disable_web_page_preview=True)
     except Exception as e:
         logger.exception("formats_command failed")
-        await status.edit_text(f"**❌ Failed to fetch formats:** `{e}`")
+        await status.edit_text(f"<b>❌ Failed to fetch formats:</b> <code>{e}</code>")
     await message_deleter(message, status)
 
 # =============================================================================
@@ -413,21 +417,21 @@ async def preview_command(client, message):
     parts = (message.text or "").split(maxsplit=1)
     if len(parts) < 2 or not parts[1].strip():
         msg = await message.reply_text(
-            "**⚠️ Usage:** `/preview <gallery_url>`\n\n"
-            "Example: `/preview https://imgur.com/a/abc123`",
+            "<b>⚠️ Usage:</b> <code>/preview &lt;gallery_url&gt;</code>\n\n"
+            "Example: <code>/preview https://imgur.com/a/abc123</code>",
             quote=True,
         )
         await message_deleter(message, msg)
         return
 
     url = parts[1].strip()
-    status = await message.reply_text("**🔍 Inspecting gallery...**", quote=True)
+    status = await message.reply_text("<b>🔍 Inspecting gallery...</b>", quote=True)
     try:
         text = await list_gallery_content(url)
         await status.edit_text(text, disable_web_page_preview=True)
     except Exception as e:
         logger.exception("preview_command failed")
-        await status.edit_text(f"**❌ Preview failed:** `{e}`")
+        await status.edit_text(f"<b>❌ Preview failed:</b> <code>{e}</code>")
     await message_deleter(message, status)
 
 # =============================================================================
@@ -437,16 +441,14 @@ async def preview_command(client, message):
 async def zipaswd_command(client, message):
     if len(message.command) != 2:
         msg = await message.reply_text(
-            "**⚠️ Usage**\n\n"
-            "\n"
-            "`/zipaswd <password>`\n"
-            "\n\n"
-            "**📝 Example:** `/zipaswd mypassword123`",
+            "<b>⚠️ Usage</b>\n\n"
+            "<code>/zipaswd &lt;password&gt;</code>\n\n"
+            "<b>📝 Example:</b> <code>/zipaswd mypassword123</code>",
             quote=True,
         )
     else:
         BOT.Options.zip_pswd = message.command[1]
-        msg = await message.reply_text("**🔐 Zip Password Set Successfully** ✓", quote=True)
+        msg = await message.reply_text("<b>🔐 Zip Password Set Successfully</b> ✓", quote=True)
     await message_deleter(message, msg)
 
 # =============================================================================
@@ -456,16 +458,14 @@ async def zipaswd_command(client, message):
 async def unzipaswd_command(client, message):
     if len(message.command) != 2:
         msg = await message.reply_text(
-            "**⚠️ Usage**\n\n"
-            "\n"
-            "`/unzipaswd <password>`\n"
-            "\n\n"
-            "**📝 Example:** `/unzipaswd mypassword123`",
+            "<b>⚠️ Usage</b>\n\n"
+            "<code>/unzipaswd &lt;password&gt;</code>\n\n"
+            "<b>📝 Example:</b> <code>/unzipaswd mypassword123</code>",
             quote=True,
         )
     else:
         BOT.Options.unzip_pswd = message.command[1]
-        msg = await message.reply_text("**🔓 Unzip Password Set Successfully** ✓", quote=True)
+        msg = await message.reply_text("<b>🔓 Unzip Password Set Successfully</b> ✓", quote=True)
     await message_deleter(message, msg)
 
 # =============================================================================
@@ -474,7 +474,7 @@ async def unzipaswd_command(client, message):
 @app.on_message(filters.command("ping") & filters.private)
 async def ping_command(client, message):
     start = datetime.now()
-    msg = await message.reply_text("**🏓 Pinging...**", quote=True)
+    msg = await message.reply_text("<b>🏓 Pinging...</b>", quote=True)
     latency_ms = (datetime.now() - start).total_seconds() * 1000
     uptime = getTime(int((datetime.now() - BotStats.start_time).total_seconds()))
 
@@ -494,18 +494,18 @@ async def ping_command(client, message):
 
     server_status = "Online" if latency_ms < 5000 else "Slow"
 
-    ping_text = f"""```
+    ping_text = f"""<code>
 ┌───────────────────────────────┐
         🏓  PONG
 ├───────────────────────────────┤
-  ⚡  Latency   →  {latency_ms:.1f} ms
-  📊  Quality   →  {quality}
+  ⚡  Latency   »  {latency_ms:.1f} ms
+  📊  Quality   »  {quality}
   {bar}  {pct}%
-  ⏱️  Uptime    →  {uptime}
-  🤖  Version   →  v{config.VERSION}
-  📡  Server    →  {server_status}
+  ⏱️  Uptime    »  {uptime}
+  🤖  Version   »  v{config.VERSION}
+  📡  Server    »  {server_status}
 └───────────────────────────────┘
-```"""
+</code>"""
     await msg.edit(ping_text, disable_web_page_preview=True)
     await message_deleter(message, msg)
 
@@ -535,34 +535,35 @@ async def status_command(client, message):
         elif BOT.Mode.gallery:
             mode += " (gallery-dl)"
 
-        active_section = f"""**🎯 Active Task**
+        active_section = f"""<b>🎯 Active Task</b>
 
-• **Mode:** `{mode}`
-• **Running:** `{task_elapsed}`
-• **Downloaded:** `{down_total}` ({len(Transfer.down_bytes)} chunks)
-• **Uploaded:** `{up_total}` ({len(Transfer.up_bytes)} chunks)
-• **Remaining:** `{remaining}`
-• **Files sent:** `{len(Transfer.sent_file)}`"""
+• <b>Mode:</b> <code>{mode}</code>
+• <b>Running:</b> <code>{task_elapsed}</code>
+• <b>Downloaded:</b> <code>{down_total}</code> ({len(Transfer.down_bytes)} chunks)
+• <b>Uploaded:</b> <code>{up_total}</code> ({len(Transfer.up_bytes)} chunks)
+• <b>Remaining:</b> <code>{remaining}</code>
+• <b>Files sent:</b> <code>{len(Transfer.sent_file)}</code>"""
         if Messages.status_head:
-            head_clean = Messages.status_head.replace("**", "").replace("\n", " · ")[:120]
-            active_section += f"\n• **Current:** `{head_clean}`"
+            import re
+            head_clean = re.sub(r'<[^>]+>', '', Messages.status_head).replace("\n", " · ")[:120]
+            active_section += f"\n• <b>Current:</b> <code>{head_clean}</code>"
     else:
-        active_section = "**🎯 Active Task**\n\n• `No task running`"
+        active_section = "<b>🎯 Active Task</b>\n\n• <code>No task running</code>"
 
     pending = Queue.pending
     current = Queue.current
     if pending or current:
-        queue_lines = [f"**📋 Queue** (`{pending} pending`)"]
+        queue_lines = [f"<b>📋 Queue</b> (<code>{pending} pending</code>)"]
         if current:
             link = current["links"][0][:60] + ("..." if len(current["links"][0]) > 60 else "")
-            queue_lines.append(f"• 🔄 **Current:** `{link}` ({len(current['links'])} link(s))")
+            queue_lines.append(f"• 🔄 <b>Current:</b> <code>{link}</code> ({len(current['links'])} link(s))")
         for line in Queue.list_items()[:5]:
             queue_lines.append(line)
         if pending > 5:
             queue_lines.append(f"• _... and {pending - 5} more_")
         queue_section = "\n".join(queue_lines)
     else:
-        queue_section = "**📋 Queue**\n\n• `Empty`"
+        queue_section = "<b>📋 Queue</b>\n\n• <code>Empty</code>"
 
     status_text = f"{active_section}\n\n{queue_section}"
     msg = await message.reply_text(status_text, quote=True)
@@ -588,25 +589,25 @@ async def queue_command(client, message):
     items = Queue.list_items()
     current = Queue.current
 
-    text = "**📋 Download Queue**\n\n"
+    text = "<b>📋 Download Queue</b>\n\n"
     if current:
-        text += f"• 🔄 **Active:** `{current.get('name', 'Unknown')}`\n"
-        text += f"• 📦 **Links:** `{len(current.get('links', []))}`\n\n"
+        text += f"• 🔄 <b>Active:</b> <code>{current.get('name', 'Unknown')}</code>\n"
+        text += f"• 📦 <b>Links:</b> <code>{len(current.get('links', []))}</code>\n\n"
     else:
-        text += "**🔄 Active:** `None`\n\n"
+        text += "<b>🔄 Active:</b> <code>None</code>\n\n"
 
     if items:
         for item in items:
             text += f"{item}\n"
-        text += f"\n**📊 Total Queued:** `{Queue.size()}`"
+        text += f"\n<b>📊 Total Queued:</b> <code>{Queue.size()}</code>"
     else:
-        text += "**📭 Queue is empty**"
+        text += "<b>📭 Queue is empty</b>"
 
-    stats_text = "\n\n─── Session Stats ───\n"
-    stats_text += f"• Completed: `{BotStats.total_tasks}`\n"
-    stats_text += f"• Failed: `{BotStats.failed_tasks}`\n"
-    stats_text += f"• Downloaded: `{BotStats.total_downloaded}`\n"
-    stats_text += f"• Uploaded: `{BotStats.total_uploaded}`"
+    stats_text = "\n\n<b>─── Session Stats ───</b>\n"
+    stats_text += f"• Completed: <code>{BotStats.total_tasks}</code>\n"
+    stats_text += f"• Failed: <code>{BotStats.failed_tasks}</code>\n"
+    stats_text += f"• Downloaded: <code>{BotStats.total_downloaded}</code>\n"
+    stats_text += f"• Uploaded: <code>{BotStats.total_uploaded}</code>"
 
     msg = await message.reply_text(text + stats_text, quote=True)
     await message_deleter(message, msg)
@@ -618,9 +619,9 @@ async def queue_command(client, message):
 async def cancel_command(client, message):
     if BOT.State.task_going:
         await cancelTask("User cancelled the task")
-        msg = await message.reply_text("**🚫 Task Cancelled** ✓", quote=True)
+        msg = await message.reply_text("<b>🚫 Task Cancelled</b> ✓", quote=True)
     else:
-        msg = await message.reply_text("**ℹ️ No Active Task To Cancel**", quote=True)
+        msg = await message.reply_text("<b>ℹ️ No Active Task To Cancel</b>", quote=True)
     await message_deleter(message, msg)
 
 # =============================================================================
@@ -635,9 +636,9 @@ async def cancel_all_command(client, message):
 
     if BOT.State.task_going:
         await cancelTask("User cancelled all tasks")
-        msg = await message.reply_text("**🚫 All tasks cancelled and queue cleared.**", quote=True)
+        msg = await message.reply_text("<b>🚫 All tasks cancelled and queue cleared.</b>", quote=True)
     else:
-        msg = await message.reply_text("**📭 Queue cleared. No active task to cancel.**", quote=True)
+        msg = await message.reply_text("<b>📭 Queue cleared. No active task to cancel.</b>", quote=True)
 
     await message_deleter(message, msg)
 
@@ -650,15 +651,13 @@ async def admin_command(client, message):
         return
 
     if len(message.command) < 2:
-        users_list = "\n".join([f"• `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
+        users_list = "\n".join([f"• <code>{uid}</code>" for uid in config.ALLOWED_USERS]) or "<code>None</code>"
         msg = await message.reply_text(
-            f"**👥 Admin Panel**\n\n"
-            f"**Allowed Users:**\n{users_list}\n\n"
-            f"\n"
-            f"`/admin add <user_id>` — Allow a user\n"
-            f"`/admin remove <user_id>` — Deny a user\n"
-            f"`/admin list` — Show allowed users\n"
-            f"",
+            f"<b>👥 Admin Panel</b>\n\n"
+            f"<b>Allowed Users:</b>\n{users_list}\n\n"
+            f"<code>/admin add &lt;user_id&gt;</code> — Allow a user\n"
+            f"<code>/admin remove &lt;user_id&gt;</code> — Deny a user\n"
+            f"<code>/admin list</code> — Show allowed users",
             quote=True,
         )
         await message_deleter(message, msg)
@@ -671,9 +670,9 @@ async def admin_command(client, message):
             new_uid = int(message.command[2])
             if new_uid not in config.ALLOWED_USERS:
                 config.ALLOWED_USERS.append(new_uid)
-                msg = await message.reply_text(f"✅ User `{new_uid}` added to allowed list ✓", quote=True)
+                msg = await message.reply_text(f"✅ User <code>{new_uid}</code> added to allowed list ✓", quote=True)
             else:
-                msg = await message.reply_text(f"ℹ️ User `{new_uid}` is already allowed", quote=True)
+                msg = await message.reply_text(f"ℹ️ User <code>{new_uid}</code> is already allowed", quote=True)
         except ValueError:
             msg = await message.reply_text("⚠️ Invalid user ID", quote=True)
 
@@ -682,18 +681,18 @@ async def admin_command(client, message):
             rm_uid = int(message.command[2])
             if rm_uid in config.ALLOWED_USERS:
                 config.ALLOWED_USERS.remove(rm_uid)
-                msg = await message.reply_text(f"✅ User `{rm_uid}` removed from allowed list ✓", quote=True)
+                msg = await message.reply_text(f"✅ User <code>{rm_uid}</code> removed from allowed list ✓", quote=True)
             else:
-                msg = await message.reply_text(f"ℹ️ User `{rm_uid}` is not in the allowed list", quote=True)
+                msg = await message.reply_text(f"ℹ️ User <code>{rm_uid}</code> is not in the allowed list", quote=True)
         except ValueError:
             msg = await message.reply_text("⚠️ Invalid user ID", quote=True)
 
     elif action == "list":
-        users_list = "\n".join([f"• `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
-        msg = await message.reply_text(f"**👥 Allowed Users:**\n{users_list}", quote=True)
+        users_list = "\n".join([f"• <code>{uid}</code>" for uid in config.ALLOWED_USERS]) or "<code>None</code>"
+        msg = await message.reply_text(f"<b>👥 Allowed Users:</b>\n{users_list}", quote=True)
 
     else:
-        msg = await message.reply_text("**⚠️ Usage:** `/admin add|remove|list [user_id]`", quote=True)
+        msg = await message.reply_text("<b>⚠️ Usage:</b> <code>/admin add|remove|list [user_id]</code>", quote=True)
 
     await message_deleter(message, msg)
 
@@ -709,7 +708,7 @@ async def broadcast_command(client, message):
 
     if not BOT.State.task_going and not Transfer.sent_file:
         msg = await message.reply_text(
-            "**ℹ️ No files to broadcast.**\n\nUpload something first with `/tupload`.",
+            "<b>ℹ️ No files to broadcast.</b>\n\nUpload something first with <code>/tupload</code>.",
             quote=True,
         )
         await message_deleter(message, msg)
@@ -717,12 +716,10 @@ async def broadcast_command(client, message):
 
     if len(message.command) < 2:
         msg = await message.reply_text(
-            "**📢 Broadcast Usage**\n\n"
-            "\n"
-            "`/broadcast chat_id1, chat_id2, ...`\n"
-            "\n\n"
-            "**📝 Example:**\n"
-            "`/broadcast -1001234567890, -1009876543210`\n\n"
+            "<b>📢 Broadcast Usage</b>\n\n"
+            "<code>/broadcast chat_id1, chat_id2, ...</code>\n\n"
+            "<b>📝 Example:</b>\n"
+            "<code>/broadcast -1001234567890, -1009876543210</code>\n\n"
             "💡 Send the last uploaded file to multiple chats.",
             quote=True,
         )
@@ -738,17 +735,17 @@ async def broadcast_command(client, message):
             pass
 
     if not chat_ids:
-        msg = await message.reply_text("**⚠️ No valid chat IDs provided.**", quote=True)
+        msg = await message.reply_text("<b>⚠️ No valid chat IDs provided.</b>", quote=True)
         await message_deleter(message, msg)
         return
 
     last_file = Transfer.sent_file[-1] if Transfer.sent_file else None
     if not last_file:
-        msg = await message.reply_text("**⚠️ No file to broadcast.**", quote=True)
+        msg = await message.reply_text("<b>⚠️ No file to broadcast.</b>", quote=True)
         await message_deleter(message, msg)
         return
 
-    msg = await message.reply_text(f"**📢 Broadcasting to {len(chat_ids)} chats...**", quote=True)
+    msg = await message.reply_text(f"<b>📢 Broadcasting to {len(chat_ids)} chats...</b>", quote=True)
 
     success = 0
     failed = 0
@@ -762,10 +759,10 @@ async def broadcast_command(client, message):
         await sleep(1)
 
     await msg.edit_text(
-        f"📢 **Broadcast Complete**\n\n"
-        f"• ✅ **Success:** `{success}`\n"
-        f"• ❌ **Failed:** `{failed}`\n"
-        f"• 📊 **Total:** `{len(chat_ids)}`"
+        f"<b>📢 Broadcast Complete</b>\n\n"
+        f"• ✅ <b>Success:</b> <code>{success}</code>\n"
+        f"• ❌ <b>Failed:</b> <code>{failed}</code>\n"
+        f"• 📊 <b>Total:</b> <code>{len(chat_ids)}</code>"
     )
 
 # =============================================================================
@@ -793,34 +790,34 @@ async def cookies_command(client, message):
 
     auth_lines = []
     if pot_installed:
-        auth_lines.append("✅ **PO Token Plugin** — auto-generating tokens (primary)")
+        auth_lines.append("✅ <b>PO Token Plugin</b> — auto-generating tokens (primary)")
     else:
-        auth_lines.append("❌ **PO Token Plugin** — not installed")
+        auth_lines.append("❌ <b>PO Token Plugin</b> — not installed")
 
     if file_ok:
-        auth_lines.append(f"✅ **Cookies file** (env) — `{cookies_file}`")
+        auth_lines.append(f"✅ <b>Cookies file</b> (env) — <code>{cookies_file}</code>")
     elif uploaded_ok:
-        auth_lines.append(f"✅ **Cookies file** (uploaded) — `{default_path}`")
+        auth_lines.append(f"✅ <b>Cookies file</b> (uploaded) — <code>{default_path}</code>")
     else:
-        auth_lines.append("⚠️ **Cookies** — not configured (fallback)")
+        auth_lines.append("⚠️ <b>Cookies</b> — not configured (fallback)")
 
     status = "\n".join(auth_lines)
 
-    text = f"""**🍪 YT-DLP Authentication Status**
+    text = f"""<b>🍪 YT-DLP Authentication Status</b>
 
 {status}
 
-─── How It Works ───
-• **PO Token Plugin** (auto) — generates tokens in background
-• **Cookies** (manual fallback) — only needed if PO tokens fail
+<b>─── How It Works ───</b>
+• <b>PO Token Plugin</b> (auto) — generates tokens in background
+• <b>Cookies</b> (manual fallback) — only needed if PO tokens fail
 
-**If YouTube Still Fails:**
-Upload a `cookies.txt` file here as a backup:
-`1.` Install [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
-`2.` Go to `youtube.com` • click extension • **Export**
-`3.` Send the file here
+<b>If YouTube Still Fails:</b>
+Upload a <code>cookies.txt</code> file here as a backup:
+1. Install <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc">Get cookies.txt LOCALLY</a>
+2. Go to <code>youtube.com</code> • click extension • <b>Export</b>
+3. Send the file here
 
-📖 [PO Token Guide](https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide)"""
+📖 <a href="https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide">PO Token Guide</a>"""
 
     msg = await message.reply_text(text, quote=True, disable_web_page_preview=True)
     await message_deleter(message, msg)
@@ -833,22 +830,22 @@ async def setcookies_command(client, message):
     if message.chat.id != OWNER:
         return
 
-    text = """**🍪 Upload Cookies File**
+    text = """<b>🍪 Upload Cookies File</b>
 
-Send me your `cookies.txt` file **as a document** (not as text).
+Send me your <code>cookies.txt</code> file <b>as a document</b> (not as text).
 
-**Chrome / Edge / Brave:**
-`1.` Install [Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
-`2.` Go to `youtube.com` (make sure you're logged in)
-`3.` Click extension icon • **Export** • saves `cookies.txt`
-`4.` Upload that file here
+<b>Chrome / Edge / Brave:</b>
+1. Install <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc">Get cookies.txt LOCALLY</a>
+2. Go to <code>youtube.com</code> (make sure you're logged in)
+3. Click extension icon • <b>Export</b> • saves <code>cookies.txt</code>
+4. Upload that file here
 
-**Firefox:**
-`1.` Install [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/)
-`2.` Go to `youtube.com` (logged in)
-`3.` Click extension • **Export** • upload here
+<b>Firefox:</b>
+1. Install <a href="https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/">cookies.txt</a>
+2. Go to <code>youtube.com</code> (logged in)
+3. Click extension • <b>Export</b> • upload here
 
-⚠️ **Security:** Cookies contain your session tokens. The bot stores them locally and never shares them. Delete with `/clearcookies` if needed."""
+⚠️ <b>Security:</b> Cookies contain your session tokens. The bot stores them locally and never shares them. Delete with <code>/clearcookies</code> if needed."""
 
     msg = await message.reply_text(text, quote=True, disable_web_page_preview=True)
     await message_deleter(message, msg)
@@ -865,11 +862,11 @@ async def clearcookies_command(client, message):
     if os.path.isfile(cookie_path):
         try:
             os.remove(cookie_path)
-            msg = await message.reply_text("**✅ Cookies file deleted.**", quote=True)
+            msg = await message.reply_text("<b>✅ Cookies file deleted.</b>", quote=True)
         except OSError as e:
-            msg = await message.reply_text(f"**❌ Failed:** `{e}`", quote=True)
+            msg = await message.reply_text(f"<b>❌ Failed:</b> <code>{e}</code>", quote=True)
     else:
-        msg = await message.reply_text("**ℹ️ No cookies file to delete.**", quote=True)
+        msg = await message.reply_text("<b>ℹ️ No cookies file to delete.</b>", quote=True)
 
     await message_deleter(message, msg)
 
@@ -888,10 +885,10 @@ async def restart_command(client, message):
             pass
 
     restart_text = (
-        "**🔄 Restarting LeechBot...**\n\n"
-        f"• **Version:** `v{config.VERSION}`\n"
-        "• **Action:** Sending SIGTERM to self\n"
-        "• **Wrapper:** Will respawn the process\n\n"
+        "<b>🔄 Restarting LeechBot...</b>\n\n"
+        f"• <b>Version:</b> <code>v{config.VERSION}</code>\n"
+        "• <b>Action:</b> Sending SIGTERM to self\n"
+        "• <b>Wrapper:</b> Will respawn the process\n\n"
         "⏳ Bot will be back in 5-10 seconds."
     )
     msg = await message.reply_text(restart_text, quote=True)
@@ -929,8 +926,8 @@ async def logs_command(client, message):
 
     if not os.path.isfile(log_file):
         msg = await message.reply_text(
-            f"**📋 Logs**\n\n`Log file not found: {log_file}`\n\n"
-            "_File logging may be disabled (read-only filesystem)._",
+            f"<b>📋 Logs</b>\n\n<code>Log file not found: {log_file}</code>\n\n"
+            "<i>File logging may be disabled (read-only filesystem).</i>",
             quote=True,
         )
         await message_deleter(message, msg)
@@ -953,21 +950,21 @@ async def logs_command(client, message):
             tail_lines = ["(log file is empty)"]
 
         log_text = (
-            f"📋 Last `{len(tail_lines)}` log lines\n"
-            f"`({log_file})`\n\n"
-            f"```\n" + "\n".join(tail_lines) + "\n```"
+            f"📋 Last <code>{len(tail_lines)}</code> log lines\n"
+            f"<code>({log_file})</code>\n\n"
+            f"<pre>\n" + "\n".join(tail_lines) + "\n</pre>"
         )
 
         if len(log_text) > 4000:
             half = (4000 - 200) // 2
             log_text = (
-                f"📋 Last `{len(tail_lines)}` log lines (truncated)\n"
-                f"`({log_file})`\n\n"
-                f"```\n"
+                f"📋 Last <code>{len(tail_lines)}</code> log lines (truncated)\n"
+                f"<code>({log_file})</code>\n\n"
+                f"<pre>\n"
                 + "\n".join(tail_lines[:half // 80])
                 + "\n\n... [truncated] ...\n\n"
                 + "\n".join(tail_lines[-(half // 80):])
-                + "\n```"
+                + "\n</pre>"
             )
 
         msg = await message.reply_text(log_text, quote=True)
@@ -975,7 +972,7 @@ async def logs_command(client, message):
     except Exception as e:
         logger.error(f"Failed to read log file: {e}")
         msg = await message.reply_text(
-            f"**❌ Error reading logs:**\n`{e}`", quote=True,
+            f"<b>❌ Error reading logs:</b>\n<code>{e}</code>", quote=True,
         )
         await message_deleter(message, msg)
 
@@ -989,7 +986,7 @@ async def update_command(client, message):
     if message.chat.id != OWNER:
         return
 
-    msg = await message.reply_text("**🔄 Checking for updates...**", quote=True)
+    msg = await message.reply_text("<b>🔄 Checking for updates...</b>", quote=True)
 
     info = check_for_updates()
     version = get_local_version()
@@ -997,15 +994,15 @@ async def update_command(client, message):
 
     if not info["available"]:
         await msg.edit_text(
-            f"**✅ Already up to date!**\n\n"
-            f"**Version:** `{version}`\n"
-            f"**Commit:** `{local}`"
+            f"<b>✅ Already up to date!</b>\n\n"
+            f"<b>Version:</b> <code>{version}</code>\n"
+            f"<b>Commit:</b> <code>{local}</code>"
         )
         await message_deleter(message, msg)
         return
 
     changelog = get_changelog_since(local)
-    changelog_text = f"\n\n**📋 Changes:**\n```\n{changelog[:1500]}\n```" if changelog else ""
+    changelog_text = f"\n\n<b>📋 Changes:</b>\n<pre>\n{changelog[:1500]}\n</pre>" if changelog else ""
 
     keyboard = InlineKeyboardMarkup([
         [
@@ -1015,10 +1012,10 @@ async def update_command(client, message):
     ])
 
     await msg.edit_text(
-        f"**🔄 Update Available!**\n\n"
-        f"**Current:** `{local}`\n"
-        f"**Latest:** `{info['remote']}`\n"
-        f"**Behind:** `{info['behind']} commits`"
+        f"<b>🔄 Update Available!</b>\n\n"
+        f"<b>Current:</b> <code>{local}</code>\n"
+        f"<b>Latest:</b> <code>{info['remote']}</code>\n"
+        f"<b>Behind:</b> <code>{info['behind']} commits</code>"
         f"{changelog_text}",
         reply_markup=keyboard,
     )

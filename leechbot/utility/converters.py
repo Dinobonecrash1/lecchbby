@@ -88,12 +88,12 @@ async def videoConverter(file: str) -> str:
     async def msg_updater(count: int, attempt: str, engine: str, core: str):
         """Update conversion progress"""
         bar = "░" * count + "█" + "░" * (11 - count)
-        messg = f"\n`{bar}`"
-        messg += f"\n• ⏳ **Status:** `Running`"
-        messg += f"\n• 🔄 **Attempt:** `{attempt}`"
-        messg += f"\n• 🔧 **Engine:** `{engine}`"
-        messg += f"\n• 💪 **Handler:** `{core}`"
-        messg += f"\n┖⏱️ **Elapsed:** `{getTime((datetime.now() - BotTimes.start_time).seconds)}`"
+        messg = f"\n<code>{bar}</code>"
+        messg += f"\n• ⏳ <b>Status:</b> <code>Running</code>"
+        messg += f"\n• 🔄 <b>Attempt:</b> <code>{attempt}</code>"
+        messg += f"\n• 🔧 <b>Engine:</b> <code>{engine}</code>"
+        messg += f"\n• 💪 <b>Handler:</b> <code>{core}</code>"
+        messg += f"\n⏱️ <b>Elapsed:</b> <code>{getTime((datetime.now() - BotTimes.start_time).seconds)}</code>"
 
         try:
             await MSG.status_msg.edit_text(
@@ -123,7 +123,7 @@ async def videoConverter(file: str) -> str:
         cmd = ["ffmpeg", "-y", "-i", file] + quality + ["-c:v", "libx264", "-c:a", "copy", out_file]
         core = "CPU"
 
-    mtext = f"**🎬 Converting Video**\n\n`{ospath.basename(file)}`\n"
+    mtext = f"<b>🎬 Converting Video</b>\n\n<code>{ospath.basename(file)}</code>\n"
 
     # Run ffmpeg
     proc = subprocess.Popen(cmd)
@@ -234,7 +234,7 @@ async def archive(path: str, is_split: bool, remove: bool):
     else:
         name = Messages.download_name
 
-    Messages.status_head = f"**🗜️ Zipping**\n\n`{name}`\n"
+    Messages.status_head = f"<b>🗜️ Zipping</b>\n\n<code>{name}</code>\n"
     Messages.download_name = f"{name}.zip"
     BotTimes.task_start = datetime.now()
 
@@ -288,7 +288,7 @@ async def extract(zip_filepath: str, remove: bool):
     from leechbot.utility.variables import BOT, Paths, Messages
 
     _, filename = ospath.split(zip_filepath)
-    Messages.status_head = f"**📂 Extracting**\n\n`{filename}`\n"
+    Messages.status_head = f"<b>📂 Extracting</b>\n\n<code>{filename}</code>\n"
 
     password = f"-p{BOT.Options.unzip_pswd}" if BOT.Options.unzip_pswd else ""
     name, ext = ospath.splitext(filename)
@@ -363,7 +363,7 @@ async def splitArchive(file_path: str, max_size: int):
 
     _, filename = ospath.split(file_path)
     new_path = f"{Paths.temp_zpath}/{filename}"
-    Messages.status_head = f"**✂️ Splitting**\n\n`{filename}`\n"
+    Messages.status_head = f"<b>✂️ Splitting</b>\n\n<code>{filename}</code>\n"
 
     total_size = ospath.getsize(file_path)
     BotTimes.task_start = datetime.now()
@@ -431,7 +431,7 @@ async def splitVideo(file_path: str, max_size: int, remove: bool):
 
     cmd = ["ffmpeg", "-i", file_path, "-c", "copy", "-f", "segment", "-segment_time", str(duration), "-reset_timestamps", "1", f"{Paths.temp_zpath}/{just_name}.part%03d{extension}"]
 
-    Messages.status_head = f"**✂️ Splitting Video**\n\n`{filename}`\n"
+    Messages.status_head = f"<b>✂️ Splitting Video</b>\n\n<code>{filename}</code>\n"
     BotTimes.task_start = datetime.now()
 
     proc = subprocess.Popen(cmd)

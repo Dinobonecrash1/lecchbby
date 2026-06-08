@@ -222,9 +222,9 @@ async def torrent_download(link: str, num: int):
     # ─── Wait for metadata (magnet only) ─────────────────────
     if link.startswith("magnet:"):
         Messages.status_head = (
-            f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n"
-            f"**🏷️ Name:** `Fetching metadata...`\n"
-            f"**🔗 Source:** `Magnet Link`\n"
+            f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n"
+            f"<b>🏷️ Name:</b> <code>Fetching metadata...</code>\n"
+            f"<b>🔗 Source:</b> <code>Magnet Link</code>\n"
         )
         await status_bar(Messages.status_head, "⏳ Waiting...", 0, "∞", "0 B", "? B", "Torrent 🧲")
 
@@ -246,10 +246,10 @@ async def torrent_download(link: str, num: int):
     torrent_name = handle.torrent_file().name() if handle.has_metadata() else "Torrent Download"
     total_size = handle.torrent_file().total_size()
     Messages.status_head = (
-        f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n"
-        f"**🏷️ Name:** `{torrent_name}`\n"
-        f"**📦 Size:** `{sizeUnit(total_size)}`\n"
-        f"**🔗 Source:** `{'Magnet 🧲' if link.startswith('magnet:') else 'Torrent'}`\n"
+        f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n"
+        f"<b>🏷️ Name:</b> <code>{torrent_name}</code>\n"
+        f"<b>📦 Size:</b> <code>{sizeUnit(total_size)}</code>\n"
+        f"<b>🔗 Source:</b> <code>{'Magnet 🧲' if link.startswith('magnet:') else 'Torrent'}</code>\n"
     )
     Transfer.total_down_size += total_size
 

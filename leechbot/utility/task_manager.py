@@ -53,7 +53,7 @@ async def task_starter(message, text: str):
         src_request_msg = await message.reply_text(text)
         return src_request_msg
     else:
-        msg = await message.reply_text("**⏳ I'm Already Working! Please Wait...**")
+        msg = await message.reply_text("<b>⏳ I'm Already Working! Please Wait...</b>")
         await sleep(15)
         await msg.delete()
         return None
@@ -86,9 +86,9 @@ async def taskScheduler():
 
     # Reset messages
     Messages.download_name = ""
-    Messages.task_msg = "**🎯 Task Mode:** "
+    Messages.task_msg = "<b>🎯 Task Mode:</b> "
     mode_label = "Gallery" if is_gallery else BOT.Mode.mode.capitalize()
-    Messages.dump_task = Messages.task_msg + f"`{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}`\n\n**🔗 Sources:**"
+    Messages.dump_task = Messages.task_msg + f"<code>{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}</code>\n\n<b>🔗 Sources:</b>"
 
     # Reset transfer state
     Paths.down_path = str(config.DOWNLOADS_PATH)
@@ -99,7 +99,7 @@ async def taskScheduler():
     Transfer.total_down_size = 0
     Messages.download_name = ""
     Messages.task_msg = ""
-    Messages.status_head = "**📥 Downloading**\n"
+    Messages.status_head = "<b>📥 Downloading</b>\n"
 
     # Handle directory leech
     if is_dir:
@@ -143,7 +143,7 @@ async def taskScheduler():
     # Add timestamp
     cdt = datetime.now(pytz.timezone("Asia/Kolkata"))
     dt = cdt.strftime(" %d-%m-%Y")
-    Messages.dump_task += f"\n\n**📅 Date:** `{dt}`"
+    Messages.dump_task += f"\n\n<b>📅 Date:</b> <code>{dt}</code>"
 
     # Create working directories
     if ospath.exists(Paths.WORK_PATH):

@@ -193,9 +193,9 @@ async def megadl(link: str, num: int):
     display_name = link_hint or ("Mega Folder" if is_folder else "Mega Download")
     Messages.download_name = display_name
     Messages.status_head = (
-        f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n"
-        f"**🏷️ Name:** `{display_name}`\n"
-        f"**📦 Type:** `{source_label}`\n"
+        f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n"
+        f"<b>🏷️ Name:</b> <code>{display_name}</code>\n"
+        f"<b>📦 Type:</b> <code>{source_label}</code>\n"
     )
     await status_bar(Messages.status_head, "Starting...", 0, "—", "0 B", "? B", source_label)
 
@@ -244,9 +244,9 @@ async def megadl(link: str, num: int):
                     files_completed += 1
 
                 Messages.status_head = (
-                    f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n"
-                    f"**🏷️ Name:** `{info['name'] or display_name}`\n"
-                    f"**📦 Type:** `{source_label}`\n"
+                    f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n"
+                    f"<b>🏷️ Name:</b> <code>{info['name'] or display_name}</code>\n"
+                    f"<b>📦 Type:</b> <code>{source_label}</code>\n"
                 )
 
                 # Build extra info for folder downloads

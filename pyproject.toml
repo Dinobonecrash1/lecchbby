@@ -1,6 +1,6 @@
 [project]
 name = "leechbot"
-version = "3.1.46"
+version = "3.1.47"
 description = "Advanced Telegram File Transloader"
 readme = "README.md"
 license = {text = "MIT"}

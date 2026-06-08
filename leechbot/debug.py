@@ -94,9 +94,9 @@ class TelegramLogHandler(logging.Handler):
         emoji = level_emoji.get(record.levelno, "ℹ️")
         time_str = datetime.now().strftime("%H:%M:%S")
 
-        msg = f"{emoji} **{record.levelname}** `{time_str}`\n"
-        msg += f"**Module:** `{record.name}`\n"
-        msg += f"**Message:**\n`{record.getMessage()[:1500]}`"
+        msg = f"{emoji} <b>{record.levelname}</b> <code>{time_str}</code>\n"
+        msg += f"<b>Module:</b> <code>{record.name}</code>\n"
+        msg += f"<b>Message:</b>\n<code>{record.getMessage()[:1500]}</code>"
 
         # Include traceback for exceptions
         if record.exc_info and record.exc_info[1]:
@@ -104,7 +104,7 @@ class TelegramLogHandler(logging.Handler):
             # Truncate long tracebacks
             if len(tb) > 1000:
                 tb = tb[:500] + "\n...\n" + tb[-500:]
-            msg += f"\n\n**Traceback:**\n`{tb}`"
+            msg += f"\n\n<b>Traceback:</b>\n<code>{tb}</code>"
 
         return msg
 
@@ -134,10 +134,10 @@ class AsyncExceptionHandler:
             tb = "No traceback available"
 
         error_msg = (
-            f"💀 **Unhandled Asyncio Exception**\n\n"
-            f"**Message:** `{message}`\n"
-            f"**Exception:** `{type(exception).__name__}: {exception}`\n\n"
-            f"**Traceback:**\n`{tb}`"
+            f"💀 <b>Unhandled Asyncio Exception</b>\n\n"
+            f"<b>Message:</b> <code>{message}</code>\n"
+            f"<b>Exception:</b> <code>{type(exception).__name__}: {exception}</code>\n\n"
+            f"<b>Traceback:</b>\n<code>{tb}</code>"
         )
 
         # Send to Telegram (non-blocking)
@@ -205,7 +205,7 @@ async def send_debug(client, dump_id: int, message: str, level: str = "info"):
     """
     emoji = {"info": "ℹ️", "warning": "🟡", "error": "🔴"}.get(level, "ℹ️")
     time_str = datetime.now().strftime("%H:%M:%S")
-    text = f"{emoji} **Debug** `{time_str}`\n\n`{message[:3500]}`"
+    text = f"{emoji} <b>Debug</b> <code>{time_str}</code>\n\n<code>{message[:3500]}</code>"
 
     try:
         await client.send_message(

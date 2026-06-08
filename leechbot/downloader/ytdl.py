@@ -114,7 +114,7 @@ async def YTDL_Status(link: str, num: int):
 
     name = await get_YT_Name(link)
     Messages.status_head = (
-        f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n`{name}`\n"
+        f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n<code>{name}</code>\n"
     )
 
     loop = get_running_loop()
@@ -161,7 +161,7 @@ class MyLogger:
     def debug(self, msg):
         if "item" in str(msg):
             msgs = msg.split(" ")
-            header = f"\n⏳ `Getting Info {msgs[-3]} of {msgs[-1]}`"
+            header = f"\n⏳ <code>Getting Info {msgs[-3]} of {msgs[-1]}</code>"
             _schedule_state_update(self._loop, _set_header, header)
 
     def warning(self, msg):
@@ -217,7 +217,7 @@ def _make_progress_hook(loop):
 
         elif d["status"] == "finished":
             _schedule_state_update(
-                loop, _set_header, "\n⏳ `Download finished, processing...`"
+                loop, _set_header, "\n⏳ <code>Download finished, processing...</code>"
             )
 
     return _progress_hook
@@ -279,7 +279,7 @@ def YouTubeDL(url: str, loop=None):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             info = ydl.extract_info(url, download=False)
-            _schedule_state_update(loop, _set_header, "⏳ `Preparing...`")
+            _schedule_state_update(loop, _set_header, "⏳ <code>Preparing...</code>")
 
             if info.get("_type") == "playlist":
                 # Playlist download
@@ -343,9 +343,9 @@ async def list_formats(link: str) -> str:
             formats = info.get("formats", [])
 
             if not formats:
-                return "**⚠️ No formats found**"
+                return "<b>⚠️ No formats found</b>"
 
-            text = f"**🎬 Available Formats for:**\n`{info.get('title', 'Unknown')}`\n\n"
+            text = f"<b>🎬 Available Formats for:</b>\n<code>{info.get('title', 'Unknown')}</code>\n\n"
 
             seen = set()
             for f in formats:
@@ -372,4 +372,4 @@ async def list_formats(link: str) -> str:
             return text
 
     except Exception as e:
-        return f"**❌ Error:** `{e}`"
+        return f"<b>❌ Error:</b> <code>{e}</code>"

@@ -94,8 +94,8 @@ async def _download_file(file_id: str, num: int):
 
         Messages.download_name = file_name
         Messages.status_head = (
-            f"**📥 Downloading** `Link {str(num).zfill(2)}`\n\n"
-            f"**🏷️ Name:** `{file_name}`\n"
+            f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n"
+            f"<b>🏷️ Name:</b> <code>{file_name}</code>\n"
         )
 
         # Download the file
@@ -166,8 +166,8 @@ async def _download_list(list_id: str, num: int):
             # Update status BEFORE downloading each file
             if total_files > 1:
                 Messages.status_head = (
-                    f"**📥 Pixeldrain List** `{i}/{total_files}`\n\n"
-                    f"**🏷️ Name:** `{file_name}`\n"
+                    f"<b>📥 Pixeldrain List</b> <code>{i}/{total_files}</code>\n\n"
+                    f"<b>🏷️ Name:</b> <code>{file_name}</code>\n"
                 )
 
             await _download_file(file_id, num)

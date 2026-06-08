@@ -207,8 +207,8 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
     real_name = ospath.basename(file_path)
     current_global = processed + photo_idx + 1
     Messages.status_head = (
-        f"**📸 Uploading Photos** `{current_global}/{total_photos}`\n\n"
-        f"`{real_name}`\n"
+        f"<b>📸 Uploading Photos</b> <code>{current_global}/{total_photos}</code>\n\n"
+        f"<code>{real_name}</code>\n"
     )
 
     BotTimes.task_start = datetime.now()
@@ -329,7 +329,7 @@ async def upload_photos_batch(photo_paths: list, remove: bool = False):
             if media_group:
                 # Send the media group (instant — files already on servers)
                 Messages.status_head = (
-                    f"**📤 Grouping Photos** `{batch_label}/{total_photos}`\n\n"
+                    f"<b>📤 Grouping Photos</b> <code>{batch_label}/{total_photos}</code>\n\n"
                 )
                 await status_bar(
                     down_msg=Messages.status_head,

@@ -78,14 +78,20 @@ async def handle_callback(client, callback_query):
         # --- Prefix / Suffix ---
         elif data == "set-prefix":
             await callback_query.message.edit_text(
-                "**⌨️ Send Text To Set As Prefix**\n\nReply To This Message With Your Prefix"
+                "<b>⌨️ Set Prefix</b>\n\n"
+                "Send your prefix text now.\n"
+                "Reply to this message with it.\n\n"
+                "<b>💡 Tip:</b> Prefix is prepended to file names."
             )
             BOT.State.prefix = True
             await callback_query.answer("Send your prefix now")
 
         elif data == "set-suffix":
             await callback_query.message.edit_text(
-                "**⌨️ Send Text To Set As Suffix**\n\nReply To This Message With Your Suffix"
+                "<b>⌨️ Set Suffix</b>\n\n"
+                "Send your suffix text now.\n"
+                "Reply to this message with it.\n\n"
+                "<b>💡 Tip:</b> Suffix is appended to file names."
             )
             BOT.State.suffix = True
             await callback_query.answer("Send your suffix now")
@@ -145,7 +151,10 @@ async def handle_callback(client, callback_query):
         elif data == "set_autodelete_delay":
             from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
             await callback_query.message.edit_text(
-                "**⏱️ Send the delay in seconds**\n\nReply to this message with a number between 5 and 300.",
+                "<b>⏱️ Set Auto-Delete Delay</b>\n\n"
+                "Send a number between 5 and 300.\n"
+                "This is the delay in <b>seconds</b>.\n\n"
+                "<b>💡 Tip:</b> 30s is a good default.",
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("❰ Back", callback_data="autodelete")]]
                 ),
@@ -189,7 +198,8 @@ async def handle_callback(client, callback_query):
             fmt = data[4:]
             BOT.Setting.ytdl_format = fmt
             await callback_query.message.edit_text(
-                f"**✅ YT-DLP Format Updated**\n\n**Selected:** `{fmt}`"
+                f"<b>✅ Format Updated</b>\n\n"
+                f"<b>Selected:</b> <code>{fmt}</code>"
             )
             await callback_query.answer("Format saved ✓")
 
@@ -199,8 +209,10 @@ async def handle_callback(client, callback_query):
             config.BANDWIDTH_LIMIT = speed_val
             display_val = speed_val if speed_val else "Unlimited"
             await callback_query.message.edit_text(
-                f"**✅ Bandwidth Limit Updated**\n\n**Limit:** `{display_val}`"
+                f"<b>✅ Bandwidth Limit Updated</b>\n\n"
+                f"<b>Limit:</b> <code>{display_val}</code>"
             )
+            await callback_query.answer("Speed limit saved ✓")
             await callback_query.answer("Speed limit saved ✓")
 
         # --- System info ---
@@ -262,7 +274,7 @@ async def _handle_upload_type(client, callback_query, data: str):
 
     MSG.status_msg = await app.send_message(
         chat_id=OWNER,
-        text=f"**🚀 Starting {type_labels.get(data, data)} Upload...**\n\nPlease wait while I prepare your download",
+        text=f"<b>🚀 Starting {type_labels.get(data, data)} Upload...</b>\n\nPlease wait while I prepare your download",
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
         ),
@@ -308,12 +320,11 @@ async def _handle_video_settings(client, callback_query):
     ])
 
     await callback_query.message.edit_text(
-        f"""**⚙️ Video Settings**
-
-• 🔄 **Convert:** `{BOT.Setting.convert_video}`
-• ✂️ **Split:** `{BOT.Setting.split_video}`
-• 🎬 **Format:** `{BOT.Options.video_out}`
-• 🔴 **Quality:** `{BOT.Setting.convert_quality}`""",
+        f"<b>⚙️ Video Settings</b>\n\n"
+        f"• 🔄 <b>Convert:</b> <code>{BOT.Setting.convert_video}</code>\n"
+        f"• ✂️ <b>Split:</b> <code>{BOT.Setting.split_video}</code>\n"
+        f"• 🎬 <b>Format:</b> <code>{BOT.Options.video_out}</code>\n"
+        f"• 🔴 <b>Quality:</b> <code>{BOT.Setting.convert_quality}</code>",
         reply_markup=keyboard,
     )
     await callback_query.answer()
@@ -339,13 +350,12 @@ async def _handle_caption_settings(client, callback_query):
     ])
 
     await callback_query.message.edit_text(
-        """**📝 Caption Font Style**
-
-<code>Monospace</code>
-Regular
-**Bold**
-__Italic__
-__Underline__""",
+        "<b>📝 Caption Font Style</b>\n\n"
+        "<code>Monospace</code>\n"
+        "Regular\n"
+        "<b>Bold</b>\n"
+        "<i>Italic</i>\n"
+        "<u>Underline</u>",
         reply_markup=keyboard,
     )
     await callback_query.answer()
@@ -364,7 +374,9 @@ async def _handle_thumb_settings(client, callback_query):
 
     thmb_status = "✅ Set" if BOT.Setting.thumbnail else "🚫 None"
     await callback_query.message.edit_text(
-        f"**🖼️ Thumbnail Settings**\n\n**Status:** {thmb_status}\n\n💡 Send An Image To Set As Thumbnail",
+        f"<b>🖼️ Thumbnail Settings</b>\n\n"
+        f"<b>Status:</b> {thmb_status}\n\n"
+        f"💡 Send an image to set as thumbnail.",
         reply_markup=keyboard,
     )
     await callback_query.answer()
@@ -398,10 +410,10 @@ async def _handle_autodelete_menu(client, callback_query):
         [InlineKeyboardButton("❰ Back", callback_data="back")],
     ])
     await callback_query.message.edit_text(
-        f"**⏳ Auto-Delete Messages**\n\n"
-        f"**Status:** {'Enabled' if BOT.Setting.auto_delete else 'Disabled'}\n"
-        f"**Delay:** {BOT.Setting.auto_delete_delay} seconds\n\n"
-        f"When enabled, bot messages will be automatically deleted after the specified delay.",
+        f"<b>⏳ Auto-Delete Messages</b>\n\n"
+        f"<b>Status:</b> {'Enabled' if BOT.Setting.auto_delete else 'Disabled'}\n"
+        f"<b>Delay:</b> {BOT.Setting.auto_delete_delay} seconds\n\n"
+        f"When enabled, bot messages will be auto-deleted after the delay.",
         reply_markup=keyboard,
     )
     await callback_query.answer()
@@ -426,11 +438,11 @@ async def _handle_photo_mode_menu(client, callback_query):
         [InlineKeyboardButton("❰ Back", callback_data="back")],
     ])
     await callback_query.message.edit_text(
-        f"**📸 Photo Upload Mode**\n\n"
-        f"**Current:** `{current}`\n\n"
-        f"📦 **Group** — Send photos in batches of 10 (faster, cleaner)\n"
-        f"📷 **Single** — Send each photo individually\n\n"
-        f"💡 Group mode uses Telegram's media groups (max 10 per batch).",
+        f"<b>📸 Photo Upload Mode</b>\n\n"
+        f"<b>Current:</b> <code>{current}</code>\n\n"
+        f"📦 <b>Group</b> — Send photos in batches of 10 (faster)\n"
+        f"📷 <b>Single</b> — Send each photo individually\n\n"
+        f"💡 Group mode uses Telegram media groups (max 10).",
         reply_markup=keyboard,
     )
     await callback_query.answer()
@@ -452,7 +464,7 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
 
     MSG.status_msg = await app.send_message(
         chat_id=OWNER,
-        text="**🚀 Initializing YT-DLP Download...**\n\nPlease wait while I prepare your download",
+        text="<b>🚀 Initializing YT-DLP Download...</b>\n\nPlease wait while I prepare your download",
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
         ),
@@ -477,16 +489,16 @@ async def _handle_do_update(client, callback_query):
     """Handle the update action."""
     from leechbot.updater import perform_update
 
-    await callback_query.message.edit_text("**🔄 Updating... Please wait.**")
+    await callback_query.message.edit_text("<b>🔄 Updating... Please wait.</b>")
     await callback_query.answer("Updating...")
 
     result = perform_update()
 
     if result["success"]:
         await callback_query.message.edit_text(
-            f"**✅ Update Complete!**\n\n"
-            f"**New commit:** `{result['new_commit']}`\n\n"
-            f"⚠️ **Restart required.** The bot will restart automatically.\n\n"
+            f"<b>✅ Update Complete!</b>\n\n"
+            f"<b>New commit:</b> <code>{result['new_commit']}</code>\n\n"
+            f"⚠️ <b>Restart required.</b> Bot will restart automatically.\n\n"
             f"{result['message'][:1000]}"
         )
         logger.info("Restarting after update...")
@@ -495,14 +507,14 @@ async def _handle_do_update(client, callback_query):
         except Exception as e:
             logger.error("Restart failed: %s", e)
             await callback_query.message.edit_text(
-                f"**✅ Update Complete!**\n\n"
-                f"**New commit:** `{result['new_commit']}`\n\n"
-                f"⚠️ **Auto-restart failed.** Please restart the bot manually.\n"
-                f"`python3 -m leechbot`"
+                f"<b>✅ Update Complete!</b>\n\n"
+                f"<b>New commit:</b> <code>{result['new_commit']}</code>\n\n"
+                f"⚠️ <b>Auto-restart failed.</b> Please restart manually.\n"
+                f"<code>python3 -m leechbot</code>"
             )
     else:
         await callback_query.message.edit_text(
-            f"**❌ Update Failed**\n\n`{result['message'][:500]}`"
+            f"<b>❌ Update Failed</b>\n\n<code>{result['message'][:500]}</code>"
         )
 
 # =============================================================================
@@ -510,8 +522,7 @@ async def _handle_do_update(client, callback_query):
 # =============================================================================
 def _strip_sysinfo(text: str) -> str:
     """Strip existing system info block from message text."""
-    # Handle both old (⌬─────) and new (┏━━━━) formats
-    for separator in ("┏━━━━ **System Info", "⌬─────"):
+    for separator in ("<b>─── System ───</b>", "┏━━━━ **System Info", "⌬─────"):
         parts = text.split(separator)
         if len(parts) >= 2:
             return parts[0].rstrip()
@@ -551,51 +562,55 @@ async def _handle_sys_stats(client, callback_query):
 # =============================================================================
 # /help inline keyboard handlers  (3.1.34)
 # =============================================================================
-HELP_TEXT = """**📖 LeechBot Help Menu**
+HELP_TEXT = """<b>📖 LeechBot Help Menu</b>
 
-─── Download Commands ───
-• `/start` — Start the bot
-• `/tupload` — Upload to Telegram
-• `/gdupload` — Mirror to Google Drive
-• `/drupload` — Upload local directory
-• `/ytupload` — Download with YT-DLP
-• `/glupload` — Download image galleries
-• `/preview` — Dry-run a gallery URL
+<b>─── Download Commands ───</b>
+• /start — Start the bot
+• /tupload — Upload to Telegram
+• /gdupload — Mirror to Google Drive
+• /drupload — Upload local directory
+• /ytupload — Download with YT-DLP
+• /glupload — Download image galleries
+• /preview — Dry-run a gallery URL
 
-─── Queue & Control ───
-• `/queue` — View download queue
-• `/cancel` — Cancel current task
-• `/cancel_all` — Cancel & clear queue
+<b>─── Queue &amp; Control ───</b>
+• /queue — View download queue
+• /cancel — Cancel current task
+• /cancel_all — Cancel &amp; clear queue
 
-─── Settings ───
-• `/settings` — Bot settings menu
-• `/setname` — Set custom filename
-• `/zipaswd` — Set zip password
-• `/unzipaswd` — Set unzip password
-• `/format` — Set YT-DLP quality
-• `/formats` — List available formats
-• `/speed` — Set bandwidth limit
+<b>─── Settings ───</b>
+• /settings — Bot settings menu
+• /setname — Set custom filename
+• /zipaswd — Set zip password
+• /unzipaswd — Set unzip password
+• /format — Set YT-DLP quality
+• /formats — List available formats
+• /speed — Set bandwidth limit
 
-─── Admin ───
-• `/admin` — Manage allowed users
-• `/broadcast` — Send file to multiple chats
-• `/stats` — Bot & system statistics
-• `/update` — Check for updates
+<b>─── Admin ───</b>
+• /admin — Manage allowed users
+• /broadcast — Send file to multiple chats
+• /stats — Bot &amp; system statistics
+• /update — Check for updates
 
-─── YT-DLP Auth ───
-• `/cookies` — Check auth status
-• `/setcookies` — Upload cookies.txt
-• `/clearcookies` — Delete stored cookies
+<b>─── YT-DLP Auth ───</b>
+• /cookies — Check auth status
+• /setcookies — Upload cookies.txt
+• /clearcookies — Delete stored cookies
 
-**🖼️ Thumbnail:** Send any image to set as thumbnail"""
+<b>🖼️ Thumbnail:</b> Send any image to set thumbnail"""
 
 HELP_KEYBOARD = InlineKeyboardMarkup([
-    [InlineKeyboardButton("📂 GitHub Repository ✨", url="https://github.com/Shineii86/LeechBot")],
     [
-        InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
-        InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
+        InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
+        InlineKeyboardButton("💬 Support", url="https://t.me/MaximXGroup"),
     ],
-    [InlineKeyboardButton("🧑‍💻 Developer ✨", url="https://t.me/Shineii86")],
+    [
+        InlineKeyboardButton("🧑‍💻 Developer", url="https://t.me/Shineii86"),
+        InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
+    ],
+    [InlineKeyboardButton("⌂ Home", callback_data="start_back"),
+     InlineKeyboardButton("🔒 Close", callback_data="close")],
 ])
 
 
@@ -606,7 +621,7 @@ async def _handle_help_main(client, callback_query):
             await callback_query.message.delete()
         except Exception as e:
             logger.debug("Help close (delete) failed: %s", e)
-            await callback_query.message.edit_text("✅ Help closed.")
+            await callback_query.message.edit_text("<b>✅ Help closed.</b>")
         await callback_query.answer("Closed")
         return
 
@@ -625,25 +640,25 @@ async def _handle_help_main(client, callback_query):
 # =============================================================================
 # About + Start navigation  (3.1.35)
 # =============================================================================
-ABOUT_TEXT = """**ℹ️ About LeechBot**
+ABOUT_TEXT = """<b>ℹ️ About LeechBot</b>
 
-**Version:** `{version}`
-**Build:** {build_date}
+<b>Version:</b> <code>{version}</code>
+<b>Build:</b> {build_date}
 
-**👨‍💻 Developer:** [Shinei Nouzen](https://t.me/Shineii86)
-**📂 GitHub:** [Shineii86/LeechBot](https://github.com/Shineii86/LeechBot)
-**📜 License:** MIT
+<b>👨‍💻 Developer:</b> <a href="https://t.me/Shineii86">Shinei Nouzen</a>
+<b>📂 GitHub:</b> <a href="https://github.com/Shineii86/LeechBot">Shineii86/LeechBot</a>
+<b>📜 License:</b> MIT
 
-**📊 Stats:**
-• Supports **2000+** download sources
-• **Pyrogram** 2.0.106 + asyncio
+<b>📊 Stats:</b>
+• Supports <b>2000+</b> download sources
+• <b>Pyrogram</b> 2.0.106 + asyncio
 
-**🛠 Features:**
+<b>🛠 Features:</b>
 • Telegram, Google Drive, direct-URL, YouTube, galleries
 • Video conversion, archive extract, custom thumbnails
 • Per-task settings, queue, bandwidth control
 
-**⚖️ Disclaimer:**
+<b>⚖️ Disclaimer:</b>
 This bot is for personal use only. Respect copyright
 laws in your jurisdiction. The developer is not
 responsible for misuse."""
@@ -670,7 +685,8 @@ async def _handle_about(client, callback_query):
             InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
             InlineKeyboardButton("💬 Support", url="https://t.me/MaximXGroup"),
         ],
-        [InlineKeyboardButton("⬅️ Back to Start", callback_data="start_back")],
+        [InlineKeyboardButton("⌂ Home", callback_data="start_back"),
+         InlineKeyboardButton("🔒 Close", callback_data="close")],
     ])
 
     try:
