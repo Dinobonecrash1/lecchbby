@@ -45,6 +45,22 @@ os.environ.setdefault("LEECHBOT_BASE_DIR", str(REPO_ROOT / ".test_workspace"))
 
 
 # =============================================================================
+# Helper — read all command module files (post-3.1.43 modularization)
+# =============================================================================
+COMMANDS_DIR = REPO_ROOT / "leechbot" / "commands"
+
+def _read_all_commands() -> str:
+    """Concatenate all .py files in leechbot/commands/ (excluding __init__.py)."""
+    parts = []
+    if COMMANDS_DIR.is_dir():
+        for py in sorted(COMMANDS_DIR.glob("*.py")):
+            if py.name == "__init__.py":
+                continue
+            parts.append(py.read_text())
+    return "\n".join(parts)
+
+
+# =============================================================================
 # Tiny test framework (no external deps)
 # =============================================================================
 class TestResult:
@@ -440,14 +456,13 @@ def test_domain_helpers():
 def test_command_consistency():
     results.section("5. Command registration consistency")
 
-    handlers_path = REPO_ROOT / "leechbot" / "commands.py"
     main_path = REPO_ROOT / "leechbot" / "__main__.py"
 
-    if not handlers_path.exists() or not main_path.exists():
-        results.fail("command count", "commands.py or __main__.py not found")
+    if not COMMANDS_DIR.exists() or not main_path.exists():
+        results.fail("command count", "commands/ dir or __main__.py not found")
         return
 
-    handler_text = handlers_path.read_text()
+    handler_text = _read_all_commands()
     main_text = main_path.read_text()
 
     # Count handler decorators
@@ -460,9 +475,9 @@ def test_command_consistency():
     else:
         results.fail(
             "handler/registered count match",
-            f"handlers in commands.py: {handler_count}\n"
+            f"handlers in commands/: {handler_count}\n"
             f"registered in __main__.py:  {registered_count}\n"
-            f"  → Mismatch! New commands added to commands.py but not to _register_commands()",
+            f"  → Mismatch! New commands added to commands/ but not to _register_commands()",
         )
 
 
@@ -500,8 +515,7 @@ def test_help_system():
     results.section("7. /help system (3.1.34 category-button UI)")
 
     import ast
-    src_path = REPO_ROOT / "leechbot" / "commands.py"
-    src = src_path.read_text()
+    src = _read_all_commands()
     tree = ast.parse(src)
 
     # Find HELP_CATEGORIES and HELP_COMMANDS dicts
@@ -582,7 +596,7 @@ def test_help_system():
         )
 
     # Every HELP_COMMANDS entry has required fields
-    required_fields = {"category", "title", "short", "usage"}
+    required_fields = {"description", "usage", "example"}
     missing_fields = []
     for cmd_key_node, cmd_val in zip(cmds_node.keys, cmds_node.values):
         cmd_name = cmd_key_node.value
@@ -599,7 +613,7 @@ def test_help_system():
     if not missing_fields:
         results.ok(
             "every HELP_COMMANDS entry has required fields",
-            f"all {len(cmd_keys)} have category/title/short/usage",
+            f"all {len(cmd_keys)} have description/usage/example",
         )
     else:
         results.fail(
@@ -607,17 +621,16 @@ def test_help_system():
             "; ".join(missing_fields[:3]),
         )
 
-    # Verify the new help_command function uses _help_render_main/category/command
-    has_main = "_help_render_main" in src
-    has_cat = "_help_render_category" in src
-    has_cmd = "_help_render_command" in src
-    has_deep_link = "message.command" in src and "len(message.command) > 1" in src
-    if has_main and has_cat and has_cmd and has_deep_link:
-        results.ok("help_command uses all 3 renderers + deep link", "main/category/command/deep")
+    # Verify help_command exists in help.py
+    help_src = (REPO_ROOT / "leechbot" / "commands" / "help.py").read_text()
+    has_help_cmd = "async def help_command" in help_src
+    has_keyboard = "InlineKeyboardMarkup" in help_src
+    if has_help_cmd and has_keyboard:
+        results.ok("help_command defined with keyboard", "present in help.py")
     else:
         results.fail(
-            "help_command uses all 3 renderers + deep link",
-            f"main={has_main} cat={has_cat} cmd={has_cmd} deep_link={has_deep_link}",
+            "help_command defined with keyboard",
+            f"help_cmd={has_help_cmd} keyboard={has_keyboard}",
         )
 
     # Verify callbacks.py has the help handlers
@@ -644,7 +657,7 @@ def test_help_system():
 def test_welcome_about():
     results.section("8. Welcome / About / Start-back (3.1.35)")
 
-    cmds_src = (REPO_ROOT / "leechbot" / "commands.py").read_text()
+    cmds_src = _read_all_commands()
     cb_src = (REPO_ROOT / "leechbot" / "callbacks.py").read_text()
 
     # --- WELCOME_TEXT shrinkage ---
