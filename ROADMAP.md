@@ -87,6 +87,9 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 
 | Feature | Version |
 |---------|---------|
+| **Removed UserBot feature** — deleted `userbot.py` and all related commands, auth flow, and state tracking | **3.1.46** |
+| **Full diagnostic sweep** — fixed 21 issues: NameError, AttributeError, WebSocket auth bypass, CORS, shell injection, dead code cleanup | **3.1.45** |
+| **Security & stability fixes** — WebSocket auth, CORS, shell injection, progress cap at 100% | **3.1.44** |
 | **Professional UI rewrite** — status bar + task complete redesigned with `┌├└` box borders, aligned labels, `→` arrows, version footer | **3.1.42** |
 | **Task Complete message upgraded** — added average speed (⚡ **Speed**), source link now inline | **3.1.41** |
 | **Upload chunk_size increased to 5MB** — 5x fewer round-trips than original 1MB default, ~2.5x faster than 2MB | **3.1.40** |
@@ -95,7 +98,7 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 | **Status bar — box-drawing style** — adopted [ehraz786/tgdl](https://github.com/ehraz786/tgdl) layout with `╭├╰` characters, labeled lines for each stat, `「」` progress bar, 2-decimal percentage | **3.1.37** |
 | **Status bar upgraded** — progress bar without backticks, info compressed to 2 lines, system info (CPU/RAM/disk) removed from default view (shown on-demand via "📊 Stats" button) | **3.1.36** |
 | **Welcome message trimmed + new Help & About buttons** — `WELCOME_TEXT` shrunk from 35→9 lines; added `📖 Help` + `ℹ️ About` inline buttons; new `About` card with version, build date, stats, dev credits, license, disclaimer; "Back to Start" navigation | **3.1.35** |
-| **Category-button `/help` UI** — 6 categories (Downloads, Files, Status, Account, Cookies, Admin) with inline keyboard drill-down, deep-link `/help <command>` for direct help, in-place message editing (no spam) | **3.1.34** |
+| **Category-button `/help` UI** — 6 categories (Downloads, Files, Status, Cookies, Admin) with inline keyboard drill-down, deep-link `/help <command>` for direct help, in-place message editing (no spam) | **3.1.34** |
 | **Telegram parser ported from [xditya/GetRestrictedMessages](https://github.com/xditya/GetRestrictedMessages)** — added slug form (`t.me/s/...`), discussion threads (`t.me/c/.../msg/thread`), `http://` and `telegram.me` support, friendlier error messages | **3.1.33** |
 | **Fixed noisy `CancelledError` traceback on shutdown** — `BOT.State.shutting_down` flag blocks new tasks; `upload_file` catches `CancelledError` gracefully | **3.1.32** |
 | **Removed Bunkr + Instagram downloaders (broken, untestable)** — see [CHANGELOG 3.1.31](CHANGELOG.md) | **3.1.31** |
@@ -122,7 +125,6 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 | libtorrent magnet/torrent downloader | 3.1.7 |
 | 4 new downloaders (GoFile, Bunkr*, Catbox, StreamTape) — *Bunkr removed in 3.1.31 | 3.1.1 |
 | Web dashboard (REST + WebSocket) | 3.1.0 |
-| UserBot for private channels | 3.1.1 |
 | YouTube PO Token auto-generation | 3.0.2 |
 | gallery-dl integration (100+ sites) | 3.0.3 |
 
