@@ -15,7 +15,7 @@ Commands package — imports all command modules to register handlers.
 This package modularizes the commands.py file into separate modules:
 - uploads.py: /tupload, /gdupload, /drupload, /ytupload, /glupload
 - settings.py: /settings, /format, /speed
-- help.py: /start, /help, /about
+- help.py: /start, /help, /about, HELP_CATEGORIES, HELP_COMMANDS, _help_render_*
 - status.py: /status, /stats, /ping
 - queue.py: /queue, /cancel, /cancel_all
 - admin.py: /admin, /broadcast
@@ -37,6 +37,15 @@ from leechbot.commands.userbot import *
 from leechbot.commands.system import *
 from leechbot.commands.utility import *
 
+# Re-export help functions needed by callbacks.py
+from leechbot.commands.help import (
+    HELP_CATEGORIES,
+    HELP_COMMANDS,
+    _help_render_main,
+    _help_render_category,
+    _help_render_command,
+)
+
 __all__ = [
     "uploads",
     "settings",
@@ -48,4 +57,9 @@ __all__ = [
     "userbot",
     "system",
     "utility",
+    "HELP_CATEGORIES",
+    "HELP_COMMANDS",
+    "_help_render_main",
+    "_help_render_category",
+    "_help_render_command",
 ]
