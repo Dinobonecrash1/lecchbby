@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.43-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.45-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -38,7 +38,7 @@
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
 - [🗺️ Roadmap](ROADMAP.md) — what's planned
-- [✨ What's New?](#-whats-new-in-v3135)
+- [✨ What's New?](#-whats-new-in-v3145)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
 - [👤 UserBot — Private Channels](#-userbot--private-channels)
@@ -55,14 +55,14 @@
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
 
-## ✨ What's New in v3.1.43
+## ✨ What's New in v3.1.45
 
-### 🔄 Commands Modularized
-- Split monolithic `commands.py` (1529 lines) into 10 focused modules under `leechbot/commands/`
-- Each command group is now isolated in its own file for better maintainability
-- Same behavior — all handlers register via decorators; no functional changes
+### 🔒 Security & Stability
+- Fixed WebSocket auth bypass, CORS wildcard, shell injection in aria2
+- Fixed NameError on `HELP_KEYBOARD`, dead `"danger"` button, missing `BOT.Options.file_name`
+- Removed 1659 lines of dead code, 14 unused imports, unused dependencies
 
-> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **30 commands across 6 categories**
+> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **32 commands across 6 categories**
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -296,7 +296,7 @@ conda install -c conda-forge libtorrent
 
 ## 📋 Commands
 
-All 30 commands are organized into 6 categories in the **interactive `/help` menu** (category‑button UI added in v3.1.34).
+All 32 commands are organized into 6 categories in the **interactive `/help` menu**.
 
 | Category | Commands | Usage |
 |----------|----------|-------|
@@ -348,18 +348,7 @@ LeechBot/
 ├── leechbot/
 │   ├── __init__.py          # Pyrogram client
 │   ├── __main__.py          # Entry point
-│   ├── commands/            # /command handlers (modular)
-│   │   ├── __init__.py      # Package imports
-│   │   ├── uploads.py       # /tupload, /gdupload, /drupload, /ytupload, /glupload
-│   │   ├── settings.py      # /settings, /format, /speed
-│   │   ├── help.py          # /start, /help, /about
-│   │   ├── status.py        # /status, /stats, /ping
-│   │   ├── queue.py         # /queue, /cancel, /cancel_all
-│   │   ├── admin.py         # /admin, /broadcast
-│   │   ├── cookies.py       # /cookies, /setcookies, /clearcookies
-│   │   ├── userbot.py       # /userbot, /userbot_status, /userbot_logout
-│   │   ├── system.py        # /restart, /update, /logs
-│   │   └── utility.py       # /setname, /formats, /preview, /zipaswd, /unzipaswd
+│   ├── commands.py          # /command handlers (32 commands)
 │   ├── callbacks.py         # Button callbacks
 │   ├── handlers.py          # Message handlers
 │   ├── userbot.py           # UserBot session manager
@@ -371,7 +360,6 @@ LeechBot/
 │   │   ├── ytdl.py          # YouTube, 2000+ sites
 │   │   ├── gallery.py       # Photo galleries (100+ sites)
 │   │   ├── gdrive.py        # Google Drive
-│   │   ├── telegram.py      # Telegram file downloads
 │   │   ├── mega.py          # Mega.nz
 │   │   ├── terabox.py       # Terabox
 │   │   ├── pixeldrain.py    # Pixeldrain
@@ -384,15 +372,12 @@ LeechBot/
 │   │   └── telegram.py      # Upload with progress
 │   ├── web/
 │   │   └── server.py        # Dashboard API + WebSocket
-│   ├── utility/
-│   │   ├── variables.py     # Global state
-│   │   ├── handler.py       # Task handlers
-│   │   ├── helper.py        # UI, links, formatting
-│   │   ├── converters.py    # Video/archive conversion
-│   │   ├── task_manager.py  # Task orchestrator
-│   │   └── style.py         # Text styling
-│   └── public/
-│       └── index.html        # Dashboard frontend
+│   └── utility/
+│       ├── variables.py     # Global state
+│       ├── handler.py       # Task handlers
+│       ├── helper.py        # UI, links, formatting
+│       ├── converters.py    # Video/archive conversion
+│       └── task_manager.py  # Task orchestrator
 └── notebooks/
     └── LeechBot.ipynb        # Colab notebook
 ```

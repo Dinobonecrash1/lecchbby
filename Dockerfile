@@ -9,7 +9,7 @@ FROM python:3.12-slim AS base
 
 LABEL maintainer="Shinei Nouzen <https://github.com/Shineii86>" \
       description="Advanced Telegram File Transloader" \
-      version="3.1.12"
+      version="3.1.45"
 
 # Prevent Python from buffering output
 ENV PYTHONUNBUFFERED=1 \

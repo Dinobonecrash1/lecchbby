@@ -135,9 +135,15 @@ Now edit `.env` with your credentials (see [Configuration](#-configuration)).
 
 > 💡 The Deploy cell starts the bot and keeps the session alive. All interaction is via Telegram — no tunnel or web dashboard needed.
 
-### Option C: Docker (Coming Soon)
+### Option C: Docker
 
-Docker support is planned for a future release.
+```bash
+git clone https://github.com/Shineii86/LeechBot.git
+cd LeechBot
+cp .env.example .env
+nano .env
+docker compose up -d
+```
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -171,21 +177,21 @@ DUMP_ID=-1001234567890
 LEECHBOT_BASE_DIR=/tmp/leechbot
 
 # --- Download Settings ---
-MAX_CONCURRENT_DOWNLOADS=3
 AUTO_RETRY_COUNT=3
 DEFAULT_UPLOAD_MODE=media
-ENABLE_TORRENTS=false
 BANDWIDTH_LIMIT=
+
+# --- Web Dashboard ---
+WEB_PORT=8080
+WEB_TOKEN=
 
 # --- Multi-User Support ---
 ALLOWED_USERS=
 
 # --- YouTube Cookies (optional) ---
 # YTDL_COOKIES_FILE=/path/to/cookies.txt
-# YTDL_BROWSER_COOKIES=chrome
 
 # --- Google Drive (optional) ---
-GDRIVE_ENABLED=false
 TOKEN_PICKLE_PATH=
 ```
 
@@ -635,7 +641,6 @@ with open('token.pickle', 'wb') as f:
 ### Step 3: Configure
 
 ```env
-GDRIVE_ENABLED=true
 TOKEN_PICKLE_PATH=/path/to/token.pickle
 ```
 
@@ -672,14 +677,7 @@ If PO tokens stop working:
 
 ### Method 3: Browser Cookie Extraction
 
-Set in `.env`:
-```env
-YTDL_BROWSER_COOKIES=chrome
-```
-
-Supported browsers: `chrome`, `firefox`, `edge`, `brave`, `opera`, `safari`, `vivaldi`
-
-> ⚠️ **Close the browser before running the bot** — it can't read cookies from a running browser.
+> ⚠️ **Browser cookie extraction has been removed** in v3.1.45. Use PO tokens (auto-generated) or upload `cookies.txt` manually via `/setcookies`.
 
 ### Check Status
 
@@ -1469,11 +1467,9 @@ Bot:   🚀 Initializing Task...
 
 - Telegram rate-limits bots that send too many messages too fast
 - The bot handles this automatically (waits and retries)
-- Reduce `MAX_CONCURRENT_DOWNLOADS` if it happens frequently
 
 ### Google Drive upload fails
 
-- Check that `GDRIVE_ENABLED=true` in `.env`
 - Verify `token.pickle` exists and is valid
 - Re-generate the token if it's expired (tokens expire after ~7 days of inactivity)
 
@@ -1526,7 +1522,6 @@ LeechBot/
 │   │   ├── mega.py         # Mega.nz downloads
 │   │   ├── mediafire.py    # Mediafire downloads
 │   │   ├── pixeldrain.py   # Pixeldrain downloads
-│   │   ├── telegram.py     # Telegram file downloads
 │   │   ├── terabox.py      # Terabox downloads
 │   │   ├── ytdl.py         # YouTube/video platform downloads
 │   │   └── __init__.py
@@ -1537,7 +1532,6 @@ LeechBot/
 │       ├── converters.py   # Video conversion, archive handling
 │       ├── handler.py      # Task handlers (leech, zip, unzip, logs)
 │       ├── helper.py       # Utilities (settings, status bar, link detection)
-│       ├── style.py        # Text styling
 │       ├── task_manager.py # Task scheduler & orchestrator
 │       ├── variables.py    # Global state (BOT, Transfer, Queue, etc.)
 │       └── __init__.py

@@ -24,7 +24,7 @@ Pyrogram 2.0.106 Telegram bot for file transloading. Python 3.10+, asyncio, ~800
 - No `progress` on `reply_media_group()` — upload individually then group via `file_id`
 - No `style` on `InlineKeyboardButton` — Pyrogram 2.0.106 predates it
 - Telegram 2GB file limit, media group max 10 photos
-- No test suite, no CI/CD
+- Test suite exists in `tests/` — expand with pytest + pytest-asyncio
 
 ## Changelog
 New entry at top of `CHANGELOG.md` for every change. Never edit existing entries.

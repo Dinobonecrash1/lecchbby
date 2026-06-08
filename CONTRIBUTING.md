@@ -84,7 +84,7 @@ Open a Pull Request against `main`.
 
 ### Python Style
 
-- No linter configured — follow existing patterns
+- Linter: ruff (configured in `pyproject.toml`) — follow existing patterns
 - Async/await everywhere (this is an asyncio app)
 - `logger = logging.getLogger(__name__)` at module top
 - Type hints on function signatures preferred
@@ -128,7 +128,7 @@ Every new `.py` file must have the standard header:
 
 - Add more downloader adapters (new file hosting sites)
 - Improve error messages for users
-- Add unit tests (none exist yet!)
+- Expand test suite (`tests/`) with more coverage
 - Dashboard improvements (new features, better UX)
 - Documentation improvements
 
@@ -136,7 +136,7 @@ Every new `.py` file must have the standard header:
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Unit tests | ❌ None | Would need mocking for Pyrogram |
+| Unit tests | ⚠️ Basic | `tests/test_diagnostics.py` exists — expand coverage |
 | CI/CD | ❌ None | GitHub Actions would be great |
 | Type hints | ⚠️ Partial | Some files have them, many don't |
 | i18n | ❌ None | English only |

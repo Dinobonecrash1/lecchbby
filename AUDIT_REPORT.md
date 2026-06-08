@@ -1,5 +1,7 @@
 # LeechBot — Comprehensive Static Audit Report
 
+> **⚠️ HISTORICAL DOCUMENT** — This report was written for v3.1.30. Current version is v3.1.45. Some findings may no longer apply.
+
 **Date:** 2026-06-07
 **Auditor:** opencode (m3-free) static-analysis pass
 **Codebase:** LeechBot v3.1.30 (commit `7e25485`)

@@ -364,9 +364,8 @@ async def cancelTask(reason):
 | `BOT_TOKEN` | (required) | Bot token from BotFather |
 | `OWNER_ID` | (required) | Admin user ID |
 | `DUMP_ID` | (required) | Log channel ID |
-| `MAX_CONCURRENT_DOWNLOADS` | 3 | Parallel download limit |
 | `DEFAULT_UPLOAD_MODE` | media | media or document |
-| `GDRIVE_ENABLED` | false | Google Drive support |
+| `BANDWIDTH_LIMIT` | (empty) | Download speed limit |
 | `WEB_PORT` | 8080 | Dashboard port |
 | `WEB_TOKEN` | auto | Dashboard auth token |
 

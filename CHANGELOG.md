@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.46] - 2026-06-08
+
+### Changed
+- **📚 Full documentation sweep** — updated all 8 doc files to match v3.1.45 codebase:
+  - README.md: fixed false modularization claims, corrected project structure, updated command count (32)
+  - ARCHITECTURE.md: removed deleted config vars (`MAX_CONCURRENT_DOWNLOADS`, `GDRIVE_ENABLED`), removed `telegram.py` from download pipeline
+  - AGENTS.md: removed deleted files from diagram, updated line counts, fixed command count
+  - GUIDE.md: replaced Docker "Coming Soon" with actual instructions, removed deleted config vars, removed `YTDL_BROWSER_COOKIES` section, updated project structure
+  - TERMUX.md: fixed version references, typo (`ENABLE_TRENTS`), command count, removed deleted config vars
+  - AUDIT_REPORT.md: marked as historical document
+  - pyproject.toml, Dockerfile: version sync
+
+---
+
 ## [3.1.45] - 2026-06-08
 
 ### Fixed

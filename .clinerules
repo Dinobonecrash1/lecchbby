@@ -41,4 +41,4 @@ ALL mutable state lives in `leechbot/utility/variables.py`. Classes:
 Every change → new entry at top of `CHANGELOG.md` with Version, Date, Description.
 
 ## Testing
-No test suite. Test manually with real Telegram bot.
+Test suite in `tests/`. Expand with pytest + pytest-asyncio.

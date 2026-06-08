@@ -109,10 +109,10 @@ This creates `~/LeechBot/` with all the source code.
 ```bash
 cd ~/LeechBot
 git tag                          # list available versions
-git checkout 3.1.26              # replace with the version you want
+git checkout 3.1.45              # replace with the version you want
 ```
 
-Latest stable at the time of writing: **3.1.26**.
+Latest stable at the time of writing: **3.1.45**.
 
 ---
 
@@ -210,7 +210,7 @@ You should see:
 ```
 [INFO] LeechBot starting...
 [INFO] Loaded credentials from .env
-[INFO] ✅ Registered 29 bot commands with Telegram
+[INFO] ✅ Registered 32 bot commands with Telegram
 [INFO] Web server started on http://0.0.0.0:8080
 [INFO] Bot is ready. Send /start in Telegram.
 ```
@@ -397,7 +397,6 @@ pkg install -y aria2
 ### ❌ `libtorrent` import fails
 
 Either:
-- Set `ENABLE_TRENTS=false` in `.env` (uses aria2c fallback), or
 - Build from source: `pkg install -y libtorrent-rasterbar && pip install python-libtorrent`
 
 ### ❌ Bot stops after closing Termux
@@ -435,7 +434,6 @@ Android's `lmkd` kills processes using too much RAM. Mitigate by:
 
 ```bash
 # Edit .env
-MAX_CONCURRENT_DOWNLOADS=1     # reduce parallelism
 LEECHBOT_BASE_DIR=/sdcard/leechbot_data  # use storage, not tmpfs
 ```
 
@@ -488,7 +486,7 @@ python -m leechbot
 
 ### Or send `/update` to the bot in Telegram
 
-It will show the latest version available on GitHub. (Auto-update is **not** enabled in 3.1.26 to avoid surprise breakage — manual update recommended.)
+It will show the latest version available on GitHub. (Auto-update is **not** enabled to avoid surprise breakage — manual update recommended.)
 
 ### Pull only Python deps that changed:
 

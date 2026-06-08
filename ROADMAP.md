@@ -17,8 +17,8 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 - Download from cloud → upload to Telegram, or mirror between providers
 
 ### 📊 Unit Tests
-- Currently zero tests — everything is manual
-- Start with core modules: `helper.py`, `variables.py`, `manager.py`
+- Expand existing test suite in `tests/` (pytest + pytest-asyncio)
+- Target core modules: `helper.py`, `variables.py`, `manager.py`, `task_manager.py`
 - Mock Pyrogram client for handler tests
 - GitHub Actions CI on push/PR
 

@@ -34,10 +34,9 @@ LeechBot is a **Pyrogram-based Telegram bot** for downloading files from various
 │  ├ gallery.py       ├───────────────────────────────┤
 │  ├ gdrive.py        │  utility/                      │
 │  ├ mega.py          │  ├ handler.py (Leech, Zip...)  │
-│  ├ telegram.py      │  ├ helper.py (UI, links)       │
-│  ├ terabox.py       │  ├ converters.py               │
-│  ├ pixeldrain.py    │  ├ variables.py (global state) │
-│  ├ mediafire.py     │  ├ style.py                    │
+│  ├ terabox.py       │  ├ helper.py (UI, links)       │
+│  ├ pixeldrain.py    │  ├ converters.py               │
+│  ├ mediafire.py     │  ├ variables.py (global state) │
 │  └ __init__.py      │  └ task_manager.py             │
 ├─────────────────────┴───────────────────────────────┤
 │  web/server.py  ←→  public/index.html               │
@@ -52,25 +51,25 @@ LeechBot is a **Pyrogram-based Telegram bot** for downloading files from various
 
 ## Key Files & Responsibilities
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `config.py` | 152 | All env vars, paths, feature flags, credentials loading |
-| `leechbot/__init__.py` | 74 | Pyrogram `app` client creation, exports |
-| `leechbot/__main__.py` | 191 | Entry point, handler imports, web server startup |
-| `leechbot/commands.py` | 863 | All `/command` handlers (23 commands) |
-| `leechbot/callbacks.py` | 534 | Inline keyboard callback routing |
-| `leechbot/handlers.py` | 218 | Message handlers (URL, photo, text, reply) |
-| `leechbot/utility/variables.py` | 322 | **ALL global mutable state** — single source of truth |
-| `leechbot/utility/helper.py` | 700 | Link detection, UI builders, file utils, status bar |
-| `leechbot/utility/handler.py` | 417 | `Leech()`, `Zip_Handler()`, `Unzip_Handler()`, `SendLogs()` |
-| `leechbot/utility/task_manager.py` | 300 | `task_starter()` — orchestrates download→upload pipeline |
-| `leechbot/utility/converters.py` | 425 | Video conversion, archive/extract, size checking |
-| `leechbot/downloader/manager.py` | 247 | Download router — dispatches to correct downloader |
-| `leechbot/uploader/telegram.py` | 319 | File upload with progress, batch photo upload |
-| `leechbot/web/server.py` | 368 | aiohttp REST API + WebSocket for dashboard |
-| `public/index.html` | 623 | Dashboard frontend (vanilla JS + Tailwind CSS) |
-| `leechbot/debug.py` | 217 | Error reporting to Telegram DUMP channel |
-| `leechbot/updater.py` | 126 | GitHub-based auto-update mechanism |
+| File | Purpose |
+|------|---------|
+| `config.py` | All env vars, paths, feature flags, credentials loading |
+| `leechbot/__init__.py` | Pyrogram `app` client creation, exports |
+| `leechbot/__main__.py` | Entry point, handler imports, web server startup |
+| `leechbot/commands.py` | All `/command` handlers (32 commands) |
+| `leechbot/callbacks.py` | Inline keyboard callback routing |
+| `leechbot/handlers.py` | Message handlers (URL, photo, text, reply) |
+| `leechbot/utility/variables.py` | **ALL global mutable state** — single source of truth |
+| `leechbot/utility/helper.py` | Link detection, UI builders, file utils, status bar |
+| `leechbot/utility/handler.py` | `Leech()`, `Zip_Handler()`, `Unzip_Handler()`, `SendLogs()` |
+| `leechbot/utility/task_manager.py` | `task_starter()` — orchestrates download→upload pipeline |
+| `leechbot/utility/converters.py` | Video conversion, archive/extract, size checking |
+| `leechbot/downloader/manager.py` | Download router — dispatches to correct downloader |
+| `leechbot/uploader/telegram.py` | File upload with progress, batch photo upload |
+| `leechbot/web/server.py` | aiohttp REST API + WebSocket for dashboard |
+| `public/index.html` | Dashboard frontend (vanilla JS + Tailwind CSS) |
+| `leechbot/debug.py` | Error reporting to Telegram DUMP channel |
+| `leechbot/updater.py` | GitHub-based auto-update mechanism |
 
 ---
 
@@ -109,7 +108,7 @@ User sends /tupload + link
 ## Conventions
 
 ### Code Style
-- **No linter/formatter configured** — follow existing patterns
+- **Linter: ruff** (configured in `pyproject.toml`) — follow existing patterns
 - Module-level docstrings with project header (see any file)
 - `logger = logging.getLogger(__name__)` at module top
 - Async everywhere — this is an asyncio application
@@ -199,7 +198,7 @@ natsort               # Natural sorting
 
 ## Testing
 
-No test suite exists. Test manually:
+Test suite in `tests/` (pytest + pytest-asyncio). Expand coverage. Manual testing:
 1. Start bot: `python3 -m leechbot`
 2. Send `/start` on Telegram
 3. Test each command type with real links
