@@ -15,7 +15,6 @@ Helper functions for file operations, formatting, UI updates, and link handling.
 
 import os
 import re
-import math
 import psutil
 import logging
 from time import time
@@ -28,7 +27,7 @@ from leechbot import app
 from pyrogram.errors import BadRequest
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 
-from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths
+from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
 
 logger = logging.getLogger(__name__)
 
@@ -650,7 +649,7 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
         [
             InlineKeyboardButton(
                 f"⏳ Auto-Delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}",
-                callback_data="autodelete" if BOT.Setting.auto_delete else "danger",
+                callback_data="autodelete",
             ),
         ],
         [

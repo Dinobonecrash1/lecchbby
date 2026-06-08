@@ -15,7 +15,6 @@ import pytz
 import shutil
 import random
 import logging
-import asyncio
 from time import time
 from datetime import datetime
 
@@ -26,7 +25,7 @@ from leechbot import OWNER, app, DUMP_ID
 from leechbot.downloader.manager import calDownSize, get_d_name, downloadManager
 from leechbot.utility.helper import getSize, applyCustomName, keyboard, sysINFO, is_google_drive, is_ytdl_link, is_mega, is_terabox, is_torrent
 from leechbot.utility.handler import Leech, Unzip_Handler, Zip_Handler, SendLogs, cancelTask
-from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Aria2c, Transfer, TaskError, BotStats
+from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError, BotStats
 
 logger = logging.getLogger(__name__)
 

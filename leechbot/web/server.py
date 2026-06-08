@@ -240,6 +240,16 @@ async def handle_ws(request):
     await ws.prepare(request)
 
     # Auth check via first message
+    try:
+        auth_msg = await ws.receive(timeout=5)
+        auth_data = auth_msg.json()
+        if auth_data.get("auth") != _auth_token:
+            await ws.close(code=4001, message=b"Unauthorized")
+            return ws
+    except Exception:
+        await ws.close(code=4002, message=b"Auth timeout")
+        return ws
+
     _ws_clients.add(ws)
     logger.info("WebSocket client connected (%d total)", len(_ws_clients))
 
@@ -309,7 +319,7 @@ async def cors_middleware(request, handler):
         except web.HTTPException as e:
             response = e
 
-    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Origin"] = os.getenv("WEB_CORS_ORIGIN", "*")
     response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
     response.headers["Access-Control-Allow-Headers"] = "Authorization, Content-Type"
     return response
@@ -361,6 +371,6 @@ async def start_web_server(port: int = 8080, token: str = ""):
 
     logger.info("🌐 Web dashboard running on http://0.0.0.0:%d", port)
     logger.info("📊 Dashboard URL: http://0.0.0.0:%d/dashboard", port)
-    logger.info("🔑 Auth token: %s...", token[:8] if token else "NONE")
+    logger.info("🔑 Auth token: %s****", token[:4] if token else "NONE")
 
     return port

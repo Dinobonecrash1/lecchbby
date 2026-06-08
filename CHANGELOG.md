@@ -9,9 +9,25 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **🐛 ImportError `_help_render_main`** — removed stale `_help_render_*` imports from `callbacks.py`; help menu now uses inline `HELP_TEXT` and `HELP_KEYBOARD` constants
 - **🐛 Progress bar overflow (101.97%)** — capped upload progress at 100% in `uploader/telegram.py`
+- **🐛 NameError `HELP_KEYBOARD`** — added missing `InlineKeyboardMarkup`/`InlineKeyboardButton` imports at module level in `callbacks.py`
+- **🐛 Dead button `"danger"`** — changed `callback_data` from `"danger"` to `"autodelete"` in `helper.py` so auto-delete settings are accessible when OFF
+- **🐛 AttributeError `BOT.Options.file_name`** — added missing `file_name` attribute to `BOT.Options` in `variables.py`
+- **🐛 AttributeError `Transfer.download_path`** — added missing `download_path` attribute to `Transfer` in `variables.py`
+- **🔒 WebSocket auth bypass** — added auth token validation on WebSocket connect in `server.py`
+- **🔒 CORS wildcard** — replaced `*` with configurable `WEB_CORS_ORIGIN` env var in `server.py`
+- **🔒 Token exposure** — reduced auth token logged from 8 to 4 chars in `server.py`
+- **🔒 Shell injection** — replaced `shell=True` with list args in `aria2.py:get_Aria2c_Name()`
 
 ### Changed
 - **🔄 Reverted to single `commands.py`** — merged all modular command files back into one monolithic `commands.py` for simplicity
+- **🧹 Dead code cleanup** — removed `commands_old.py`, `utility/style.py` (1529+ lines of unused code)
+- **🧹 Dead config removed** — `MAX_CONCURRENT_DOWNLOADS`, `ENABLE_TORRENTS`, `GDRIVE_ENABLED`, `YTDL_BROWSER_COOKIES` (defined but never used)
+- **🧹 Dead state removed** — `Aria2c.pic_dwn_url` (never referenced)
+- **🧹 Unused imports removed** — 14 stale imports across `config.py`, `commands.py`, `converters.py`, `helper.py`, `task_manager.py`, `streamtape.py`, `terabox.py`
+- **🧹 Unused deps removed** — `requests`, `ffmpeg-python` from `requirements.txt` (never imported)
+- **🧹 Dead handlers removed** — `help_cat_`/`help_cmd_` callback handlers (no buttons generate these strings)
+- **🧹 Dead exports removed** — `is_gofile_link`, `is_catbox_link`, `is_streamtape_link` from `downloader/__init__.py`
+- **📦 Config centralized** — `WEB_PORT` and `WEB_TOKEN` moved from inline `__main__.py` to `config.py` + `.env.example`
 
 ---
 

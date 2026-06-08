@@ -17,7 +17,6 @@ import GPUtil
 import shutil
 import logging
 import subprocess
-import asyncio
 from asyncio import sleep, CancelledError
 from threading import Thread
 from datetime import datetime

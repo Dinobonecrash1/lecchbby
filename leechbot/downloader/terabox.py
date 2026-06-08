@@ -15,11 +15,9 @@ then hands off the direct URL to aria2c for the actual download.
 """
 
 import logging
-from datetime import datetime
 
 import aiohttp
 
-from leechbot.utility.variables import Aria2c
 from leechbot.utility.handler import cancelTask
 from leechbot.downloader.aria2 import aria2_Download
 

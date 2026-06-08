@@ -885,7 +885,7 @@ async def userbot_command(client, message):
     if message.chat.id != OWNER:
         return
 
-    from leechbot.userbot import check_user_session, start_auth_flow, _auth_state
+    from leechbot.userbot import check_user_session, _auth_state
 
     if await check_user_session():
         await message.reply_text(
@@ -1049,7 +1049,7 @@ async def logs_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("update") & filters.private)
 async def update_command(client, message):
-    from leechbot.updater import check_for_updates, perform_update, get_local_version, get_local_commit, get_changelog_since
+    from leechbot.updater import check_for_updates, get_local_version, get_changelog_since
 
     if message.chat.id != OWNER:
         return

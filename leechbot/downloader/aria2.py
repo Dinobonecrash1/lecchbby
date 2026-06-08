@@ -248,10 +248,10 @@ def get_Aria2c_Name(link: str) -> str:
         return BOT.Options.custom_name
 
     try:
-        cmd = f'aria2c -x10 --dry-run --file-allocation=none "{link}"'
+        cmd = ['aria2c', '-x10', '--dry-run', '--file-allocation=none', link]
         result = subprocess.run(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            shell=True, timeout=15,
+            timeout=15,
         )
         stdout_str = result.stdout.decode("utf-8", errors="replace")
 

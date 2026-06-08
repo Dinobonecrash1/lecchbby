@@ -62,6 +62,7 @@ class BOT:
         caption: str = "code"
         video_out: str = "mp4"
         custom_name: str = ""
+        file_name: str = ""
         zip_pswd: str = ""
         unzip_pswd: str = ""
         ytdl_format: str = "bestvideo+bestaudio/best"  # YT-DLP format string
@@ -206,6 +207,7 @@ class Transfer:
     total_down_size: int = 0
     sent_file: list = []
     sent_file_names: list = []
+    download_path: str = ""
 
 
 # =============================================================================
@@ -294,7 +296,6 @@ class MSG:
 class Aria2c:
     """Aria2c downloader state."""
     link_info: bool = False
-    pic_dwn_url: str = "https://picsum.photos/900/600"
 
 
 # =============================================================================

@@ -22,6 +22,7 @@ import logging
 from datetime import datetime
 from asyncio import get_running_loop
 
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
 from leechbot.utility.handler import cancelTask
@@ -43,10 +44,6 @@ async def handle_callback(client, callback_query):
         # --- Help system (3.1.34) ---
         if data == "help_main" or data == "help_close":
             await _handle_help_main(client, callback_query)
-        elif data.startswith("help_cat_"):
-            await _handle_help_category(client, callback_query, data[len("help_cat_"):])
-        elif data.startswith("help_cmd_"):
-            await _handle_help_command(client, callback_query, data[len("help_cmd_"):])
 
         # --- About + Start navigation (3.1.35) ---
         elif data == "about":
@@ -625,34 +622,6 @@ async def _handle_help_main(client, callback_query):
         await callback_query.answer("No changes", show_alert=False)
 
 
-async def _handle_help_category(client, callback_query, cat_key: str):
-    """Show the commands in a help category — simplified to show main help."""
-    try:
-        await callback_query.message.edit_text(
-            text=HELP_TEXT,
-            reply_markup=HELP_KEYBOARD,
-            disable_web_page_preview=True,
-        )
-        await callback_query.answer()
-    except Exception as e:
-        logger.debug("Help category edit failed: %s", e)
-        await callback_query.answer("No changes", show_alert=False)
-
-
-async def _handle_help_command(client, callback_query, cmd_name: str):
-    """Show detailed help for a single command — simplified to show main help."""
-    try:
-        await callback_query.message.edit_text(
-            text=HELP_TEXT,
-            reply_markup=HELP_KEYBOARD,
-            disable_web_page_preview=True,
-        )
-        await callback_query.answer()
-    except Exception as e:
-        logger.debug("Help command edit failed: %s", e)
-        await callback_query.answer("No changes", show_alert=False)
-
-
 # =============================================================================
 # About + Start navigation  (3.1.35)
 # =============================================================================
@@ -683,7 +652,6 @@ responsible for misuse."""
 
 async def _handle_about(client, callback_query):
     """Show the About card (edits the message in place)."""
-    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
     import config
 
     version = config.VERSION

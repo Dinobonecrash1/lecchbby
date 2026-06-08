@@ -90,7 +90,7 @@ async def streamtape_download(link: str, num: int):
 
     dest = ospath.join(Paths.down_path, filename)
 
-    from leechbot.utility.variables import Messages, BotTimes
+    from leechbot.utility.variables import Messages
     Messages.status_head = f"**📥 StreamTape** `{num}`\n\n`{filename}`\n"
 
     # Use aria2c for reliable download (resumable, multi-connection)

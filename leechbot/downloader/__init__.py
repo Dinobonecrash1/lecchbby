@@ -19,9 +19,9 @@ from .mega import megadl
 from .ytdl import YTDL_Status, get_YT_Name
 from .terabox import terabox_download
 from .gallery import gallery_download, is_gallery_link, get_gallery_name
-from .gofile import gofile_download, is_gofile_link
-from .catbox import catbox_download, is_catbox_link
-from .streamtape import streamtape_download, is_streamtape_link
+from .gofile import gofile_download
+from .catbox import catbox_download
+from .streamtape import streamtape_download
 from .manager import downloadManager, calDownSize, get_d_name
 
 __all__ = [
@@ -41,11 +41,8 @@ __all__ = [
     "is_gallery_link",
     "get_gallery_name",
     "gofile_download",
-    "is_gofile_link",
     "catbox_download",
-    "is_catbox_link",
     "streamtape_download",
-    "is_streamtape_link",
     "downloadManager",
     "calDownSize",
     "get_d_name",

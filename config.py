@@ -17,7 +17,6 @@ Create a .env file in the project root to override defaults.
 """
 
 import os
-import sys
 import logging
 import warnings
 from pathlib import Path
@@ -94,18 +93,19 @@ if not API_ID or not API_HASH or not BOT_TOKEN:
 # =============================================================================
 # Feature Flags & Limits
 # =============================================================================
-MAX_CONCURRENT_DOWNLOADS = int(os.getenv("MAX_CONCURRENT_DOWNLOADS", "3"))
+# Feature Flags & Limits
+# =============================================================================
 MAX_FILE_SIZE = 2097152000  # 2GB Telegram limit
 MAX_VIDEO_SPLIT_SIZE = 1992294400  # 1.9GB for safe splitting
 AUTO_RETRY_COUNT = int(os.getenv("AUTO_RETRY_COUNT", "3"))
 DEFAULT_UPLOAD_MODE = os.getenv("DEFAULT_UPLOAD_MODE", "media")  # media or document
-ENABLE_TORRENTS = os.getenv("ENABLE_TORRENTS", "false").lower() == "true"
 BANDWIDTH_LIMIT = os.getenv("BANDWIDTH_LIMIT", "")  # e.g., "10M" for aria2c
+WEB_PORT = int(os.getenv("WEB_PORT", "8080"))
+WEB_TOKEN = os.getenv("WEB_TOKEN", "")
 
 # =============================================================================
 # Google Drive
 # =============================================================================
-GDRIVE_ENABLED = os.getenv("GDRIVE_ENABLED", "false").lower() == "true"
 TOKEN_PICKLE_PATH = os.getenv("TOKEN_PICKLE_PATH", str(BASE_DIR / "token.pickle"))
 
 # =============================================================================
@@ -115,12 +115,6 @@ TOKEN_PICKLE_PATH = os.getenv("TOKEN_PICKLE_PATH", str(BASE_DIR / "token.pickle"
 #   Export from your browser using a cookies editor extension.
 #   Set env: YTDL_COOKIES_FILE=/path/to/cookies.txt
 YTDL_COOKIES_FILE = os.getenv("YTDL_COOKIES_FILE", "")
-
-# Option 2: Extract cookies directly from a browser (yt-dlp built-in)
-#   Supported: brave, chrome, chromium, edge, firefox, opera, safari, vivaldi, whale
-#   The browser must be installed and not running (or use a locked-profile workaround).
-#   Set env: YTDL_BROWSER_COOKIES=chrome
-YTDL_BROWSER_COOKIES = os.getenv("YTDL_BROWSER_COOKIES", "")
 
 # =============================================================================
 # Multi-User Support
