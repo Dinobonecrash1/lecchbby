@@ -554,10 +554,56 @@ async def _handle_sys_stats(client, callback_query):
 # =============================================================================
 # /help inline keyboard handlers  (3.1.34)
 # =============================================================================
+HELP_TEXT = """**📖 LeechBot Help Menu**
+
+─── Download Commands ───
+• `/start` — Start the bot
+• `/tupload` — Upload to Telegram
+• `/gdupload` — Mirror to Google Drive
+• `/drupload` — Upload local directory
+• `/ytupload` — Download with YT-DLP
+• `/glupload` — Download image galleries
+• `/preview` — Dry-run a gallery URL
+
+─── Queue & Control ───
+• `/queue` — View download queue
+• `/cancel` — Cancel current task
+• `/cancel_all` — Cancel & clear queue
+
+─── Settings ───
+• `/settings` — Bot settings menu
+• `/setname` — Set custom filename
+• `/zipaswd` — Set zip password
+• `/unzipaswd` — Set unzip password
+• `/format` — Set YT-DLP quality
+• `/formats` — List available formats
+• `/speed` — Set bandwidth limit
+
+─── Admin ───
+• `/admin` — Manage allowed users
+• `/broadcast` — Send file to multiple chats
+• `/stats` — Bot & system statistics
+• `/update` — Check for updates
+
+─── YT-DLP Auth ───
+• `/cookies` — Check auth status
+• `/setcookies` — Upload cookies.txt
+• `/clearcookies` — Delete stored cookies
+
+**🖼️ Thumbnail:** Send any image to set as thumbnail"""
+
+HELP_KEYBOARD = InlineKeyboardMarkup([
+    [InlineKeyboardButton("📂 GitHub Repository ✨", url="https://github.com/Shineii86/LeechBot")],
+    [
+        InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
+        InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
+    ],
+    [InlineKeyboardButton("🧑‍💻 Developer ✨", url="https://t.me/Shineii86")],
+])
+
+
 async def _handle_help_main(client, callback_query):
     """Show the help main menu, or close the help message."""
-    from leechbot.commands import _help_render_main
-
     if callback_query.data == "help_close":
         try:
             await callback_query.message.delete()
@@ -567,11 +613,10 @@ async def _handle_help_main(client, callback_query):
         await callback_query.answer("Closed")
         return
 
-    text, keyboard = _help_render_main()
     try:
         await callback_query.message.edit_text(
-            text=text,
-            reply_markup=keyboard,
+            text=HELP_TEXT,
+            reply_markup=HELP_KEYBOARD,
             disable_web_page_preview=True,
         )
         await callback_query.answer()
@@ -581,18 +626,11 @@ async def _handle_help_main(client, callback_query):
 
 
 async def _handle_help_category(client, callback_query, cat_key: str):
-    """Show the commands in a help category."""
-    from leechbot.commands import _help_render_category
-
-    text, keyboard = _help_render_category(cat_key)
-    if text is None:
-        await callback_query.answer("Unknown category", show_alert=True)
-        return
-
+    """Show the commands in a help category — simplified to show main help."""
     try:
         await callback_query.message.edit_text(
-            text=text,
-            reply_markup=keyboard,
+            text=HELP_TEXT,
+            reply_markup=HELP_KEYBOARD,
             disable_web_page_preview=True,
         )
         await callback_query.answer()
@@ -602,18 +640,11 @@ async def _handle_help_category(client, callback_query, cat_key: str):
 
 
 async def _handle_help_command(client, callback_query, cmd_name: str):
-    """Show detailed help for a single command."""
-    from leechbot.commands import _help_render_command
-
-    text, keyboard = _help_render_command(cmd_name)
-    if text is None:
-        await callback_query.answer("Unknown command", show_alert=True)
-        return
-
+    """Show detailed help for a single command — simplified to show main help."""
     try:
         await callback_query.message.edit_text(
-            text=text,
-            reply_markup=keyboard,
+            text=HELP_TEXT,
+            reply_markup=HELP_KEYBOARD,
             disable_web_page_preview=True,
         )
         await callback_query.answer()
@@ -635,7 +666,6 @@ ABOUT_TEXT = """**ℹ️ About LeechBot**
 **📜 License:** MIT
 
 **📊 Stats:**
-• **{n_cmds}** commands across **{n_cats}** categories
 • Supports **2000+** download sources
 • **Pyrogram** 2.0.106 + asyncio
 
@@ -644,7 +674,6 @@ ABOUT_TEXT = """**ℹ️ About LeechBot**
 • UserBot session for private channels
 • Video conversion, archive extract, custom thumbnails
 • Per-task settings, queue, bandwidth control
-• Offline diagnostic test suite ({n_tests} checks)
 
 **⚖️ Disclaimer:**
 This bot is for personal use only. Respect copyright
@@ -654,25 +683,15 @@ responsible for misuse."""
 
 async def _handle_about(client, callback_query):
     """Show the About card (edits the message in place)."""
-    from leechbot.commands import HELP_CATEGORIES, HELP_COMMANDS
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
     import config
 
-    n_cmds = len(HELP_COMMANDS)
-    n_cats = len(HELP_CATEGORIES)
     version = config.VERSION
     build_date = config.BUILD_DATE
-
-    # 47 is the test count for 3.1.34-3.1.35 era; keep it loose to avoid
-    # bumping the about card on every test addition
-    n_tests = "47+"
 
     text = ABOUT_TEXT.format(
         version=version,
         build_date=build_date,
-        n_cmds=n_cmds,
-        n_cats=n_cats,
-        n_tests=n_tests,
     )
 
     keyboard = InlineKeyboardMarkup([

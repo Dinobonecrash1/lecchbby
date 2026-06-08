@@ -758,8 +758,6 @@ def test_welcome_about():
         ('"start_back" callback routed', '"start_back"'),
         ('about uses config.VERSION', "config.VERSION"),
         ('about uses config.BUILD_DATE', "config.BUILD_DATE"),
-        ('about uses HELP_CATEGORIES', "HELP_CATEGORIES"),
-        ('about uses HELP_COMMANDS', "HELP_COMMANDS"),
         ('about has "Back to Start" button', '"start_back"'),
     ]
     for name, marker in about_checks:
@@ -780,7 +778,7 @@ def test_welcome_about():
     if about_text_in_cb is None:
         results.fail("ABOUT_TEXT exists in callbacks.py", "not found")
     else:
-        for field in ("version", "build_date", "n_cmds", "n_cats"):
+        for field in ("version", "build_date"):
             if "{" + field + "}" in about_text_in_cb:
                 results.ok(f"ABOUT_TEXT has {field} placeholder", "yes")
             else:
