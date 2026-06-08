@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [3.1.46] - 2026-06-08
 
+### Removed
+- **👤 UserBot feature removed** — deleted `userbot.py` and all related commands (`/userbot`, `/userbot_logout`, `/userbot_status`), auth flow, and state tracking
+
 ### Changed
 - **📚 Full documentation sweep** — updated all 8 doc files to match v3.1.45 codebase:
   - README.md: fixed false modularization claims, corrected project structure, updated command count (32)

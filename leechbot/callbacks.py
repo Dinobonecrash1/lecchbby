@@ -640,7 +640,6 @@ ABOUT_TEXT = """**ℹ️ About LeechBot**
 
 **🛠 Features:**
 • Telegram, Google Drive, direct-URL, YouTube, galleries
-• UserBot session for private channels
 • Video conversion, archive extract, custom thumbnails
 • Per-task settings, queue, bandwidth control
 

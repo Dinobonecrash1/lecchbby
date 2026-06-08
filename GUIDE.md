@@ -560,46 +560,7 @@ Live and on-demand streaming protocols are fully supported via yt-dlp:
 
 > 💡 **Slug form** (`t.me/s/...`) and **discussion thread** links (`t.me/c/.../msg/thread`) are now supported as of 3.1.33. The parser was ported from [xditya/GetRestrictedMessages](https://github.com/xditya/GetRestrictedMessages) and adapted to Pyrogram. `http://` and `telegram.me` mirrors are also accepted.
 
-> 💡 **Want to download from private channels without adding the bot as a member?** Use the **UserBot** feature — see [UserBot Setup](#-userbot-setup-for-private-channels) below.
-
 ---
-
-## 👤 UserBot Setup (Private Channels)
-
-By default, the bot cannot access private channels unless it's a member. **UserBot** lets you login with your own Telegram account so the bot can download from any channel you're a member of.
-
-### How It Works
-
-```
-Normal:  User → Bot → Private Channel (❌ bot not a member)
-UserBot: User → Bot → User's Account → Private Channel (✅ user is a member)
-```
-
-### Setup (One-Time)
-
-1. Send `/userbot` to the bot
-2. The bot asks for your **phone number** (with country code, e.g., `+1234567890`)
-3. You receive an **OTP code** on Telegram — send it to the bot
-4. If you have **2FA** enabled, enter your cloud password
-5. Done! Session is saved locally
-
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `/userbot` | Start login flow |
-| `/userbot_status` | Check if session is active |
-| `/userbot_logout` | Disconnect and remove session |
-
-### Security
-
-- Session file is stored locally in `sessions/userbot_session.session`
-- No data is sent to any third-party server
-- Your phone number is NOT stored after login
-- Send `/userbot_logout` anytime to remove the session
-- Only the bot owner (OWNER_ID) can use these commands
-
-### Requirements
 
 - You need a **separate Telegram API ID & hash** for the user client (same ones work, but some users prefer a separate app)
 - Your Telegram account must be a member of the private channels you want to download from

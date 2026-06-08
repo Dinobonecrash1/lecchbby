@@ -273,7 +273,6 @@ All 32 commands are organized into 6 categories in the **interactive `/help` men
 | **📥 Downloads** | 10 | `tupload`, `gdupload`, `drupload`, `ytupload`, `glupload`, `setname`, `format`, `formats`, `preview`, `speed` |
 | **🗂 Files** | 5 | `zipaswd`, `unzipaswd`, `queue`, `cancel`, `cancel_all` |
 | **⚙️ Status & Settings** | 7 | `settings`, `status`, `stats`, `logs`, `ping`, `restart`, `update` |
-| **👤 Account** | 3 | `userbot`, `userbot_status`, `userbot_logout` |
 | **🍪 Cookies** | 3 | `cookies`, `setcookies`, `clearcookies` |
 | **🛠 Admin** | 2 | `admin`, `broadcast` |
 
@@ -321,7 +320,6 @@ LeechBot/
 │   ├── commands.py          # /command handlers (32 commands)
 │   ├── callbacks.py         # Button callbacks
 │   ├── handlers.py          # Message handlers
-│   ├── userbot.py           # UserBot session manager
 │   ├── debug.py             # Error reporting
 │   ├── updater.py           # Auto-update
 │   ├── downloader/
