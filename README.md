@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.42-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.43-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -55,13 +55,12 @@
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
 
-## ✨ What's New in v3.1.37
+## ✨ What's New in v3.1.43
 
-### 📊 Status Bar — Box-Drawing Style
-- Adopted [ehraz786/tgdl](https://github.com/ehraz786/tgdl) layout for cleaner visual hierarchy
-- `╭├╰` box-drawing characters create a structured vertical list
-- Each stat (Speed, Engine, Time Left, Time Spent, Processed, Total Size) on its own labeled line
-- Progress bar wrapped in `「」` brackets, percentage shows 2 decimal places
+### 🔄 Commands Modularized
+- Split monolithic `commands.py` (1529 lines) into 10 focused modules under `leechbot/commands/`
+- Each command group is now isolated in its own file for better maintainability
+- Same behavior — all handlers register via decorators; no functional changes
 
 > 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **30 commands across 6 categories**
 
@@ -349,7 +348,18 @@ LeechBot/
 ├── leechbot/
 │   ├── __init__.py          # Pyrogram client
 │   ├── __main__.py          # Entry point
-│   ├── commands.py          # /command handlers (30 commands)
+│   ├── commands/            # /command handlers (modular)
+│   │   ├── __init__.py      # Package imports
+│   │   ├── uploads.py       # /tupload, /gdupload, /drupload, /ytupload, /glupload
+│   │   ├── settings.py      # /settings, /format, /speed
+│   │   ├── help.py          # /start, /help, /about
+│   │   ├── status.py        # /status, /stats, /ping
+│   │   ├── queue.py         # /queue, /cancel, /cancel_all
+│   │   ├── admin.py         # /admin, /broadcast
+│   │   ├── cookies.py       # /cookies, /setcookies, /clearcookies
+│   │   ├── userbot.py       # /userbot, /userbot_status, /userbot_logout
+│   │   ├── system.py        # /restart, /update, /logs
+│   │   └── utility.py       # /setname, /formats, /preview, /zipaswd, /unzipaswd
 │   ├── callbacks.py         # Button callbacks
 │   ├── handlers.py          # Message handlers
 │   ├── userbot.py           # UserBot session manager
@@ -366,9 +376,9 @@ LeechBot/
 │   │   ├── terabox.py       # Terabox
 │   │   ├── pixeldrain.py    # Pixeldrain
 │   │   ├── mediafire.py     # Mediafire
-│   │   ├── gofile.py        # GoFile.io        ← NEW
-│   │   ├── catbox.py        # Catbox.moe       ← NEW
-│   │   ├── streamtape.py    # StreamTape       ← NEW
+│   │   ├── gofile.py        # GoFile.io
+│   │   ├── catbox.py        # Catbox.moe
+│   │   ├── streamtape.py    # StreamTape
 │   │   └── manager.py       # Download router
 │   ├── uploader/
 │   │   └── telegram.py      # Upload with progress
