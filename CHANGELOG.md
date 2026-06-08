@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.43] - 2026-06-08
+
+### Changed
+- **🔄 Commands modularized** — split monolithic `commands.py` (1529 lines) into 10 focused modules:
+  - `commands/uploads.py` — `/tupload`, `/gdupload`, `/drupload`, `/ytupload`, `/glupload`
+  - `commands/settings.py` — `/settings`, `/format`, `/speed`
+  - `commands/help.py` — `/start`, `/help`, `/about`, help categories & commands dict
+  - `commands/status.py` — `/status`, `/stats`, `/ping`
+  - `commands/queue.py` — `/queue`, `/cancel`, `/cancel_all`
+  - `commands/admin.py` — `/admin`, `/broadcast`
+  - `commands/cookies.py` — `/cookies`, `/setcookies`, `/clearcookies`
+  - `commands/userbot.py` — `/userbot`, `/userbot_status`, `/userbot_logout`
+  - `commands/system.py` — `/restart`, `/update`, `/logs`
+  - `commands/utility.py` — `/setname`, `/formats`, `/preview`, `/zipaswd`, `/unzipaswd`
+
+- **📦 Package structure** — `leechbot/commands/` is now a proper Python package with `__init__.py` that imports all modules
+
+### Improved
+- **🔍 Better maintainability** — each command group is isolated, easier to locate and modify
+- **📝 Clearer imports** — modules only import what they need, reducing coupling
+- **🚀 Same behavior** — all handlers register via decorators; no functional changes
+
+---
+
 ## [3.1.42] - 2026-06-07
 
 ### Changed
