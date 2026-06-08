@@ -119,7 +119,7 @@ async def logs_command(client, message):
             tail_lines = ["(log file is empty)"]
 
         log_text = (
-            f"**📋 Last `{len(tail_lines)}` log lines**\n"
+            f"📋 Last `{len(tail_lines)}` log lines\n"
             f"`({log_file})`\n\n"
             f"```\n" + "\n".join(tail_lines) + "\n```"
         )
@@ -129,7 +129,7 @@ async def logs_command(client, message):
             # Drop from the middle, keep first and last lines
             half = (4000 - 200) // 2
             log_text = (
-                f"**📋 Last `{len(tail_lines)}` log lines** (truncated)\n"
+                f"📋 Last `{len(tail_lines)}` log lines (truncated)\n"
                 f"`({log_file})`\n\n"
                 f"```\n"
                 + "\n".join(tail_lines[:half // 80])  # ~80 chars per line avg

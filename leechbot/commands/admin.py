@@ -53,22 +53,22 @@ async def admin_command(client, message):
             new_uid = int(message.command[2])
             if new_uid not in config.ALLOWED_USERS:
                 config.ALLOWED_USERS.append(new_uid)
-                msg = await message.reply_text(f"**✅ User `{new_uid}` added to allowed list** ✓", quote=True)
+                msg = await message.reply_text(f"✅ User `{new_uid}` added to allowed list ✓", quote=True)
             else:
-                msg = await message.reply_text(f"**ℹ️ User `{new_uid}` is already allowed**", quote=True)
+                msg = await message.reply_text(f"ℹ️ User `{new_uid}` is already allowed", quote=True)
         except ValueError:
-            msg = await message.reply_text("**⚠️ Invalid user ID**", quote=True)
+            msg = await message.reply_text("⚠️ Invalid user ID", quote=True)
 
     elif action == "remove" and len(message.command) >= 3:
         try:
             rm_uid = int(message.command[2])
             if rm_uid in config.ALLOWED_USERS:
                 config.ALLOWED_USERS.remove(rm_uid)
-                msg = await message.reply_text(f"**✅ User `{rm_uid}` removed from allowed list** ✓", quote=True)
+                msg = await message.reply_text(f"✅ User `{rm_uid}` removed from allowed list ✓", quote=True)
             else:
-                msg = await message.reply_text(f"**ℹ️ User `{rm_uid}` is not in the allowed list**", quote=True)
+                msg = await message.reply_text(f"ℹ️ User `{rm_uid}` is not in the allowed list", quote=True)
         except ValueError:
-            msg = await message.reply_text("**⚠️ Invalid user ID**", quote=True)
+            msg = await message.reply_text("⚠️ Invalid user ID", quote=True)
 
     elif action == "list":
         users_list = "\n".join([f"• `{uid}`" for uid in config.ALLOWED_USERS]) or "`None`"
