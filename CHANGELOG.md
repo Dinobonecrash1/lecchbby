@@ -26,6 +26,9 @@ All notable changes to this project will be documented in this file.
 - **📝 Clearer imports** — modules only import what they need, reducing coupling
 - **🚀 Same behavior** — all handlers register via decorators; no functional changes
 
+### Fixed
+- **🐛 ModuleNotFoundError** — removed leftover `telegram.py` import from `leechbot/downloader/__init__.py` that caused `ModuleNotFoundError: No module named 'leechbot.downloader.telegram'`
+
 ---
 
 ## [3.1.42] - 2026-06-07
