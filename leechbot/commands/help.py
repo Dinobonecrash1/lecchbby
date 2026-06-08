@@ -499,23 +499,61 @@ def _help_render_command(cmd_name: str):
 
 @app.on_message(filters.command("help") & filters.private)
 async def help_command(client, message):
-    """Handle the /help command — simple text listing."""
-    lines = [
-        "**📖 LeechBot Help**",
-        "",
-        f"_{len(HELP_COMMANDS)} commands across {len(HELP_CATEGORIES)} categories._",
-        "",
-    ]
+    """Handle the /help command."""
+    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-    for cat_id, cat in HELP_CATEGORIES.items():
-        lines.append(f"**{cat['name']}**")
-        for cmd in cat["commands"]:
-            info = HELP_COMMANDS.get(cmd, {})
-            desc = info.get("short", info.get("description", "No description"))
-            lines.append(f"• `/{cmd}` — {desc}")
-        lines.append("")
+    help_text = """**📖 LeechBot Help Menu**
 
-    lines.append("**💡 Tip:** Use `/help <command>` for detailed help on a specific command.")
+─── Download Commands ───
+• `/start` — Start the bot
+• `/tupload` — Upload to Telegram
+• `/gdupload` — Mirror to Google Drive
+• `/drupload` — Upload local directory
+• `/ytupload` — Download with YT-DLP
+• `/glupload` — Download image galleries
+• `/preview` — Dry-run a gallery URL to see what would be downloaded
 
-    msg = await message.reply_text("\n".join(lines), quote=True, disable_web_page_preview=True)
+─── Queue & Control ───
+• `/queue` — View download queue
+• `/cancel` — Cancel current task
+• `/cancel_all` — Cancel & clear queue
+
+─── Settings ───
+• `/settings` — Bot settings menu
+• `/setname` — Set custom filename
+• `/zipaswd` — Set zip password
+• `/unzipaswd` — Set unzip password
+• `/format` — Set YT-DLP quality
+• `/formats` — List available formats for a video URL
+• `/speed` — Set bandwidth limit
+
+─── Admin ───
+• `/admin` — Manage allowed users
+• `/broadcast` — Send file to multiple chats
+• `/stats` — Bot & system statistics
+• `/update` — Check for updates
+• `/help` — Show this help message
+
+─── YT-DLP Auth ───
+• `/cookies` — Check auth status & setup guide
+• `/setcookies` — Upload cookies.txt as fallback
+• `/clearcookies` — Delete stored cookies
+
+**🖼️ Thumbnail:** Send any image to set as thumbnail
+
+─── Supported Sites ───
+Direct Links, Google Drive
+YouTube, Facebook & 2000+ sites
+Terabox, Mega, Pixeldrain, Mediafire"""
+
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📂 GitHub Repository ✨", url="https://github.com/Shineii86/LeechBot")],
+        [
+            InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
+            InlineKeyboardButton("Support 💬", url="https://t.me/MaximXGroup"),
+        ],
+        [InlineKeyboardButton("🧑‍💻 Developer ✨", url="https://t.me/Shineii86")],
+    ])
+
+    msg = await message.reply_text(help_text, reply_markup=keyboard, quote=True)
     await message_deleter(message, msg)
