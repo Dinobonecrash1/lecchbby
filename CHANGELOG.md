@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.44] - 2026-06-08
+
+### Changed
+- **🔄 Reverted to single `commands.py`** — merged all modular command files back into one monolithic `commands.py` for simplicity
+
+---
+
 ## [3.1.43] - 2026-06-08
 
 ### Changed

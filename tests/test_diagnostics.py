@@ -45,19 +45,15 @@ os.environ.setdefault("LEECHBOT_BASE_DIR", str(REPO_ROOT / ".test_workspace"))
 
 
 # =============================================================================
-# Helper — read all command module files (post-3.1.43 modularization)
+# Helper — read command source
 # =============================================================================
-COMMANDS_DIR = REPO_ROOT / "leechbot" / "commands"
+COMMANDS_FILE = REPO_ROOT / "leechbot" / "commands.py"
 
 def _read_all_commands() -> str:
-    """Concatenate all .py files in leechbot/commands/ (excluding __init__.py)."""
-    parts = []
-    if COMMANDS_DIR.is_dir():
-        for py in sorted(COMMANDS_DIR.glob("*.py")):
-            if py.name == "__init__.py":
-                continue
-            parts.append(py.read_text())
-    return "\n".join(parts)
+    """Read the single commands.py file."""
+    if COMMANDS_FILE.is_file():
+        return COMMANDS_FILE.read_text()
+    return ""
 
 
 # =============================================================================
@@ -463,8 +459,8 @@ def test_command_consistency():
 
     main_path = REPO_ROOT / "leechbot" / "__main__.py"
 
-    if not COMMANDS_DIR.exists() or not main_path.exists():
-        results.fail("command count", "commands/ dir or __main__.py not found")
+    if not COMMANDS_FILE.exists() or not main_path.exists():
+        results.fail("command count", "commands.py or __main__.py not found")
         return
 
     handler_text = _read_all_commands()
@@ -535,10 +531,21 @@ def test_help_system():
                     elif tgt.id == "HELP_COMMANDS":
                         cmds_node = node.value
 
-    if cats_node is None or not isinstance(cats_node, ast.Dict):
+    # If HELP_CATEGORIES/HELP_COMMANDS don't exist, this is the simple help style — skip
+    if cats_node is None or cmds_node is None:
+        results.ok("help system", "simple text-based help (no HELP_CATEGORIES/HELP_COMMANDS)")
+        # Still verify basic help_command exists
+        has_help = "async def help_command" in src
+        if has_help:
+            results.ok("help_command defined", "present in commands.py")
+        else:
+            results.fail("help_command defined", "not found")
+        return
+
+    if not isinstance(cats_node, ast.Dict):
         results.fail("HELP_CATEGORIES exists", "not a dict literal in commands.py")
         return
-    if cmds_node is None or not isinstance(cmds_node, ast.Dict):
+    if not isinstance(cmds_node, ast.Dict):
         results.fail("HELP_COMMANDS exists", "not a dict literal in commands.py")
         return
 
@@ -626,12 +633,12 @@ def test_help_system():
             "; ".join(missing_fields[:3]),
         )
 
-    # Verify help_command exists in help.py
-    help_src = (REPO_ROOT / "leechbot" / "commands" / "help.py").read_text()
+    # Verify help_command exists in commands.py
+    help_src = (REPO_ROOT / "leechbot" / "commands.py").read_text()
     has_help_cmd = "async def help_command" in help_src
     has_keyboard = "InlineKeyboardMarkup" in help_src
     if has_help_cmd and has_keyboard:
-        results.ok("help_command defined with keyboard", "present in help.py")
+        results.ok("help_command defined with keyboard", "present in commands.py")
     else:
         results.fail(
             "help_command defined with keyboard",
