@@ -638,7 +638,7 @@ If PO tokens stop working:
 
 ### Method 3: Browser Cookie Extraction
 
-> ⚠️ **Browser cookie extraction has been removed** in v3.1.45. Use PO tokens (auto-generated) or upload `cookies.txt` manually via `/setcookies`.
+> ⚠️ **Browser cookie extraction has been removed** in v3.1.46. Use PO tokens (auto-generated) or upload `cookies.txt` manually via `/setcookies`.
 
 ### Check Status
 

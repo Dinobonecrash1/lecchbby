@@ -776,12 +776,10 @@ async def cookies_command(client, message):
     import subprocess
 
     cookies_file = getattr(config, "YTDL_COOKIES_FILE", "")
-    browser_cookies = getattr(config, "YTDL_BROWSER_COOKIES", "")
     default_path = Paths.COOKIE_FILE
 
     file_ok = cookies_file and os.path.isfile(cookies_file)
     uploaded_ok = os.path.isfile(default_path)
-    browser_ok = bool(browser_cookies)
 
     pot_installed = False
     try:
@@ -803,8 +801,6 @@ async def cookies_command(client, message):
         auth_lines.append(f"✅ **Cookies file** (env) — `{cookies_file}`")
     elif uploaded_ok:
         auth_lines.append(f"✅ **Cookies file** (uploaded) — `{default_path}`")
-    elif browser_ok:
-        auth_lines.append(f"✅ **Browser extract** — `{browser_cookies}`")
     else:
         auth_lines.append("⚠️ **Cookies** — not configured (fallback)")
 

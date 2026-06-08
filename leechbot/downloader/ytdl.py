@@ -79,13 +79,11 @@ def _get_cookie_opts() -> dict:
     Resolution order:
       1. YTDL_COOKIES_FILE env var — explicit path to cookies.txt
       2. Default save path (Paths.COOKIE_FILE) — uploaded via /setcookies
-      3. YTDL_BROWSER_COOKIES env var — extract from installed browser
 
     Returns:
         dict: yt-dlp options with cookie settings, or empty dict if unconfigured.
     """
     cookies_file = getattr(config, "YTDL_COOKIES_FILE", "")
-    browser_cookies = getattr(config, "YTDL_BROWSER_COOKIES", "")
     default_path = getattr(Paths, "COOKIE_FILE", "")
 
     # Priority 1: explicit env var
@@ -97,11 +95,6 @@ def _get_cookie_opts() -> dict:
     if default_path and ospath.isfile(default_path):
         logger.info("Using cookies file (uploaded): %s", default_path)
         return {"cookiefile": default_path}
-
-    # Priority 3: browser extraction (requires browser on same machine)
-    if browser_cookies:
-        logger.info("Extracting cookies from browser: %s", browser_cookies)
-        return {"cookiesfrombrowser": (browser_cookies,)}
 
     return {}
 

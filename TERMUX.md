@@ -109,10 +109,10 @@ This creates `~/LeechBot/` with all the source code.
 ```bash
 cd ~/LeechBot
 git tag                          # list available versions
-git checkout 3.1.45              # replace with the version you want
+git checkout 3.1.46              # replace with the version you want
 ```
 
-Latest stable at the time of writing: **3.1.45**.
+Latest stable at the time of writing: **3.1.46**.
 
 ---
 
@@ -135,7 +135,7 @@ pip install --no-cache-dir tgcrypto pillow cryptography
 
 Termux doesn't have `apt` or `conda`, so `libtorrent` is tricky. Two options:
 
-**Option A — Skip torrents entirely** (default — `ENABLE_TORRENTS=false` in `.env`). The bot will use `aria2c` as a fallback for magnet links.
+**Option A — Skip torrents entirely** (default — magnet links use `aria2c` fallback).
 
 **Option B — Build `libtorrent` from source** (advanced, ~30 min):
 ```bash

@@ -407,7 +407,7 @@ def test_domain_helpers():
     # Try to import and test, but skip gracefully if config/dependency import fails
     try:
         from leechbot.utility.helper import (
-            is_ytdl_link, is_google_drive, is_telegram, is_mega,
+            is_ytdl_link, is_google_drive, is_mega,
             is_terabox, is_pixeldrain, is_mediafire, is_gallery,
             is_gofile, is_catbox, is_streamtape,
         )
