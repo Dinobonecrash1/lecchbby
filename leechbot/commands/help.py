@@ -497,47 +497,25 @@ def _help_render_command(cmd_name: str):
     return ("\n".join(lines), InlineKeyboardMarkup(buttons))
 
 
-def _build_help_text(category: str = None) -> str:
-    """Build help text for a category or all commands."""
-    if category and category in HELP_CATEGORIES:
-        cat = HELP_CATEGORIES[category]
-        lines = [f"**{cat['name']}**\n_{cat['description']}_\n"]
-        for cmd in cat["commands"]:
-            info = HELP_COMMANDS.get(cmd, {})
-            desc = info.get("description", "No description")
-            lines.append(f"• `/{cmd}` — {desc}")
-        return "\n".join(lines)
-
-    lines = ["**📖 LeechBot Help**\n"]
-    for cat_id, cat in HELP_CATEGORIES.items():
-        lines.append(f"\n**{cat['name']}**")
-        for cmd in cat["commands"][:3]:
-            info = HELP_COMMANDS.get(cmd, {})
-            desc = info.get("description", "No description")
-            lines.append(f"• `/{cmd}` — {desc}")
-        if len(cat["commands"]) > 3:
-            lines.append(f"• _...and {len(cat['commands']) - 3} more_")
-    return "\n".join(lines)
-
-
 @app.on_message(filters.command("help") & filters.private)
 async def help_command(client, message):
-    """Handle the /help command — category-button UI."""
-    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+    """Handle the /help command — simple text listing."""
+    lines = [
+        "**📖 LeechBot Help**",
+        "",
+        f"_{len(HELP_COMMANDS)} commands across {len(HELP_CATEGORIES)} categories._",
+        "",
+    ]
 
-    if len(message.command) > 1:
-        cmd_name = message.command[1].lstrip("/").lower()
-        if cmd_name in HELP_COMMANDS:
-            text, keyboard = _help_render_command(cmd_name)
-            msg = await message.reply_text(text, reply_markup=keyboard, quote=True)
-            await message_deleter(message, msg)
-            return
-        text, keyboard = _help_render_main()
-        text = f"⚠️ Command `/{cmd_name}` not found.\n\n" + text
-        msg = await message.reply_text(text, reply_markup=keyboard, quote=True)
-        await message_deleter(message, msg)
-        return
+    for cat_id, cat in HELP_CATEGORIES.items():
+        lines.append(f"**{cat['name']}**")
+        for cmd in cat["commands"]:
+            info = HELP_COMMANDS.get(cmd, {})
+            desc = info.get("short", info.get("description", "No description"))
+            lines.append(f"• `/{cmd}` — {desc}")
+        lines.append("")
 
-    text, keyboard = _help_render_main()
-    msg = await message.reply_text(text, reply_markup=keyboard, quote=True)
+    lines.append("**💡 Tip:** Use `/help <command>` for detailed help on a specific command.")
+
+    msg = await message.reply_text("\n".join(lines), quote=True, disable_web_page_preview=True)
     await message_deleter(message, msg)

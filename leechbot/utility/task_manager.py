@@ -24,7 +24,7 @@ from asyncio import sleep
 from os import makedirs, path as ospath
 from leechbot import OWNER, app, DUMP_ID
 from leechbot.downloader.manager import calDownSize, get_d_name, downloadManager
-from leechbot.utility.helper import getSize, applyCustomName, keyboard, sysINFO, is_google_drive, is_telegram, is_ytdl_link, is_mega, is_terabox, is_torrent
+from leechbot.utility.helper import getSize, applyCustomName, keyboard, sysINFO, is_google_drive, is_ytdl_link, is_mega, is_terabox, is_torrent
 from leechbot.utility.handler import Leech, Unzip_Handler, Zip_Handler, SendLogs, cancelTask
 from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Aria2c, Transfer, TaskError, BotStats
 
@@ -119,9 +119,7 @@ async def taskScheduler():
 
     else:  # URL list
         for link in BOT.SOURCE:
-            if is_telegram(link):
-                icon = "💬"
-            elif is_google_drive(link):
+            if is_google_drive(link):
                 icon = "♻️"
             elif is_torrent(link):
                 icon = "🧲"

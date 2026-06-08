@@ -24,7 +24,7 @@ from leechbot.utility.variables import (
     BOT, Transfer, MSG, Messages, BotTimes, BotStats,
 )
 from leechbot.utility.helper import (
-    is_google_drive, is_telegram, is_ytdl_link, is_mega,
+    is_google_drive, is_ytdl_link, is_mega,
     is_terabox, is_pixeldrain, is_mediafire, is_gallery,
     is_hls_stream, is_gofile, is_catbox, is_streamtape,
     is_torrent, isYtdlComplete, keyboard, sysINFO, detect_link_type,
@@ -80,7 +80,6 @@ async def downloadManager(sources: list, is_ytdl: bool):
     from leechbot.downloader.aria2 import aria2_Download, Aria2c
     from leechbot.downloader.ytdl import YTDL_Status
     from leechbot.downloader.gdrive import build_service, g_DownLoad, getIDFromURL, getFileMetadata, get_Gfolder_size
-    from leechbot.downloader.telegram import TelegramDownload, media_Identifier
     from leechbot.downloader.mega import megadl
     from leechbot.downloader.gallery import gallery_download
 
@@ -119,9 +118,6 @@ async def downloadManager(sources: list, is_ytdl: bool):
             try:
                 if is_google_drive(link):
                     await _with_retry(lambda l=link, n=i+1: g_DownLoad(l, n), link)
-
-                elif is_telegram(link):
-                    await _with_retry(lambda l=link, n=i+1: TelegramDownload(l, n), link)
 
                 elif is_gallery(link):
                     await _with_retry(lambda l=link, n=i+1: gallery_download(l, n), link)
@@ -217,7 +213,6 @@ async def calDownSize(sources: list):
     """Calculate total download size from all sources."""
     from natsort import natsorted
     from leechbot.downloader.gdrive import build_service, getIDFromURL, getFileMetadata, get_Gfolder_size
-    from leechbot.downloader.telegram import media_Identifier
     from leechbot.utility.handler import cancelTask
 
     for link in natsorted(sources):
@@ -240,13 +235,6 @@ async def calDownSize(sources: list):
                 else:
                     Transfer.total_down_size += int(meta.get("size", 0))
 
-        elif is_telegram(link):
-            media, _ = await media_Identifier(link)
-            if media and hasattr(media, "file_size"):
-                Transfer.total_down_size += media.file_size
-            else:
-                logger.error("Could not get Telegram file size")
-
 
 # =============================================================================
 # Get Download Name
@@ -254,7 +242,6 @@ async def calDownSize(sources: list):
 async def get_d_name(link: str):
     """Resolve the human-readable download name from a link."""
     from leechbot.downloader.gdrive import getIDFromURL, getFileMetadata
-    from leechbot.downloader.telegram import media_Identifier
     from leechbot.downloader.ytdl import get_YT_Name
     from leechbot.downloader.aria2 import get_Aria2c_Name
 
@@ -266,9 +253,6 @@ async def get_d_name(link: str):
         file_id = await getIDFromURL(link)
         meta = await getFileMetadata(file_id)
         Messages.download_name = meta.get("name", "GDrive File")
-    elif is_telegram(link):
-        media, _ = await media_Identifier(link)
-        Messages.download_name = getattr(media, "file_name", None) or "Telegram File"
     elif is_gallery(link):
         from leechbot.downloader.gallery import get_gallery_name
         Messages.download_name = await get_gallery_name(link)

@@ -123,9 +123,6 @@ def is_ytdl_link(link: str) -> bool:
     ]
     return any(domain in lower for domain in ytdl_domains)
 
-def is_telegram(link: str) -> bool:
-    return "t.me" in link or "telegram.me" in link
-
 def is_torrent(link: str) -> bool:
     return "magnet:" in link or ".torrent" in link
 
@@ -172,9 +169,7 @@ def is_gallery(link: str) -> bool:
 
 def detect_link_type(link: str) -> str:
     """Return a human-readable label for the link type."""
-    if is_telegram(link):
-        return "💬 Telegram"
-    elif is_google_drive(link):
+    if is_google_drive(link):
         return "♻️ Google Drive"
     elif is_torrent(link):
         return "🧲 Torrent"
