@@ -213,20 +213,49 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
 
     BotTimes.task_start = datetime.now()
 
+    # Convert .webp to .png if needed (Telegram doesn't accept .webp as photo)
+    upload_path = file_path
+    if file_path.lower().endswith('.webp'):
+        try:
+            png_path = file_path.rsplit('.', 1)[0] + '.png'
+            with Image.open(file_path) as img:
+                img.save(png_path, 'PNG')
+            upload_path = png_path
+        except Exception as e:
+            logger.warning(f"Failed to convert webp to png: {e}, sending as document")
+            upload_path = file_path
+
     try:
-        temp_msg = await MSG.sent_msg.reply_photo(
-            photo=file_path,
-            caption=caption,
-            progress=progress_bar,
-            reply_to_message_id=MSG.sent_msg.id,
-        )
-        file_id = temp_msg.photo.file_id
+        # If conversion failed or file is still .webp, send as document
+        if upload_path.lower().endswith('.webp'):
+            temp_msg = await MSG.sent_msg.reply_document(
+                document=upload_path,
+                caption=caption,
+                progress=progress_bar,
+                reply_to_message_id=MSG.sent_msg.id,
+            )
+            file_id = temp_msg.document.file_id
+        else:
+            temp_msg = await MSG.sent_msg.reply_photo(
+                photo=upload_path,
+                caption=caption,
+                progress=progress_bar,
+                reply_to_message_id=MSG.sent_msg.id,
+            )
+            file_id = temp_msg.photo.file_id
 
         # Delete the temporary individual photo message
         try:
             await temp_msg.delete()
         except Exception:
             pass
+
+        # Clean up converted file if we created one
+        if upload_path != file_path and ospath.exists(upload_path):
+            try:
+                ospath.remove(upload_path)
+            except Exception:
+                pass
 
         return file_id
 
