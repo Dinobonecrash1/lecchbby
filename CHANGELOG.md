@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ## [3.1.44] - 2026-06-08
 
+### Fixed
+- **🐛 ImportError `_help_render_main`** — removed stale `_help_render_*` imports from `callbacks.py`; help menu now uses inline `HELP_TEXT` and `HELP_KEYBOARD` constants
+- **🐛 Progress bar overflow (101.97%)** — capped upload progress at 100% in `uploader/telegram.py`
+
 ### Changed
 - **🔄 Reverted to single `commands.py`** — merged all modular command files back into one monolithic `commands.py` for simplicity
 
