@@ -109,10 +109,10 @@ This creates `~/LeechBot/` with all the source code.
 ```bash
 cd ~/LeechBot
 git tag                          # list available versions
-git checkout 3.1.46              # replace with the version you want
+git checkout 3.1.47              # replace with the version you want
 ```
 
-Latest stable at the time of writing: **3.1.46**.
+Latest stable at the time of writing: **3.1.47**.
 
 ---
 

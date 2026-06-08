@@ -122,7 +122,7 @@ async def taskScheduler():
                 icon = "♻️"
             elif is_torrent(link):
                 icon = "🧲"
-                Messages.caution_msg = "\n\n⚠️ **Torrents Are Restricted In Some Environments**"
+                Messages.caution_msg = "\n\n⚠️ <b>Torrents Are Restricted In Some Environments</b>"
             elif is_ytdl_link(link):
                 icon = "🏮"
             elif is_terabox(link):

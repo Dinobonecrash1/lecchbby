@@ -88,6 +88,7 @@ Future plans and ideas for LeechBot. Not promises — just direction.
 | Feature | Version |
 |---------|---------|
 | **Removed UserBot feature** — deleted `userbot.py` and all related commands, auth flow, and state tracking | **3.1.46** |
+| **Full UI redesign — HTML formatting** — migrated all messages from Markdown to HTML, `»` arrows, consistent navigation | **3.1.47** |
 | **Full diagnostic sweep** — fixed 21 issues: NameError, AttributeError, WebSocket auth bypass, CORS, shell injection, dead code cleanup | **3.1.45** |
 | **Security & stability fixes** — WebSocket auth, CORS, shell injection, progress cap at 100% | **3.1.44** |
 | **Professional UI rewrite** — status bar + task complete redesigned with `┌├└` box borders, aligned labels, `→` arrows, version footer | **3.1.42** |
