@@ -31,6 +31,15 @@ import config
 
 logger = logging.getLogger(__name__)
 
+
+async def safe_answer(callback_query, *args, **kwargs):
+    """Safe wrapper for callback_query.answer() to suppress QueryIdInvalid."""
+    try:
+        await safe_answer(callback_query, *args, **kwargs)
+    except Exception:
+        pass
+
+
 # =============================================================================
 # Main Dispatcher
 # =============================================================================
@@ -58,7 +67,7 @@ async def handle_callback(client, callback_query):
         # --- Settings navigation ---
         elif data == "settings_menu":
             await send_settings(client, callback_query.message, callback_query.message.id, False)
-            await callback_query.answer()
+            await safe_answer(callback_query)
 
         # --- Video settings ---
         elif data == "video":
@@ -84,7 +93,7 @@ async def handle_callback(client, callback_query):
                 "<b>💡 Tip:</b> Prefix is prepended to file names."
             )
             BOT.State.prefix = True
-            await callback_query.answer("Send your prefix now")
+            await safe_answer(callback_query, "Send your prefix now")
 
         elif data == "set-suffix":
             await callback_query.message.edit_text(
@@ -94,7 +103,7 @@ async def handle_callback(client, callback_query):
                 "<b>💡 Tip:</b> Suffix is appended to file names."
             )
             BOT.State.suffix = True
-            await callback_query.answer("Send your suffix now")
+            await safe_answer(callback_query, "Send your suffix now")
 
         # --- Caption style ---
         elif data in ("code-Monospace", "p-Regular", "b-Bold", "i-Italic", "u-Underlined"):
@@ -102,27 +111,27 @@ async def handle_callback(client, callback_query):
             BOT.Options.caption = res[0]
             BOT.Setting.caption = res[1]
             await send_settings(client, callback_query.message, callback_query.message.id, False)
-            await callback_query.answer(f"Caption style: {res[1]}")
+            await safe_answer(callback_query, f"Caption style: {res[1]}")
 
         # --- Video split ---
         elif data in ("split-true", "split-false"):
             BOT.Options.is_split = data == "split-true"
             BOT.Setting.split_video = "Split" if data == "split-true" else "Zip"
             await send_settings(client, callback_query.message, callback_query.message.id, False)
-            await callback_query.answer()
+            await safe_answer(callback_query)
 
         # --- Video convert ---
         elif data in ("convert-true", "convert-false"):
             BOT.Options.convert_video = data == "convert-true"
             BOT.Setting.convert_video = "Yes" if data == "convert-true" else "No"
             await send_settings(client, callback_query.message, callback_query.message.id, False)
-            await callback_query.answer()
+            await safe_answer(callback_query)
 
         # --- Video format ---
         elif data in ("mp4", "mkv"):
             BOT.Options.video_out = data
             await send_settings(client, callback_query.message, callback_query.message.id, False)
-            await callback_query.answer(f"Format: {data.upper()}")
+            await safe_answer(callback_query, f"Format: {data.upper()}")
 
         # --- Quality ---
         elif data in ("q-High", "q-Low"):
@@ -130,14 +139,14 @@ async def handle_callback(client, callback_query):
             BOT.Setting.convert_quality = quality
             BOT.Options.convert_quality = quality == "High"
             await send_settings(client, callback_query.message, callback_query.message.id, False)
-            await callback_query.answer(f"Quality: {quality}")
+            await safe_answer(callback_query, f"Quality: {quality}")
 
         # --- Upload mode ---
         elif data in ("media", "document"):
             BOT.Options.stream_upload = data == "media"
             BOT.Setting.stream_upload = "Media" if data == "media" else "Document"
             await send_settings(client, callback_query.message, callback_query.message.id, False)
-            await callback_query.answer(f"Upload as: {BOT.Setting.stream_upload}")
+            await safe_answer(callback_query, f"Upload as: {BOT.Setting.stream_upload}")
 
         # --- Auto-delete ---
         elif data == "autodelete":
@@ -146,7 +155,7 @@ async def handle_callback(client, callback_query):
         elif data == "toggle_autodelete":
             BOT.Setting.auto_delete = not BOT.Setting.auto_delete
             await _handle_autodelete_menu(client, callback_query)
-            await callback_query.answer(f"Auto-delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}")
+            await safe_answer(callback_query, f"Auto-delete: {'ON' if BOT.Setting.auto_delete else 'OFF'}")
 
         elif data == "set_autodelete_delay":
             from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -160,7 +169,7 @@ async def handle_callback(client, callback_query):
                 ),
             )
             BOT.State.setting_autodelete_delay = True
-            await callback_query.answer()
+            await safe_answer(callback_query)
 
         # --- Photo mode ---
         elif data == "photo_mode":
@@ -169,7 +178,7 @@ async def handle_callback(client, callback_query):
         elif data in ("photo-group", "photo-single"):
             BOT.Setting.photo_mode = "Group" if data == "photo-group" else "Single"
             await send_settings(client, callback_query.message, callback_query.message.id, False)
-            await callback_query.answer(f"Photo mode: {BOT.Setting.photo_mode}")
+            await safe_answer(callback_query, f"Photo mode: {BOT.Setting.photo_mode}")
 
         # --- Auto update ---
         elif data == "do_update":
@@ -178,11 +187,11 @@ async def handle_callback(client, callback_query):
         # --- Close / Back ---
         elif data == "close":
             await callback_query.message.delete()
-            await callback_query.answer("Closed")
+            await safe_answer(callback_query, "Closed")
 
         elif data == "back":
             await send_settings(client, callback_query.message, callback_query.message.id, False)
-            await callback_query.answer()
+            await safe_answer(callback_query)
 
         # --- YTDL confirmation ---
         elif data in ("ytdl-true", "ytdl-false"):
@@ -190,7 +199,7 @@ async def handle_callback(client, callback_query):
 
         # --- Cancel ---
         elif data == "cancel":
-            await callback_query.answer("Cancelling...")
+            await safe_answer(callback_query, "Cancelling...")
             await cancelTask("User cancelled the task")
 
         # --- Format selection ---
@@ -201,7 +210,7 @@ async def handle_callback(client, callback_query):
                 f"<b>✅ Format Updated</b>\n\n"
                 f"<b>Selected:</b> <code>{fmt}</code>"
             )
-            await callback_query.answer("Format saved ✓")
+            await safe_answer(callback_query, "Format saved ✓")
 
         # --- Speed limit ---
         elif data.startswith("spd-"):
@@ -212,8 +221,8 @@ async def handle_callback(client, callback_query):
                 f"<b>✅ Bandwidth Limit Updated</b>\n\n"
                 f"<b>Limit:</b> <code>{display_val}</code>"
             )
-            await callback_query.answer("Speed limit saved ✓")
-            await callback_query.answer("Speed limit saved ✓")
+            await safe_answer(callback_query, "Speed limit saved ✓")
+            await safe_answer(callback_query, "Speed limit saved ✓")
 
         # --- System info ---
         elif data == "sys_refresh":
@@ -224,15 +233,15 @@ async def handle_callback(client, callback_query):
 
         elif data == "sys_close":
             await callback_query.message.delete()
-            await callback_query.answer("Closed")
+            await safe_answer(callback_query, "Closed")
 
         else:
-            await callback_query.answer("⚠️ Unknown action", show_alert=True)
+            await safe_answer(callback_query, "⚠️ Unknown action", show_alert=True)
 
     except Exception as e:
         logger.error("Callback error [%s]: %s", data, e, exc_info=True)
         try:
-            await callback_query.answer("❌ Something went wrong", show_alert=True)
+            await safe_answer(callback_query, "❌ Something went wrong", show_alert=True)
         except Exception:
             pass
 
@@ -253,7 +262,7 @@ async def _handle_upload_type(client, callback_query, data: str):
             data,
         )
         try:
-            await callback_query.answer("⏳ Bot is shutting down, try again later.", show_alert=True)
+            await safe_answer(callback_query, "⏳ Bot is shutting down, try again later.", show_alert=True)
         except Exception:
             pass
         return
@@ -327,7 +336,7 @@ async def _handle_video_settings(client, callback_query):
         f"• 🔴 <b>Quality:</b> <code>{BOT.Setting.convert_quality}</code>",
         reply_markup=keyboard,
     )
-    await callback_query.answer()
+    await safe_answer(callback_query)
 
 # =============================================================================
 # Caption Settings
@@ -358,7 +367,7 @@ async def _handle_caption_settings(client, callback_query):
         "<u>Underline</u>",
         reply_markup=keyboard,
     )
-    await callback_query.answer()
+    await safe_answer(callback_query)
 
 # =============================================================================
 # Thumbnail Settings
@@ -379,7 +388,7 @@ async def _handle_thumb_settings(client, callback_query):
         f"💡 Send an image to set as thumbnail.",
         reply_markup=keyboard,
     )
-    await callback_query.answer()
+    await safe_answer(callback_query)
 
 async def _handle_delete_thumb(client, callback_query):
     """Delete the stored thumbnail."""
@@ -390,7 +399,7 @@ async def _handle_delete_thumb(client, callback_query):
             logger.warning("Failed to delete thumbnail: %s", e)
     BOT.Setting.thumbnail = False
     await send_settings(client, callback_query.message, callback_query.message.id, False)
-    await callback_query.answer("Thumbnail deleted ✓")
+    await safe_answer(callback_query, "Thumbnail deleted ✓")
 
 # =============================================================================
 # Auto-Delete Menu
@@ -416,7 +425,7 @@ async def _handle_autodelete_menu(client, callback_query):
         f"When enabled, bot messages will be auto-deleted after the delay.",
         reply_markup=keyboard,
     )
-    await callback_query.answer()
+    await safe_answer(callback_query)
 
 # =============================================================================
 # Photo Mode Menu
@@ -445,7 +454,7 @@ async def _handle_photo_mode_menu(client, callback_query):
         f"💡 Group mode uses Telegram media groups (max 10).",
         reply_markup=keyboard,
     )
-    await callback_query.answer()
+    await safe_answer(callback_query)
 
 # =============================================================================
 # YTDL Confirmation
@@ -490,7 +499,7 @@ async def _handle_do_update(client, callback_query):
     from leechbot.updater import perform_update
 
     await callback_query.message.edit_text("<b>🔄 Updating... Please wait.</b>")
-    await callback_query.answer("Updating...")
+    await safe_answer(callback_query, "Updating...")
 
     result = perform_update()
 
@@ -538,10 +547,10 @@ async def _handle_sys_refresh(client, callback_query):
             disable_web_page_preview=True,
             reply_markup=status_keyboard(),
         )
-        await callback_query.answer("Refreshed ✓")
+        await safe_answer(callback_query, "Refreshed ✓")
     except Exception as e:
         logger.debug("Sys refresh error: %s", e)
-        await callback_query.answer("No changes", show_alert=False)
+        await safe_answer(callback_query, "No changes", show_alert=False)
 
 async def _handle_sys_stats(client, callback_query):
     """Show detailed system stats."""
@@ -553,10 +562,10 @@ async def _handle_sys_stats(client, callback_query):
             disable_web_page_preview=True,
             reply_markup=status_keyboard(),
         )
-        await callback_query.answer("Detailed stats ✓")
+        await safe_answer(callback_query, "Detailed stats ✓")
     except Exception as e:
         logger.debug("Sys stats error: %s", e)
-        await callback_query.answer("No changes", show_alert=False)
+        await safe_answer(callback_query, "No changes", show_alert=False)
 
 
 # =============================================================================
@@ -622,7 +631,7 @@ async def _handle_help_main(client, callback_query):
         except Exception as e:
             logger.debug("Help close (delete) failed: %s", e)
             await callback_query.message.edit_text("<b>✅ Help closed.</b>")
-        await callback_query.answer("Closed")
+        await safe_answer(callback_query, "Closed")
         return
 
     try:
@@ -631,10 +640,12 @@ async def _handle_help_main(client, callback_query):
             reply_markup=HELP_KEYBOARD,
             disable_web_page_preview=True,
         )
-        await callback_query.answer()
     except Exception as e:
         logger.debug("Help main edit failed: %s", e)
-        await callback_query.answer("No changes", show_alert=False)
+    try:
+        await safe_answer(callback_query)
+    except Exception:
+        pass
 
 
 # =============================================================================
@@ -695,10 +706,10 @@ async def _handle_about(client, callback_query):
             reply_markup=keyboard,
             disable_web_page_preview=True,
         )
-        await callback_query.answer()
+        await safe_answer(callback_query)
     except Exception as e:
         logger.debug("About edit failed: %s", e)
-        await callback_query.answer("No changes", show_alert=False)
+        await safe_answer(callback_query, "No changes", show_alert=False)
 
 
 async def _handle_start_back(client, callback_query):
@@ -707,7 +718,7 @@ async def _handle_start_back(client, callback_query):
 
     try:
         await _send_welcome(client, callback_query.message, edit=True)
-        await callback_query.answer("Welcome ✓")
+        await safe_answer(callback_query, "Welcome ✓")
     except Exception as e:
         logger.debug("Start back failed: %s", e)
-        await callback_query.answer("Use /start", show_alert=False)
+        await safe_answer(callback_query, "Use /start", show_alert=False)

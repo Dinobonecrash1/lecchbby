@@ -45,6 +45,10 @@ class TelegramLogHandler(logging.Handler):
         """Queue the log record for async sending."""
         if not self._running:
             return
+        # Suppress noisy non-critical errors
+        msg_text = record.getMessage() if hasattr(record, 'getMessage') else str(record)
+        if "QueryIdInvalid" in msg_text or "QUERY_ID_INVALID" in msg_text:
+            return
         try:
             msg = self.format(record)
             loop = self._loop
