@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> **🧪 This repository is currently in BETA / active development.**
+> **🧪 This repository is currently in BETA / Active Development.**
 >
 > Things may break, features may change, and bugs may appear. If you deploy this bot and run into an error, a crash, or unexpected behavior:
 >
@@ -13,7 +13,7 @@
 <div align="center">
 
 <!-- Animated Logo Banner -->
-<img src="https://capsule-render.vercel.app/api?type=waving&height=300&color=gradient&text=𝗟𝗲𝗲𝗰𝗵%20𝗕𝗼𝘁&fontAlignY=30&fontSize=100&desc=𝖠𝖽𝗏𝖺𝗇𝖼𝖾𝖽%20𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆%20𝖥𝗂𝗅𝖾%20𝖳𝗋𝖺𝗇𝗌𝗅𝑜𝖺𝖽𝖾𝗋&descSize=30" />
+<img src="https://capsule-render.vercel.app/api?type=waving&height=300&color=gradient&text=𝙇𝙚𝙚𝙘𝙝%20𝘽𝙤𝙩&fontAlignY=30&fontSize=100&desc=𝖠𝖽𝗏𝖺𝗇𝖼𝖾𝖽%20𝖳𝖾𝗅𝖾𝗀𝗋𝖺𝗆%20𝖥𝗂𝗅𝖾%20𝖳𝗋𝖺𝗇𝗌𝗅𝑜𝖺𝖽𝖾𝗋&descSize=30" />
 
 <p align="center">
   <strong>A Pyrogram‑based Telegram Bot to transfer files / folders to Telegram and Google Drive, powered by Google Colab</strong>
@@ -37,7 +37,7 @@
 ## 📑 **Table of Contents**
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
-- [🗺️ Roadmap](ROADMAP.md) — what's planned
+- [🗺️ Roadmap](ROADMAP.md)
 - [✨ What's New?](#-whats-new-in-v3145)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
