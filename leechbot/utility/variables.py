@@ -52,6 +52,7 @@ class BOT:
         photo_mode: str = "Group"  # "Group" (batch of 10) or "Single" (one by one)
         auto_delete: bool = False
         auto_delete_delay: int = 30
+        autorename_template: str = ""  # Auto-rename template pattern
 
     class Options:
         """Runtime options for the current task (reset each task)."""
@@ -82,6 +83,7 @@ class BOT:
         prefix: bool = False
         suffix: bool = False
         setting_autodelete_delay: bool = False
+        setting_autorename: bool = False  # Waiting for autorename template input
         shutting_down: bool = False  # Set True when SIGINT/SIGTERM received — blocks new long tasks
 
 

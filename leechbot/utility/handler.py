@@ -30,6 +30,84 @@ from leechbot.utility.helper import fileType, getSize, getTime, keyboard, shortF
 logger = logging.getLogger(__name__)
 
 # =============================================================================
+# Auto-Rename Template Processing
+# =============================================================================
+def _apply_autorename_template(original_name: str, template: str) -> str:
+    """
+    Apply auto-rename template to a file name.
+    
+    Args:
+        original_name: Original file name (with extension)
+        template: Rename template with placeholders
+        
+    Returns:
+        New file name based on template
+        
+    Supported placeholders:
+        {chapter} - Chapter number (auto-detected from filename)
+        {season} - Season number (auto-detected from filename)
+        {episode} - Episode number (auto-detected from filename)
+        {quality} - Video quality (auto-detected from filename)
+        {audio} - Audio info (auto-detected from filename)
+    """
+    import re
+    
+    # Get file extension from original name
+    _, ext = ospath.splitext(original_name)
+    
+    # If template already has an extension at the end, strip it
+    if template.endswith(('.mkv', '.mp4', '.avi', '.webm', '.mov', '.flv')):
+        template = template[:len(template) - len(ext)]
+    
+    # Try to auto-detect metadata from original filename
+    detected = {}
+    
+    # Detect chapter number (e.g., Ch.001, Chapter 1, c001, c12)
+    chapter_match = re.search(r'(?:ch(?:apter)?[\s.]?|c)(\d+)', original_name, re.IGNORECASE)
+    if chapter_match:
+        detected['chapter'] = chapter_match.group(1).lstrip('0') or '0'
+    
+    # Detect season number (e.g., S01, Season 1, s01)
+    season_match = re.search(r'(?:s(?:eason)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
+    if season_match:
+        detected['season'] = season_match.group(1).lstrip('0') or '0'
+    
+    # Detect episode number (e.g., E01, Episode 1, ep01)
+    episode_match = re.search(r'(?:e(?:p(?:isode)?)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
+    if episode_match:
+        detected['episode'] = episode_match.group(1).lstrip('0') or '0'
+    
+    # Detect quality (e.g., 1080p, 720p, 4K, 2160p)
+    quality_match = re.search(r'(\d{3,4}p|4k|2160p|1080p|720p|480p|360p)', original_name, re.IGNORECASE)
+    if quality_match:
+        detected['quality'] = quality_match.group(1).upper()
+    
+    # Detect audio info (e.g., AAC, FLAC, DTS, AC3, Dual Audio)
+    audio_match = re.search(r'(dual[\s-]?audio|aac|flac|dts|ac3|eac3|pcm|mp3|opus|7\.1|5\.1|2\.0|atmos)', original_name, re.IGNORECASE)
+    if audio_match:
+        detected['audio'] = audio_match.group(1).upper()
+    
+    # Replace placeholders in template with detected values
+    result = template
+    for key, value in detected.items():
+        placeholder = '{' + key + '}'
+        if placeholder in result:
+            result = result.replace(placeholder, value)
+    
+    # Remove any remaining unreplaced placeholders
+    result = re.sub(r'\{[^}]+\}', '', result)
+    
+    # Clean up multiple spaces and trailing/leading spaces
+    result = re.sub(r'\s+', ' ', result).strip()
+    
+    # Add extension back
+    if ext:
+        result += ext
+    
+    return result
+
+
+# =============================================================================
 # Main Leech Function
 # =============================================================================
 async def Leech(folder_path: str, remove: bool):
@@ -115,6 +193,18 @@ async def Leech(folder_path: str, remove: bool):
             for dir_path in dir_list:
                 short_path = ospath.join(Paths.temp_zpath, dir_path)
                 file_name = ospath.basename(short_path)
+                
+                # Apply auto-rename template if set
+                if BOT.Setting.autorename_template:
+                    file_name = _apply_autorename_template(file_name, BOT.Setting.autorename_template)
+                    # Rename the file to the new name
+                    new_full_path = ospath.join(Paths.temp_zpath, file_name)
+                    try:
+                        os.rename(short_path, new_full_path)
+                        short_path = new_full_path
+                    except OSError as e:
+                        logger.warning(f"Auto-rename failed: {e}")
+                
                 new_path = shortFileName(short_path)
                 try:
                     os.rename(short_path, new_path)
@@ -149,6 +239,18 @@ async def Leech(folder_path: str, remove: bool):
                     logger.warning(f"Copy failed, using original: {e}")
 
             file_name = ospath.basename(file_path)
+            
+            # Apply auto-rename template if set
+            if BOT.Setting.autorename_template:
+                new_name = _apply_autorename_template(file_name, BOT.Setting.autorename_template)
+                new_file_path = ospath.join(ospath.dirname(file_path), new_name)
+                try:
+                    os.rename(file_path, new_file_path)
+                    file_path = new_file_path
+                    file_name = new_name
+                except OSError as e:
+                    logger.warning(f"Auto-rename failed: {e}")
+            
             new_path = shortFileName(file_path)
             try:
                 os.rename(file_path, new_path)

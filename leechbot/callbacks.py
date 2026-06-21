@@ -590,6 +590,7 @@ HELP_TEXT = """<b>📖 LeechBot Help Menu</b>
 <b>─── Settings ───</b>
 • /settings — Bot settings menu
 • /setname — Set custom filename
+• /autorename — Set auto-rename template
 • /zipaswd — Set zip password
 • /unzipaswd — Set unzip password
 • /format — Set YT-DLP quality

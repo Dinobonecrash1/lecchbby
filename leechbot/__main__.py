@@ -117,6 +117,7 @@ async def _register_commands():
         BotCommand("preview", "👁️ Preview a gallery URL (dry run)"),
         BotCommand("settings", "⚙️ Bot settings menu"),
         BotCommand("setname", "✏️ Set custom filename"),
+        BotCommand("autorename", "🏷️ Set auto-rename template"),
         BotCommand("zipaswd", "🔐 Set zip password"),
         BotCommand("unzipaswd", "🔓 Set unzip password"),
         BotCommand("format", "🎬 Set YT-DLP quality"),

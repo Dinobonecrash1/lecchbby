@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 @app.on_message(filters.reply)
 async def handle_reply(client, message):
-    """Handle reply messages for setting prefix/suffix."""
+    """Handle reply messages for setting prefix/suffix/autorename."""
     text = message.text or message.caption
     if not text:
         return  # Ignore non-text replies (photos, stickers, etc.)
@@ -44,6 +44,16 @@ async def handle_reply(client, message):
         BOT.Setting.suffix = text
         BOT.State.suffix = False
         await send_settings(client, message, message.reply_to_message_id, False)
+        await message.delete()
+    elif BOT.State.setting_autorename:
+        BOT.Setting.autorename_template = text
+        BOT.State.setting_autorename = False
+        await message.reply_text(
+            f"<b>🏷️ Auto-Rename Template Set</b>\n\n"
+            f"<b>📝 Template:</b> <code>{BOT.Setting.autorename_template}</code>\n\n"
+            f"<b>💡 The bot will use this pattern to rename files.</b>",
+            quote=True,
+        )
         await message.delete()
 
 
@@ -196,7 +206,7 @@ async def handle_document(client, message):
 # =============================================================================
 @app.on_message(filters.text & filters.private & ~filters.command([
     "start", "tupload", "gdupload", "drupload", "ytupload", "glupload",
-    "settings", "help", "setname", "zipaswd", "unzipaswd",
+    "settings", "help", "setname", "autorename", "zipaswd", "unzipaswd",
     "stats", "cancel", "cancel_all", "queue", "format", "formats", "preview",
     "speed", "broadcast", "admin", "cookies", "setcookies",
     "clearcookies", "update",

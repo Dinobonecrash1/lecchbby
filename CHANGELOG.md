@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.48] - 2026-06-22
+
+### Added
+- **🏷️ Auto-Rename Template** — new `/autorename` command to set a template for automatic file renaming:
+  - Support placeholders: `{chapter}`, `{season}`, `{episode}`, `{quality}`, `{audio}`
+  - Auto-detects metadata from original filename (chapter, season, episode, quality, audio)
+  - Works for both manga and anime files
+  - Usage: `/autorename [WF] [C{chapter}] One Piece @Webtoon_Flix`
+  - Clear template: `/autorename clear`
+  - Files are renamed automatically during upload without adding extensions
+
+### Changed
+- **📚 Help text updated** — added `/autorename` to help menus in `commands.py` and `callbacks.py`
+- **🚀 Command registration** — added `autorename` command to Telegram bot commands list
+
+### Files Modified
+- `leechbot/commands.py`: Added `/autorename` command handler
+- `leechbot/handlers.py`: Added autorename template reply handler
+- `leechbot/utility/variables.py`: Added `autorename_template` and `setting_autorename` state
+- `leechbot/utility/handler.py`: Added `_apply_autorename_template()` function and auto-rename logic
+- `leechbot/__main__.py`: Registered `autorename` command with Telegram
+
+---
+
 ## [3.1.47] - 2026-06-08
 
 ### Changed
