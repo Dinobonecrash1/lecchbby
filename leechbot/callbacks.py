@@ -24,7 +24,7 @@ from asyncio import get_running_loop
 
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
+from leechbot.utility.variables import BOT, MSG, BotTimes, BotStats, Paths
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
 import config
@@ -234,6 +234,22 @@ async def handle_callback(client, callback_query):
         elif data == "sys_close":
             await callback_query.message.delete()
             await safe_answer(callback_query, "Closed")
+
+        # --- Anime search selection ---
+        elif data.startswith("anime_select_"):
+            await _handle_anime_select(client, callback_query, data)
+
+        # --- Anime episode selection ---
+        elif data.startswith("anime_ep_"):
+            await _handle_anime_episode(client, callback_query, data)
+
+        # --- Anime category (sub/dub) ---
+        elif data.startswith("anime_cat_"):
+            await _handle_anime_category(client, callback_query, data)
+
+        # --- Anime download ---
+        elif data.startswith("anime_dl_"):
+            await _handle_anime_download(client, callback_query, data)
 
         else:
             await safe_answer(callback_query, "⚠️ Unknown action", show_alert=True)
@@ -580,6 +596,7 @@ HELP_TEXT = """<b>📖 LeechBot Help Menu</b>
 • /drupload — Upload local directory
 • /ytupload — Download with YT-DLP
 • /glupload — Download image galleries
+• /anime — Search &amp; download anime episodes
 • /preview — Dry-run a gallery URL
 
 <b>─── Queue &amp; Control ───</b>
@@ -723,3 +740,288 @@ async def _handle_start_back(client, callback_query):
     except Exception as e:
         logger.debug("Start back failed: %s", e)
         await safe_answer(callback_query, "Use /start", show_alert=False)
+
+
+# =============================================================================
+# Anime Episode Download Handlers
+# =============================================================================
+async def _handle_anime_select(client, callback_query, data: str):
+    """Handle anime selection from search results."""
+    from leechbot.downloader.anime import anime_client
+    
+    try:
+        index = int(data.replace("anime_select_", ""))
+        results = BOT.State.anime_search_results
+        
+        if index >= len(results):
+            await safe_answer(callback_query, "Invalid selection", show_alert=True)
+            return
+        
+        selected = results[index]
+        BOT.State.anime_selected = selected
+        
+        # Determine provider and ID
+        if "title" in selected and isinstance(selected.get("title"), dict):
+            # MiruroAPI format
+            provider = "miruro"
+            anime_id = selected["id"]
+            title = selected.get("title", {}).get("english") or selected.get("title", {}).get("romaji", "Unknown")
+        else:
+            # AniKotoAPI format
+            provider = "anikoto"
+            anime_id = selected.get("slug", "")
+            title = selected.get("title", "Unknown")
+        
+        BOT.State.anime_selected["provider"] = provider
+        BOT.State.anime_selected["anime_id"] = anime_id
+        BOT.State.anime_selected["title"] = title
+        
+        await callback_query.message.edit_text(
+            f"<b>🎬 Loading episodes for:</b> <code>{title}</code>...",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❌ Cancel", callback_data="close")]])
+        )
+        
+        # Get episodes
+        episodes_result = await anime_client.get_episodes(anime_id, provider)
+        
+        if not episodes_result.get("success"):
+            await callback_query.message.edit_text(
+                f"<b>❌ Failed to load episodes:</b> <code>{episodes_result.get('message', 'Unknown error')}</code>"
+            )
+            return
+        
+        episodes_data = episodes_result.get("results", {})
+        BOT.State.anime_episodes = episodes_data
+        
+        # Get episode count
+        if provider == "miruro":
+            # Count episodes from providers
+            total_episodes = 0
+            providers = episodes_data.get("providers", {})
+            for prov_data in providers.values():
+                for cat in ["sub", "dub"]:
+                    total_episodes = max(total_episodes, len(prov_data.get("episodes", {}).get(cat, [])))
+        else:
+            total_episodes = episodes_data.get("totalEpisodes", 0)
+        
+        if total_episodes == 0:
+            await callback_query.message.edit_text(
+                f"<b>❌ No episodes found for:</b> <code>{title}</code>"
+            )
+            return
+        
+        # Create episode selection UI (show 1-20, 21-40, etc. if many episodes)
+        buttons = []
+        
+        # Category selection (sub/dub)
+        buttons.append([
+            InlineKeyboardButton("🇯🇵 Sub", callback_data="anime_cat_sub"),
+            InlineKeyboardButton("🇺🇸 Dub", callback_data="anime_cat_dub"),
+        ])
+        
+        # Episode range buttons (if more than 10 episodes)
+        if total_episodes > 10:
+            for start in range(1, min(total_episodes + 1, 100), 10):
+                end = min(start + 9, total_episodes)
+                buttons.append([
+                    InlineKeyboardButton(
+                        f"📺 Episodes {start}-{end}",
+                        callback_data=f"anime_ep_{start}_{end}"
+                    )
+                ])
+        else:
+            # Show individual episode buttons
+            for ep in range(1, total_episodes + 1):
+                buttons.append([
+                    InlineKeyboardButton(f"📺 Episode {ep}", callback_data=f"anime_ep_{ep}_{ep}")
+                ])
+        
+        buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
+        
+        await callback_query.message.edit_text(
+            f"<b>🎬 {title}</b>\n\n"
+            f"<b>📺 Total Episodes:</b> <code>{total_episodes}</code>\n\n"
+            f"<b>Select category and episode range:</b>",
+            reply_markup=InlineKeyboardMarkup(buttons),
+        )
+        
+        await safe_answer(callback_query, f"Selected: {title}")
+        
+    except Exception as e:
+        logger.error(f"Anime select error: {e}")
+        await callback_query.message.edit_text(f"<b>❌ Error:</b> <code>{e}</code>")
+
+
+async def _handle_anime_episode(client, callback_query, data: str):
+    """Handle episode selection."""
+    try:
+        # Parse start and end episode from callback data
+        parts = data.replace("anime_ep_", "").split("_")
+        start_ep = int(parts[0])
+        end_ep = int(parts[1])
+        
+        BOT.State.anime_selected["episode_range"] = (start_ep, end_ep)
+        
+        # Create download button for selected range
+        buttons = [
+            [InlineKeyboardButton(
+                f"⬇️ Download Episodes {start_ep}-{end_ep}",
+                callback_data=f"anime_dl_{start_ep}_{end_ep}"
+            )],
+            [InlineKeyboardButton("⬅️ Back", callback_data="anime_back_search")],
+            [InlineKeyboardButton("❌ Cancel", callback_data="close")],
+        ]
+        
+        title = BOT.State.anime_selected.get("title", "Unknown")
+        
+        await callback_query.message.edit_text(
+            f"<b>🎬 {title}</b>\n\n"
+            f"<b>📺 Selected:</b> Episodes <code>{start_ep}</code> to <code>{end_ep}</code>\n\n"
+            f"<b>💡 Make sure to set an autorename template with:</b>\n"
+            f"<code>/autorename [S{{season}} E{{episode}}] {title} [{{quality}}] [{{audio}}]</code>",
+            reply_markup=InlineKeyboardMarkup(buttons),
+        )
+        
+        await safe_answer(callback_query, f"Episodes {start_ep}-{end_ep}")
+        
+    except Exception as e:
+        logger.error(f"Anime episode error: {e}")
+        await callback_query.message.edit_text(f"<b>❌ Error:</b> <code>{e}</code>")
+
+
+async def _handle_anime_category(client, callback_query, data: str):
+    """Handle category (sub/dub) selection."""
+    try:
+        category = data.replace("anime_cat_", "")
+        BOT.State.anime_selected["category"] = category
+        
+        category_label = "Japanese (Sub)" if category == "sub" else "English (Dub)"
+        
+        await callback_query.message.edit_text(
+            f"<b>✅ Category set to:</b> <code>{category_label}</code>\n\n"
+            f"<b>Select episode range:</b>",
+            reply_markup=callback_query.message.reply_markup,
+        )
+        
+        await safe_answer(callback_query, f"Category: {category_label}")
+        
+    except Exception as e:
+        logger.error(f"Anime category error: {e}")
+        await safe_answer(callback_query, "Error setting category", show_alert=True)
+
+
+async def _handle_anime_download(client, callback_query, data: str):
+    """Handle anime episode download."""
+    from leechbot.downloader.anime import anime_client
+    from leechbot.utility.task_manager import taskScheduler
+    
+    try:
+        if BOT.State.shutting_down:
+            await safe_answer(callback_query, "⏳ Bot is shutting down, try again later.", show_alert=True)
+            return
+        
+        # Parse episode range
+        parts = data.replace("anime_dl_", "").split("_")
+        start_ep = int(parts[0])
+        end_ep = int(parts[1])
+        
+        selected = BOT.State.anime_selected
+        title = selected.get("title", "Unknown")
+        provider = selected.get("provider", "miruro")
+        anime_id = selected.get("anime_id", "")
+        category = selected.get("category", "sub")
+        episodes_data = BOT.State.anime_episodes
+        
+        await callback_query.message.edit_text(
+            f"<b>🚀 Preparing download...</b>\n\n"
+            f"<b>🎬 Anime:</b> <code>{title}</code>\n"
+            f"<b>📺 Episodes:</b> <code>{start_ep}-{end_ep}</code>\n"
+            f"<b>🎵 Audio:</b> <code>{category}</code>",
+        )
+        
+        # Collect streaming URLs for selected episodes
+        streaming_urls = []
+        
+        for ep_num in range(start_ep, end_ep + 1):
+            await callback_query.message.edit_text(
+                f"<b>🔍 Fetching stream for Episode {ep_num}...</b>\n\n"
+                f"<b>🎬 Anime:</b> <code>{title}</code>"
+            )
+            
+            if provider == "miruro":
+                ep_info = anime_client.miruro.get_episode_stream_info(episodes_data, ep_num, category)
+                if ep_info:
+                    ep_info["anilist_id"] = anime_id
+                    stream_result = await anime_client.get_stream_url(ep_info, provider)
+                    if stream_result.get("success"):
+                        stream_url = stream_result["results"]["url"]
+                        streaming_urls.append({
+                            "episode": ep_num,
+                            "url": stream_url,
+                            "quality": stream_result["results"].get("quality", "unknown")
+                        })
+            else:
+                # AniKoto - need to get servers for each episode
+                episodes = episodes_data.get("episodes", [])
+                for ep in episodes:
+                    if ep.get("number") == ep_num:
+                        ep_id = ep.get("id", "")
+                        servers_result = await anime_client.anikoto.get_servers(ep_id)
+                        if servers_result.get("success"):
+                            servers = servers_result.get("results", [])
+                            for server in servers:
+                                if server.get("type") == category or (not category and True):
+                                    stream_result = await anime_client.anikoto.get_stream(server.get("link_id", ""))
+                                    if stream_result.get("success"):
+                                        streaming_urls.append({
+                                            "episode": ep_num,
+                                            "url": stream_result["results"]["url"],
+                                            "quality": "adaptive"
+                                        })
+                                    break
+                        break
+        
+        if not streaming_urls:
+            await callback_query.message.edit_text(
+                f"<b>❌ Failed to get streaming URLs.</b>\n\n"
+                f"Try a different provider or episode."
+            )
+            return
+        
+        # Format URLs for yt-dlp download
+        urls_text = "\n".join([f"https://www.animetemp.com/e/{s['url'].split('/')[-1]}" if "animetemp" in s['url'] else s['url'] for s in streaming_urls])
+        
+        # Store streaming data for download
+        BOT.SOURCE = [s["url"] for s in streaming_urls]
+        BOT.Mode.mode = "leech"
+        BOT.Mode.ytdl = True
+        BOT.Mode.gallery = False
+        BOT.Options.custom_name = ""  # Will use autorename template
+        
+        # Store episode metadata for autorename
+        BOT.State.anime_selected["episode_range"] = (start_ep, end_ep)
+        BOT.State.anime_selected["audio_type"] = category
+        
+        # Create status message and start download
+        MSG.status_msg = await callback_query.message.edit_text(
+            f"<b>🚀 Starting download...</b>\n\n"
+            f"<b>🎬 Anime:</b> <code>{title}</code>\n"
+            f"<b>📺 Episodes:</b> <code>{start_ep}-{end_ep}</code>\n"
+            f"<b>🎵 Audio:</b> <code>{category}</code>\n"
+            f"<b>🔗 URLs:</b> <code>{len(streaming_urls)}</code>",
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]])
+        )
+        
+        BOT.State.task_going = True
+        BOT.State.started = False
+        BotTimes.start_time = datetime.now()
+        
+        event_loop = get_running_loop()
+        BotStats.total_tasks += 1
+        BOT.TASK = event_loop.create_task(taskScheduler())
+        
+        await safe_answer(callback_query, "Download started!")
+        
+    except Exception as e:
+        logger.error(f"Anime download error: {e}")
+        await callback_query.message.edit_text(f"<b>❌ Download error:</b> <code>{e}</code>")

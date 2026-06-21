@@ -84,6 +84,10 @@ class BOT:
         suffix: bool = False
         setting_autodelete_delay: bool = False
         setting_autorename: bool = False  # Waiting for autorename template input
+        anime_search_results: list = []  # Anime search results for callback
+        anime_search_query: str = ""  # Last anime search query
+        anime_selected: dict = {}  # Currently selected anime info
+        anime_episodes: dict = {}  # Episodes data for selected anime
         shutting_down: bool = False  # Set True when SIGINT/SIGTERM received — blocks new long tasks
 
 

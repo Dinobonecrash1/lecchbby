@@ -15,16 +15,26 @@ All notable changes to this project will be documented in this file.
   - Clear template: `/autorename clear`
   - Files are renamed automatically during upload without adding extensions
 
+- **🎬 Anime Episode Downloader** — new `/anime` command to search and download anime episodes:
+  - Search anime from MiruroAPI & AniKotoAPI providers
+  - Select anime from search results with inline keyboard
+  - Choose sub/dub audio and episode range
+  - Download episodes using HLS streams via yt-dlp
+  - Integrates with `/autorename` template for automatic file renaming
+  - Usage: `/anime One Piece`
+
 ### Changed
-- **📚 Help text updated** — added `/autorename` to help menus in `commands.py` and `callbacks.py`
-- **🚀 Command registration** — added `autorename` command to Telegram bot commands list
+- **📚 Help text updated** — added `/autorename` and `/anime` to help menus
+- **🚀 Command registration** — added `autorename` and `anime` commands to Telegram bot commands list
 
 ### Files Modified
-- `leechbot/commands.py`: Added `/autorename` command handler
+- `leechbot/commands.py`: Added `/autorename` and `/anime` command handlers
 - `leechbot/handlers.py`: Added autorename template reply handler
-- `leechbot/utility/variables.py`: Added `autorename_template` and `setting_autorename` state
+- `leechbot/utility/variables.py`: Added `autorename_template`, `setting_autorename`, and anime state
 - `leechbot/utility/handler.py`: Added `_apply_autorename_template()` function and auto-rename logic
-- `leechbot/__main__.py`: Registered `autorename` command with Telegram
+- `leechbot/downloader/anime.py`: **NEW** - Anime API client for MiruroAPI & AniKotoAPI
+- `leechbot/callbacks.py`: Added anime search/episode/category/download handlers
+- `leechbot/__main__.py`: Registered `autorename` and `anime` commands with Telegram
 
 ---
 

@@ -206,7 +206,7 @@ async def handle_document(client, message):
 # =============================================================================
 @app.on_message(filters.text & filters.private & ~filters.command([
     "start", "tupload", "gdupload", "drupload", "ytupload", "glupload",
-    "settings", "help", "setname", "autorename", "zipaswd", "unzipaswd",
+    "settings", "help", "setname", "autorename", "anime", "zipaswd", "unzipaswd",
     "stats", "cancel", "cancel_all", "queue", "format", "formats", "preview",
     "speed", "broadcast", "admin", "cookies", "setcookies",
     "clearcookies", "update",

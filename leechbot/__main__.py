@@ -113,6 +113,7 @@ async def _register_commands():
         BotCommand("drupload", "📁 Upload local directory"),
         BotCommand("ytupload", "🏮 Download with YT-DLP"),
         BotCommand("glupload", "📸 Download image galleries"),
+        BotCommand("anime", "🎬 Search & download anime"),
         BotCommand("formats", "🎞️ List available formats for a URL"),
         BotCommand("preview", "👁️ Preview a gallery URL (dry run)"),
         BotCommand("settings", "⚙️ Bot settings menu"),

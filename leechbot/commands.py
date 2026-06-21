@@ -100,6 +100,7 @@ async def help_command(client, message):
 • /drupload — Upload local directory
 • /ytupload — Download with YT-DLP
 • /glupload — Download image galleries
+• /anime — Search &amp; download anime episodes
 • /preview — Dry-run a gallery URL to see what would be downloaded
 
 <b>─── Queue &amp; Control ───</b>
@@ -1054,3 +1055,73 @@ async def update_command(client, message):
         f"{changelog_text}",
         reply_markup=keyboard,
     )
+
+# =============================================================================
+# /anime - Anime Episode Downloader
+# =============================================================================
+@app.on_message(filters.command("anime") & filters.private)
+async def anime_command(client, message):
+    """Search and download anime episodes."""
+    from leechbot.downloader.anime import anime_client
+    
+    if len(message.command) < 2:
+        msg = await message.reply_text(
+            "<b>🎬 Anime Episode Downloader</b>\n\n"
+            "<b>⚠️ Usage:</b> <code>/anime &lt;anime_name&gt;</code>\n\n"
+            "<b>📝 Examples:</b>\n"
+            "• <code>/anime One Piece</code>\n"
+            "• <code>/anime Naruto Shippuden</code>\n"
+            "• <code>/anime Attack on Titan</code>\n\n"
+            "<b>💡 Features:</b>\n"
+            "• Search anime from MiruroAPI & AniKotoAPI\n"
+            "• Download episodes with subtitles\n"
+            "• Auto-rename with <code>/autorename</code> template",
+            quote=True,
+        )
+        await message_deleter(message, msg)
+        return
+    
+    query = " ".join(message.command[1:])
+    status = await message.reply_text(f"<b>🔍 Searching:</b> <code>{query}</code>...", quote=True)
+    
+    try:
+        result = await anime_client.search(query)
+        
+        if not result.get("success"):
+            await status.edit_text(f"<b>❌ Search failed:</b> <code>{result.get('message', 'Unknown error')}</code>")
+            return
+        
+        results = result.get("results", [])
+        if not results:
+            await status.edit_text("<b>❌ No results found.</b> Try a different search term.")
+            return
+        
+        # Store results for callback handling
+        BOT.State.anime_search_results = results
+        BOT.State.anime_search_query = query
+        
+        # Format results and create inline keyboard
+        formatted = anime_client.format_search_results(results[:8])
+        
+        buttons = []
+        for i, item in enumerate(formatted):
+            title = item["title"][:40] + ("..." if len(item["title"]) > 40 else "")
+            buttons.append([InlineKeyboardButton(
+                f"{'🎬' if i == 0 else '📺'} {title}",
+                callback_data=f"anime_select_{i}"
+            )])
+        
+        buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
+        
+        result_text = f"<b>🔍 Search Results for:</b> <code>{query}</code>\n\n"
+        for i, item in enumerate(formatted):
+            result_text += f"<b>{i+1}.</b> {item['display']}\n\n"
+        
+        await status.edit_text(
+            result_text,
+            reply_markup=InlineKeyboardMarkup(buttons),
+            disable_web_page_preview=True,
+        )
+    except Exception as e:
+        logger.error(f"Anime search error: {e}")
+        await status.edit_text(f"<b>❌ Search error:</b> <code>{e}</code>")
