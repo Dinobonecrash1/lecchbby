@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - **🏷️ Auto-Rename Template** — new `/autorename` command to set a template for automatic file renaming:
-  - Support placeholders: `{chapter}`, `{season}`, `{episode}`, `{quality}`, `{audio}`
+  - Support placeholders: `{chapter}`, `{season}`, `{episode}`, `{quality}`, `{audio}`, `{title}`
   - Auto-detects metadata from original filename (chapter, season, episode, quality, audio)
   - Works for both manga and anime files
   - Usage: `/autorename [WF] [C{chapter}] One Piece @Webtoon_Flix`
@@ -23,6 +23,12 @@ All notable changes to this project will be documented in this file.
   - Integrates with `/autorename` template for automatic file renaming
   - Usage: `/anime One Piece`
 
+### Fixed
+- **🔧 AniKotoAPI stream resolution** — improved M3U8 extraction from embed pages
+- **🔧 Auto-rename metadata injection** — anime metadata (title, episode, audio) now properly passed to template
+- **🔧 Download flow** — fixed task manager integration for anime downloads
+- **🔧 Episode detection** — improved episode number detection from filenames
+
 ### Changed
 - **📚 Help text updated** — added `/autorename` and `/anime` to help menus
 - **🚀 Command registration** — added `autorename` and `anime` commands to Telegram bot commands list
@@ -31,8 +37,8 @@ All notable changes to this project will be documented in this file.
 - `leechbot/commands.py`: Added `/autorename` and `/anime` command handlers
 - `leechbot/handlers.py`: Added autorename template reply handler
 - `leechbot/utility/variables.py`: Added `autorename_template`, `setting_autorename`, and anime state
-- `leechbot/utility/handler.py`: Added `_apply_autorename_template()` function and auto-rename logic
-- `leechbot/downloader/anime.py`: **NEW** - Anime API client for MiruroAPI & AniKotoAPI
+- `leechbot/utility/handler.py`: Added `_apply_autorename_template()` with metadata support
+- `leechbot/downloader/anime.py`: **NEW** - Anime API client with M3U8 extraction
 - `leechbot/callbacks.py`: Added anime search/episode/category/download handlers
 - `leechbot/__main__.py`: Registered `autorename` and `anime` commands with Telegram
 

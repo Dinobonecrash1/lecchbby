@@ -263,19 +263,52 @@ class AniKotoAPI:
                         stream_url = data.get("results", {}).get("url", "")
                         skip_data = data.get("results", {}).get("skipData", {})
                         
-                        # The URL is an embed page - yt-dlp can extract from it
                         if stream_url:
+                            # Try to extract M3U8 from the embed page
+                            m3u8_url = await self._extract_m3u8_from_embed(session, stream_url)
+                            if m3u8_url:
+                                return {
+                                    "success": True,
+                                    "results": {
+                                        "url": m3u8_url,
+                                        "skipTimes": skip_data,
+                                        "quality": "adaptive"
+                                    }
+                                }
+                            # Fallback: return embed URL for yt-dlp to handle
                             return {
                                 "success": True,
                                 "results": {
                                     "url": stream_url,
-                                    "skipTimes": skip_data
+                                    "skipTimes": skip_data,
+                                    "quality": "adaptive"
                                 }
                             }
                 return {"success": False, "message": "No stream URL found"}
         except Exception as e:
             logger.error(f"AniKotoAPI stream error: {e}")
             return {"success": False, "message": str(e)}
+    
+    async def _extract_m3u8_from_embed(self, session: aiohttp.ClientSession, embed_url: str) -> Optional[str]:
+        """Try to extract M3U8 URL from an embed page."""
+        import re
+        try:
+            async with session.get(embed_url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                if resp.status == 200:
+                    html = await resp.text()
+                    # Look for M3U8 URLs in the HTML
+                    m3u8_patterns = [
+                        r'(https?://[^\s"\']+\.m3u8[^\s"\']*)',
+                        r'file["\']?\s*[:=]\s*["\']?(https?://[^\s"\']+\.m3u8)',
+                        r'source["\']?\s*[:=]\s*["\']?(https?://[^\s"\']+\.m3u8)',
+                    ]
+                    for pattern in m3u8_patterns:
+                        match = re.search(pattern, html, re.IGNORECASE)
+                        if match:
+                            return match.group(1).rstrip("'\"")
+        except Exception as e:
+            logger.debug(f"M3U8 extraction failed: {e}")
+        return None
 
 
 # =============================================================================

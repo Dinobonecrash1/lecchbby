@@ -988,12 +988,10 @@ async def _handle_anime_download(client, callback_query, data: str):
             )
             return
         
-        # Format URLs for yt-dlp download
-        urls_text = "\n".join([f"https://www.animetemp.com/e/{s['url'].split('/')[-1]}" if "animetemp" in s['url'] else s['url'] for s in streaming_urls])
-        
         # Store streaming data for download
         BOT.SOURCE = [s["url"] for s in streaming_urls]
         BOT.Mode.mode = "leech"
+        BOT.Mode.type = "normal"
         BOT.Mode.ytdl = True
         BOT.Mode.gallery = False
         BOT.Options.custom_name = ""  # Will use autorename template
@@ -1001,6 +999,7 @@ async def _handle_anime_download(client, callback_query, data: str):
         # Store episode metadata for autorename
         BOT.State.anime_selected["episode_range"] = (start_ep, end_ep)
         BOT.State.anime_selected["audio_type"] = category
+        BOT.State.anime_selected["title"] = title
         
         # Create status message and start download
         MSG.status_msg = await callback_query.message.edit_text(

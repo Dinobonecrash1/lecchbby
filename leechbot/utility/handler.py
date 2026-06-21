@@ -32,23 +32,25 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Auto-Rename Template Processing
 # =============================================================================
-def _apply_autorename_template(original_name: str, template: str) -> str:
+def _apply_autorename_template(original_name: str, template: str, metadata: dict = None) -> str:
     """
     Apply auto-rename template to a file name.
     
     Args:
         original_name: Original file name (with extension)
         template: Rename template with placeholders
+        metadata: Optional metadata dict with keys like 'episode', 'season', 'quality', 'audio', 'title'
         
     Returns:
         New file name based on template
         
     Supported placeholders:
-        {chapter} - Chapter number (auto-detected from filename)
-        {season} - Season number (auto-detected from filename)
-        {episode} - Episode number (auto-detected from filename)
-        {quality} - Video quality (auto-detected from filename)
-        {audio} - Audio info (auto-detected from filename)
+        {chapter} - Chapter number (auto-detected or from metadata)
+        {season} - Season number (auto-detected or from metadata)
+        {episode} - Episode number (auto-detected or from metadata)
+        {quality} - Video quality (auto-detected or from metadata)
+        {audio} - Audio info (auto-detected or from metadata)
+        {title} - Anime title (from metadata only)
     """
     import re
     
@@ -59,40 +61,48 @@ def _apply_autorename_template(original_name: str, template: str) -> str:
     if template.endswith(('.mkv', '.mp4', '.avi', '.webm', '.mov', '.flv')):
         template = template[:len(template) - len(ext)]
     
-    # Try to auto-detect metadata from original filename
+    # Start with metadata if provided, otherwise empty dict
     detected = {}
+    if metadata:
+        detected.update(metadata)
     
+    # Auto-detect from filename (only if not already in metadata)
     # Detect chapter number (e.g., Ch.001, Chapter 1, c001, c12)
-    chapter_match = re.search(r'(?:ch(?:apter)?[\s.]?|c)(\d+)', original_name, re.IGNORECASE)
-    if chapter_match:
-        detected['chapter'] = chapter_match.group(1).lstrip('0') or '0'
+    if 'chapter' not in detected:
+        chapter_match = re.search(r'(?:ch(?:apter)?[\s.]?|c)(\d+)', original_name, re.IGNORECASE)
+        if chapter_match:
+            detected['chapter'] = chapter_match.group(1).lstrip('0') or '0'
     
     # Detect season number (e.g., S01, Season 1, s01)
-    season_match = re.search(r'(?:s(?:eason)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
-    if season_match:
-        detected['season'] = season_match.group(1).lstrip('0') or '0'
+    if 'season' not in detected:
+        season_match = re.search(r'(?:s(?:eason)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
+        if season_match:
+            detected['season'] = season_match.group(1).lstrip('0') or '0'
     
     # Detect episode number (e.g., E01, Episode 1, ep01)
-    episode_match = re.search(r'(?:e(?:p(?:isode)?)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
-    if episode_match:
-        detected['episode'] = episode_match.group(1).lstrip('0') or '0'
+    if 'episode' not in detected:
+        episode_match = re.search(r'(?:e(?:p(?:isode)?)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
+        if episode_match:
+            detected['episode'] = episode_match.group(1).lstrip('0') or '0'
     
     # Detect quality (e.g., 1080p, 720p, 4K, 2160p)
-    quality_match = re.search(r'(\d{3,4}p|4k|2160p|1080p|720p|480p|360p)', original_name, re.IGNORECASE)
-    if quality_match:
-        detected['quality'] = quality_match.group(1).upper()
+    if 'quality' not in detected:
+        quality_match = re.search(r'(\d{3,4}p|4k|2160p|1080p|720p|480p|360p)', original_name, re.IGNORECASE)
+        if quality_match:
+            detected['quality'] = quality_match.group(1).upper()
     
     # Detect audio info (e.g., AAC, FLAC, DTS, AC3, Dual Audio)
-    audio_match = re.search(r'(dual[\s-]?audio|aac|flac|dts|ac3|eac3|pcm|mp3|opus|7\.1|5\.1|2\.0|atmos)', original_name, re.IGNORECASE)
-    if audio_match:
-        detected['audio'] = audio_match.group(1).upper()
+    if 'audio' not in detected:
+        audio_match = re.search(r'(dual[\s-]?audio|aac|flac|dts|ac3|eac3|pcm|mp3|opus|7\.1|5\.1|2\.0|atmos)', original_name, re.IGNORECASE)
+        if audio_match:
+            detected['audio'] = audio_match.group(1).upper()
     
     # Replace placeholders in template with detected values
     result = template
     for key, value in detected.items():
         placeholder = '{' + key + '}'
         if placeholder in result:
-            result = result.replace(placeholder, value)
+            result = result.replace(placeholder, str(value))
     
     # Remove any remaining unreplaced placeholders
     result = re.sub(r'\{[^}]+\}', '', result)
@@ -179,6 +189,15 @@ async def Leech(folder_path: str, remove: bool):
                 if remove and ospath.exists(photo_path):
                     os.remove(photo_path)
 
+    # Get anime metadata for autorename if available
+    anime_metadata = None
+    if hasattr(BOT.State, 'anime_selected') and BOT.State.anime_selected:
+        anime_metadata = {
+            'title': BOT.State.anime_selected.get('title', ''),
+            'episode_range': BOT.State.anime_selected.get('episode_range', (0, 0)),
+            'audio': BOT.State.anime_selected.get('category', 'sub'),
+        }
+    
     # Process remaining files normally
     for file_path in other_files:
         leech_result = await sizeChecker(file_path, remove)
@@ -196,7 +215,20 @@ async def Leech(folder_path: str, remove: bool):
                 
                 # Apply auto-rename template if set
                 if BOT.Setting.autorename_template:
-                    file_name = _apply_autorename_template(file_name, BOT.Setting.autorename_template)
+                    # Build metadata for this file
+                    file_metadata = {}
+                    if anime_metadata:
+                        file_metadata['title'] = anime_metadata['title']
+                        file_metadata['audio'] = anime_metadata['audio']
+                        # Try to detect episode number from filename
+                        import re
+                        ep_match = re.search(r'(?:e(?:p(?:isode)?)?[\s._-]?)(\d+)', file_name, re.IGNORECASE)
+                        if ep_match:
+                            file_metadata['episode'] = ep_match.group(1)
+                        elif count:
+                            file_metadata['episode'] = str(count)
+                    
+                    file_name = _apply_autorename_template(file_name, BOT.Setting.autorename_template, file_metadata)
                     # Rename the file to the new name
                     new_full_path = ospath.join(Paths.temp_zpath, file_name)
                     try:
@@ -242,7 +274,18 @@ async def Leech(folder_path: str, remove: bool):
             
             # Apply auto-rename template if set
             if BOT.Setting.autorename_template:
-                new_name = _apply_autorename_template(file_name, BOT.Setting.autorename_template)
+                # Build metadata for this file
+                file_metadata = {}
+                if anime_metadata:
+                    file_metadata['title'] = anime_metadata['title']
+                    file_metadata['audio'] = anime_metadata['audio']
+                    # Try to detect episode number from filename
+                    import re
+                    ep_match = re.search(r'(?:e(?:p(?:isode)?)?[\s._-]?)(\d+)', file_name, re.IGNORECASE)
+                    if ep_match:
+                        file_metadata['episode'] = ep_match.group(1)
+                
+                new_name = _apply_autorename_template(file_name, BOT.Setting.autorename_template, file_metadata)
                 new_file_path = ospath.join(ospath.dirname(file_path), new_name)
                 try:
                     os.rename(file_path, new_file_path)
