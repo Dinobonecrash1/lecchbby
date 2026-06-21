@@ -995,9 +995,14 @@ async def _handle_anime_download(client, callback_query, data: str):
                 f"<b>🎬 Anime:</b> <code>{title}</code>"
             )
 
-            if provider == "animex":
-                # Use AnimexAPI /watch endpoint
-                stream_result = await anime_client.get_stream_url(anime_id, ep_num, "animex", category)
+            # Always use MiruroAPI for streaming (AnimexAPI returns 403)
+            episodes_data = BOT.State.anime_episodes
+            ep_info = anime_client.miruro.get_episode_stream_info(episodes_data, ep_num, category)
+            if ep_info:
+                ep_info["anilist_id"] = anime_id
+                stream_result = await anime_client.get_stream_from_miruro(
+                    ep_info["provider"], anime_id, category, ep_info["slug"]
+                )
                 if stream_result.get("success"):
                     streaming_urls.append({
                         "episode": ep_num,
@@ -1007,24 +1012,6 @@ async def _handle_anime_download(client, callback_query, data: str):
                         "fansub": stream_result["results"].get("fansub", ""),
                         "audio": stream_result["results"].get("audio", category),
                     })
-            else:
-                # MiruroAPI - get episode stream info from episodes data
-                episodes_data = BOT.State.anime_episodes
-                ep_info = anime_client.miruro.get_episode_stream_info(episodes_data, ep_num, category)
-                if ep_info:
-                    ep_info["anilist_id"] = anime_id
-                    stream_result = await anime_client.get_stream_from_miruro(
-                        ep_info["provider"], anime_id, category, ep_info["slug"]
-                    )
-                    if stream_result.get("success"):
-                        streaming_urls.append({
-                            "episode": ep_num,
-                            "url": stream_result["results"]["url"],
-                            "quality": stream_result["results"].get("quality", "unknown"),
-                            "codec": stream_result["results"].get("codec", ""),
-                            "fansub": stream_result["results"].get("fansub", ""),
-                            "audio": stream_result["results"].get("audio", category),
-                        })
 
         if not streaming_urls:
             await callback_query.message.edit_text(

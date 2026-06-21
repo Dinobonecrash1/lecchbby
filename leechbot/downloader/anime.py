@@ -335,7 +335,10 @@ class AnimexAPI:
 # Unified Anime Client
 # =============================================================================
 class AnimeClient:
-    """Unified anime client that manages multiple API providers."""
+    """Unified anime client that manages multiple API providers.
+
+    Strategy: AnimexAPI for search (richer data), MiruroAPI for episodes + streaming (reliable).
+    """
 
     def __init__(self):
         self.miruro = MiruroAPI()
@@ -346,7 +349,7 @@ class AnimeClient:
         await self.animex.close()
 
     async def search(self, query: str) -> Dict[str, Any]:
-        """Search for anime across providers."""
+        """Search for anime. Try AnimexAPI first (richer results), fallback to MiruroAPI."""
         for provider in PROVIDER_PRIORITY:
             if provider == "animex":
                 result = await self.animex.search(query)
@@ -358,35 +361,15 @@ class AnimeClient:
 
         return {"success": False, "message": "Search failed on all providers"}
 
-    async def get_episodes(self, anime_id: Any, provider: str = "animex") -> Dict[str, Any]:
-        """Get episode list."""
-        if provider == "animex":
-            return await self.animex.get_episodes(str(anime_id))
-        else:
-            return await self.miruro.get_episodes(anime_id)
+    async def get_episodes(self, anilist_id: Any, provider: str = "animex") -> Dict[str, Any]:
+        """Get episode list. Always uses MiruroAPI (AnimexAPI episodes returns 403)."""
+        return await self.miruro.get_episodes(anilist_id)
 
     async def get_stream_url(self, anilist_id: int, episode_number: int, provider: str = "animex", preferred_audio: str = "sub") -> Dict[str, Any]:
-        """Get streaming URL for an episode."""
-        if provider == "animex":
-            watch_result = await self.animex.get_stream(anilist_id, episode_number)
-            if watch_result.get("success"):
-                streams = watch_result["results"].get("streams", [])
-                best = self.animex.find_best_stream(streams, preferred_audio)
-                if best:
-                    return {
-                        "success": True,
-                        "results": {
-                            "url": best["url"],
-                            "quality": best.get("quality", "unknown"),
-                            "codec": best.get("codec", ""),
-                            "fansub": best.get("fansub", ""),
-                            "audio": best.get("audio", preferred_audio),
-                        }
-                    }
-            return watch_result
-        else:
-            # MiruroAPI requires provider/slug - use /watch endpoint
-            return {"success": False, "message": "MiruroAPI stream requires episode slug info"}
+        """Get streaming URL. Always uses MiruroAPI (AnimexAPI watch returns 403)."""
+        # MiruroAPI needs episode stream info from episodes data
+        # This method is called from callbacks.py which passes episode info
+        return {"success": False, "message": "Use get_stream_from_miruro() directly"}
 
     async def get_stream_from_miruro(self, provider: str, anilist_id: int, category: str, slug: str) -> Dict[str, Any]:
         """Get stream URL from MiruroAPI directly."""
