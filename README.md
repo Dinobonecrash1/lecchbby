@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.47-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.1.49-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -54,14 +54,15 @@
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
 
-## ✨ What's New in v3.1.47
+## ✨ What's New in v3.1.49
 
-### 🔒 Security & Stability
-- Fixed WebSocket auth bypass, CORS wildcard, shell injection in aria2
-- Fixed NameError on `HELP_KEYBOARD`, dead `"danger"` button, missing `BOT.Options.file_name`
-- Removed 1659 lines of dead code, 14 unused imports, unused dependencies
+### 🎬 Anime & Auto-Rename
+- **`/anime`** — Search & download anime episodes via MiruroAPI + AnimexAPI
+- **`/autorename`** — Set template for automatic file renaming with `{season}`, `{episode}`, `{quality}`, `{audio}` placeholders
+- Auto-anime-poster thumbnail — poster image set as upload thumbnail automatically
+- Fixed `safe_answer()` infinite recursion bug
 
-> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **32 commands across 6 categories**
+> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **34 commands across 6 categories**
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -88,6 +89,8 @@
 | 🔄 **Auto-Retry** | Automatic retry on download failures |
 | 🔒 **Password Protection** | ZIP/unzip passwords |
 | 🏷️ **Custom Filename** | `/setname` or inline `[name]` syntax |
+| 🏷️ **Auto-Rename Template** | `/autorename` with `{season}`, `{episode}`, `{quality}`, `{audio}` placeholders |
+| 🎬 **Anime Downloader** | `/anime` — search & download from MiruroAPI + AnimexAPI with poster thumbnails |
 | ⏳ **Auto-Delete** | Configurable auto-delete for bot messages |
 | 🎬 **YouTube PO Tokens** | Auto-generated — no manual cookie setup |
 | 📸 **Photo Galleries** | Twitter, Pinterest, Pixiv via gallery-dl |
@@ -121,6 +124,7 @@
 | GoFile.io | API | ✅ Folders, multi-file |
 | Catbox.moe / Litterbox | Direct | ✅ Direct download |
 | StreamTape | Extraction | ✅ Video links |
+| Anime (MiruroAPI/AnimexAPI) | HLS M3U8 | ✅ Sub/Dub, quality selection |
 
 ### 📤 Upload To
 
@@ -266,11 +270,11 @@ conda install -c conda-forge libtorrent
 
 ## 📋 Commands
 
-All 32 commands are organized into 6 categories in the **interactive `/help` menu**.
+All 34 commands are organized into 6 categories in the **interactive `/help` menu**.
 
 | Category | Commands | Usage |
 |----------|----------|-------|
-| **📥 Downloads** | 10 | `tupload`, `gdupload`, `drupload`, `ytupload`, `glupload`, `setname`, `format`, `formats`, `preview`, `speed` |
+| **📥 Downloads** | 12 | `tupload`, `gdupload`, `drupload`, `ytupload`, `glupload`, `anime`, `setname`, `autorename`, `format`, `formats`, `preview`, `speed` |
 | **🗂 Files** | 5 | `zipaswd`, `unzipaswd`, `queue`, `cancel`, `cancel_all` |
 | **⚙️ Status & Settings** | 7 | `settings`, `status`, `stats`, `logs`, `ping`, `restart`, `update` |
 | **🍪 Cookies** | 3 | `cookies`, `setcookies`, `clearcookies` |
@@ -289,6 +293,7 @@ All 32 commands are organized into 6 categories in the **interactive `/help` men
 |-----------|------------|
 | Framework | [Pyrogram](https://docs.pyrogram.org/) 2.0.106 |
 | Downloads | [aria2c](https://aria2.github.io/) + [yt-dlp](https://github.com/yt-dlp/yt-dlp) + [gallery-dl](https://github.com/mikf/gallery-dl) |
+| Anime Streams | [MiruroAPI](https://mirurotvapi.vercel.app) + [AnimexAPI](https://animexoneapi.vercel.app) |
 | YouTube Auth | [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) |
 | Video Processing | FFmpeg, MoviePy, GPUtil |
 | Archives | 7z, unrar, zip, tar |
@@ -335,6 +340,7 @@ LeechBot/
 │   │   ├── gofile.py        # GoFile.io
 │   │   ├── catbox.py        # Catbox.moe
 │   │   ├── streamtape.py    # StreamTape
+│   │   ├── anime.py         # Anime API (MiruroAPI + AnimexAPI)
 │   │   └── manager.py       # Download router
 │   ├── uploader/
 │   │   └── telegram.py      # Upload with progress
