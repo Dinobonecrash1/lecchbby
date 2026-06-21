@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.49] - 2026-06-22
+
+### Changed
+- **🔄 Anime API Providers** — replaced AniKotoAPI with AnimexAPI as primary provider:
+  - AnimexAPI provides richer metadata, poster/banner images, skip times, and direct M3U8 streams
+  - MiruroAPI kept as fallback for episode discovery and streaming
+  - Search now returns poster images and AniList IDs
+  - Episode selection UI improved with genre info and status
+
+### Added
+- **🖼️ Auto-Anime-Poster Thumbnail** — automatically downloads anime poster from API and sets as upload thumbnail
+- **📊 Stream Info Display** — shows quality, codec, and audio type during download preparation
+- **🎯 Better Stream Selection** — prefers preferred audio type (sub/dub) and highest quality
+
+### Fixed
+- **🔧 safe_answer recursion bug** — fixed infinite recursion in `safe_answer()` callback wrapper
+- **🔧 Anime search provider tracking** — search results now properly track which provider returned them
+
+### Files Modified
+- `leechbot/downloader/anime.py`: Refactored — removed AniKotoAPI, added AnimexAPI client
+- `leechbot/callbacks.py`: Fixed safe_answer bug, updated anime handlers for new API flow
+- `leechbot/commands.py`: Updated anime help text for new providers
+- `leechbot/utility/variables.py`: Added `anime_search_provider` state variable
+
+---
+
 ## [3.1.48] - 2026-06-22
 
 ### Added

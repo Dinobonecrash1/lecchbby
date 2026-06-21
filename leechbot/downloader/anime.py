@@ -11,11 +11,10 @@
 
 """
 Anime API client for searching anime, fetching episodes, and streaming URLs.
-Supports MiruroAPI and AniKotoAPI providers.
+Supports MiruroAPI and AnimexAPI providers.
 """
 
 import logging
-import asyncio
 from typing import Optional, Dict, List, Any
 import aiohttp
 
@@ -24,41 +23,41 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # API Configuration
 # =============================================================================
-MIRURO_API_BASE = "https://miruroapi.vercel.app/api"
-ANIKOTO_API_BASE = "https://anikototvapi.vercel.app/api"
+MIRURO_API_BASE = "https://mirurotvapi.vercel.app/api"
+ANIMEX_API_BASE = "https://animexoneapi.vercel.app/api"
 
 # Provider priority - try these in order
-PROVIDER_PRIORITY = ["miruro", "anikoto"]
+PROVIDER_PRIORITY = ["animex", "miruro"]
 
 
 # =============================================================================
 # MiruroAPI Client
 # =============================================================================
 class MiruroAPI:
-    """Client for MiruroAPI (miruroapi.vercel.app)."""
-    
+    """Client for MiruroAPI (mirurotvapi.vercel.app)."""
+
     def __init__(self):
         self.base_url = MIRURO_API_BASE
         self.session: Optional[aiohttp.ClientSession] = None
-    
+
     async def _get_session(self) -> aiohttp.ClientSession:
         if self.session is None or self.session.closed:
             self.session = aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=30),
-                headers={"User-Agent": "LeechBot/3.1.48"}
+                headers={"User-Agent": "LeechBot/3.1.49"}
             )
         return self.session
-    
+
     async def close(self):
         if self.session and not self.session.closed:
             await self.session.close()
-    
+
     async def search(self, query: str, page: int = 1, per_page: int = 10) -> Dict[str, Any]:
         """Search for anime."""
         session = await self._get_session()
         url = f"{self.base_url}/search"
         params = {"query": query, "page": page, "per_page": per_page}
-        
+
         try:
             async with session.get(url, params=params) as resp:
                 if resp.status == 200:
@@ -67,30 +66,14 @@ class MiruroAPI:
                         return {"success": True, "results": data.get("results", {}).get("results", [])}
                 return {"success": False, "message": f"HTTP {resp.status}"}
         except Exception as e:
-            logger.error(f"MiruroAPI search error: {e}")
+            logger.error("MiruroAPI search error: %s", e)
             return {"success": False, "message": str(e)}
-    
-    async def get_info(self, anilist_id: int) -> Dict[str, Any]:
-        """Get anime info by AniList ID."""
-        session = await self._get_session()
-        url = f"{self.base_url}/info/{anilist_id}"
-        
-        try:
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    if data.get("success"):
-                        return {"success": True, "results": data.get("results", {})}
-                return {"success": False, "message": f"HTTP {resp.status}"}
-        except Exception as e:
-            logger.error(f"MiruroAPI info error: {e}")
-            return {"success": False, "message": str(e)}
-    
+
     async def get_episodes(self, anilist_id: int) -> Dict[str, Any]:
         """Get episode list by AniList ID."""
         session = await self._get_session()
         url = f"{self.base_url}/episodes/{anilist_id}"
-        
+
         try:
             async with session.get(url) as resp:
                 if resp.status == 200:
@@ -99,54 +82,56 @@ class MiruroAPI:
                         return {"success": True, "results": data.get("results", {})}
                 return {"success": False, "message": f"HTTP {resp.status}"}
         except Exception as e:
-            logger.error(f"MiruroAPI episodes error: {e}")
+            logger.error("MiruroAPI episodes error: %s", e)
             return {"success": False, "message": str(e)}
-    
+
     async def get_stream(self, provider: str, anilist_id: int, category: str, slug: str) -> Dict[str, Any]:
         """Get streaming URL for an episode."""
         session = await self._get_session()
         url = f"{self.base_url}/watch/{provider}/{anilist_id}/{category}/{slug}"
-        
+
         try:
             async with session.get(url) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     if data.get("success"):
                         streams = data.get("results", {}).get("streams", [])
-                        # Find best quality M3U8 URL
+                        download_url = data.get("results", {}).get("download", "")
                         best_stream = None
                         for stream in streams:
                             if stream.get("url", "").endswith(".m3u8"):
                                 best_stream = stream
-                                # Prefer 1080p
                                 if "1080" in stream.get("quality", ""):
                                     break
-                        
+
                         if best_stream:
                             return {
                                 "success": True,
                                 "results": {
                                     "url": best_stream["url"],
                                     "quality": best_stream.get("quality", "unknown"),
+                                    "codec": best_stream.get("codec", ""),
+                                    "fansub": best_stream.get("fansub", ""),
+                                    "audio": best_stream.get("audio", "sub"),
+                                    "download": download_url,
                                     "subtitles": data.get("results", {}).get("subtitles", []),
                                     "skipTimes": data.get("results", {}).get("skipTimes", {})
                                 }
                             }
                 return {"success": False, "message": "No M3U8 stream found"}
         except Exception as e:
-            logger.error(f"MiruroAPI stream error: {e}")
+            logger.error("MiruroAPI stream error: %s", e)
             return {"success": False, "message": str(e)}
-    
+
     def get_episode_stream_info(self, episodes_data: Dict, episode_number: int, category: str = "sub") -> Optional[Dict]:
         """Extract stream info for a specific episode number from episodes data."""
         providers = episodes_data.get("providers", {})
-        
-        # Try providers in priority order
+
         for provider_name in ["kiwi", "bee", "bonk", "bun", "ally", "nun", "twin"]:
             provider_data = providers.get(provider_name, {})
             episodes = provider_data.get("episodes", {})
             category_episodes = episodes.get(category, [])
-            
+
             for ep in category_episodes:
                 if ep.get("number") == episode_number:
                     return {
@@ -156,159 +141,194 @@ class MiruroAPI:
                         "number": episode_number,
                         "title": ep.get("title", "")
                     }
-        
+
         return None
 
 
 # =============================================================================
-# AniKotoAPI Client
+# AnimexAPI Client
 # =============================================================================
-class AniKotoAPI:
-    """Client for AniKotoAPI (anikototvapi.vercel.app)."""
-    
+class AnimexAPI:
+    """Client for AnimexAPI (animexoneapi.vercel.app)."""
+
     def __init__(self):
-        self.base_url = ANIKOTO_API_BASE
+        self.base_url = ANIMEX_API_BASE
         self.session: Optional[aiohttp.ClientSession] = None
-    
+
     async def _get_session(self) -> aiohttp.ClientSession:
         if self.session is None or self.session.closed:
             self.session = aiohttp.ClientSession(
                 timeout=aiohttp.ClientTimeout(total=30),
-                headers={"User-Agent": "LeechBot/3.1.48"}
+                headers={"User-Agent": "LeechBot/3.1.49"}
             )
         return self.session
-    
+
     async def close(self):
         if self.session and not self.session.closed:
             await self.session.close()
-    
-    async def search(self, keyword: str, page: int = 1) -> Dict[str, Any]:
+
+    async def search(self, query: str, limit: int = 10) -> Dict[str, Any]:
         """Search for anime."""
         session = await self._get_session()
         url = f"{self.base_url}/search"
-        params = {"keyword": keyword, "page": page}
-        
+        params = {"q": query, "limit": limit}
+
         try:
             async with session.get(url, params=params) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    if data.get("success"):
-                        return {"success": True, "results": data.get("results", {}).get("data", [])}
+                    return {"success": True, "results": data.get("results", [])}
                 return {"success": False, "message": f"HTTP {resp.status}"}
         except Exception as e:
-            logger.error(f"AniKotoAPI search error: {e}")
+            logger.error("AnimexAPI search error: %s", e)
             return {"success": False, "message": str(e)}
-    
-    async def get_info(self, slug: str) -> Dict[str, Any]:
-        """Get anime info by slug."""
+
+    async def get_anime_info(self, anime_id: str) -> Dict[str, Any]:
+        """Get anime info by slug or AniList ID."""
         session = await self._get_session()
-        url = f"{self.base_url}/info"
-        params = {"id": slug}
-        
+        # Try as AniList ID first (numeric)
+        if anime_id.isdigit():
+            url = f"{self.base_url}/anime/anilist/{anime_id}"
+        else:
+            url = f"{self.base_url}/anime/{anime_id}"
+
         try:
-            async with session.get(url, params=params) as resp:
+            async with session.get(url) as resp:
                 if resp.status == 200:
                     data = await resp.json()
-                    if data.get("success"):
-                        return {"success": True, "results": data.get("results", {})}
+                    return {"success": True, "results": data.get("results", {})}
                 return {"success": False, "message": f"HTTP {resp.status}"}
         except Exception as e:
-            logger.error(f"AniKotoAPI info error: {e}")
+            logger.error("AnimexAPI info error: %s", e)
             return {"success": False, "message": str(e)}
-    
-    async def get_episodes(self, slug: str) -> Dict[str, Any]:
-        """Get episode list by slug."""
+
+    async def get_episodes(self, anime_id: str) -> Dict[str, Any]:
+        """Get episode list by slug or AniList ID."""
         session = await self._get_session()
-        url = f"{self.base_url}/episodes/{slug}"
-        
+        if anime_id.isdigit():
+            url = f"{self.base_url}/episodes/{anime_id}"
+        else:
+            # For slug, need to resolve AniList ID first
+            info_result = await self.get_anime_info(anime_id)
+            if info_result.get("success"):
+                anilist_id = info_result["results"].get("anilistId")
+                if anilist_id:
+                    url = f"{self.base_url}/episodes/{anilist_id}"
+                else:
+                    return {"success": False, "message": "Could not resolve AniList ID"}
+            else:
+                return info_result
+
+        try:
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    data = await resp.json()
+                    return {"success": True, "results": data.get("results", [])}
+                return {"success": False, "message": f"HTTP {resp.status}"}
+        except Exception as e:
+            logger.error("AnimexAPI episodes error: %s", e)
+            return {"success": False, "message": str(e)}
+
+    async def get_stream(self, anilist_id: int, episode_number: int) -> Dict[str, Any]:
+        """Get streaming URL via /watch endpoint (all-in-one)."""
+        session = await self._get_session()
+        url = f"{self.base_url}/watch/{anilist_id}/{episode_number}"
+
         try:
             async with session.get(url) as resp:
                 if resp.status == 200:
                     data = await resp.json()
                     if data.get("success"):
-                        return {"success": True, "results": data.get("results", {})}
-                return {"success": False, "message": f"HTTP {resp.status}"}
-        except Exception as e:
-            logger.error(f"AniKotoAPI episodes error: {e}")
-            return {"success": False, "message": str(e)}
-    
-    async def get_servers(self, episode_ids: str) -> Dict[str, Any]:
-        """Get streaming servers for episodes."""
-        session = await self._get_session()
-        url = f"{self.base_url}/servers"
-        params = {"ids": episode_ids}
-        
-        try:
-            async with session.get(url, params=params) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    if data.get("success"):
-                        return {"success": True, "results": data.get("results", [])}
-                return {"success": False, "message": f"HTTP {resp.status}"}
-        except Exception as e:
-            logger.error(f"AniKotoAPI servers error: {e}")
-            return {"success": False, "message": str(e)}
-    
-    async def get_stream(self, link_id: str) -> Dict[str, Any]:
-        """Get streaming URL by link_id."""
-        session = await self._get_session()
-        url = f"{self.base_url}/stream"
-        params = {"id": link_id}
-        
-        try:
-            async with session.get(url, params=params) as resp:
-                if resp.status == 200:
-                    data = await resp.json()
-                    if data.get("success"):
-                        stream_url = data.get("results", {}).get("url", "")
-                        skip_data = data.get("results", {}).get("skipData", {})
-                        
-                        if stream_url:
-                            # Try to extract M3U8 from the embed page
-                            m3u8_url = await self._extract_m3u8_from_embed(session, stream_url)
-                            if m3u8_url:
-                                return {
-                                    "success": True,
-                                    "results": {
-                                        "url": m3u8_url,
-                                        "skipTimes": skip_data,
-                                        "quality": "adaptive"
-                                    }
-                                }
-                            # Fallback: return embed URL for yt-dlp to handle
-                            return {
-                                "success": True,
-                                "results": {
-                                    "url": stream_url,
-                                    "skipTimes": skip_data,
-                                    "quality": "adaptive"
-                                }
+                        results = data.get("results", {})
+                        return {
+                            "success": True,
+                            "results": {
+                                "streams": results.get("streams", []),
+                                "episode": results.get("episode", {}),
+                                "anilistId": results.get("anilistId", anilist_id),
                             }
-                return {"success": False, "message": "No stream URL found"}
+                        }
+                return {"success": False, "message": f"HTTP {resp.status}"}
         except Exception as e:
-            logger.error(f"AniKotoAPI stream error: {e}")
+            logger.error("AnimexAPI watch error: %s", e)
             return {"success": False, "message": str(e)}
-    
-    async def _extract_m3u8_from_embed(self, session: aiohttp.ClientSession, embed_url: str) -> Optional[str]:
-        """Try to extract M3U8 URL from an embed page."""
-        import re
+
+    async def get_sources(self, episode_id: int) -> Dict[str, Any]:
+        """Get streaming sources directly by episode ID."""
+        session = await self._get_session()
+        url = f"{self.base_url}/sources/{episode_id}"
+
         try:
-            async with session.get(embed_url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+            async with session.get(url) as resp:
                 if resp.status == 200:
-                    html = await resp.text()
-                    # Look for M3U8 URLs in the HTML
-                    m3u8_patterns = [
-                        r'(https?://[^\s"\']+\.m3u8[^\s"\']*)',
-                        r'file["\']?\s*[:=]\s*["\']?(https?://[^\s"\']+\.m3u8)',
-                        r'source["\']?\s*[:=]\s*["\']?(https?://[^\s"\']+\.m3u8)',
-                    ]
-                    for pattern in m3u8_patterns:
-                        match = re.search(pattern, html, re.IGNORECASE)
-                        if match:
-                            return match.group(1).rstrip("'\"")
+                    data = await resp.json()
+                    return {"success": True, "results": data.get("results", [])}
+                return {"success": False, "message": f"HTTP {resp.status}"}
         except Exception as e:
-            logger.debug(f"M3U8 extraction failed: {e}")
-        return None
+            logger.error("AnimexAPI sources error: %s", e)
+            return {"success": False, "message": str(e)}
+
+    def find_best_stream(self, streams: List[Dict], preferred_audio: str = "sub") -> Optional[Dict]:
+        """Find the best M3U8 stream from a list, preferring audio type and highest quality."""
+        if not streams:
+            return None
+
+        # Filter for active M3U8 streams
+        active_streams = [
+            s for s in streams
+            if s.get("url", "").endswith(".m3u8")
+            and s.get("isActive", True)
+        ]
+
+        if not active_streams:
+            # Fallback to any M3U8 stream
+            active_streams = [s for s in streams if s.get("url", "").endswith(".m3u8")]
+
+        if not active_streams:
+            return None
+
+        # Sort by: preferred audio type first, then quality (1080p > 720p > 480p)
+        quality_order = {"1080p": 3, "720p": 2, "480p": 1, "360p": 0}
+        active_streams.sort(
+            key=lambda s: (
+                1 if s.get("audio") == preferred_audio else 0,
+                quality_order.get(s.get("quality", ""), 0)
+            ),
+            reverse=True
+        )
+
+        return active_streams[0]
+
+    def format_search_results(self, results: List[Dict]) -> List[Dict]:
+        """Format search results for display."""
+        formatted = []
+        for item in results[:10]:
+            title = item.get("titleRomaji") or item.get("titleEnglish") or "Unknown"
+            anime_id = item.get("anilistId") or item.get("id", "")
+            slug = item.get("id", "")
+            episodes = item.get("episodeCount", "?")
+            cover = item.get("coverImage", {}).get("extraLarge") or item.get("coverImage", {}).get("large", "")
+            format_type = item.get("format", "")
+            status = item.get("status", "")
+            score = item.get("averageScore", 0)
+            genres = item.get("genres", [])
+            banner = item.get("bannerImage", "")
+
+            formatted.append({
+                "id": anime_id,
+                "slug": slug,
+                "title": title,
+                "episodes": episodes,
+                "cover": cover,
+                "banner": banner,
+                "format": format_type,
+                "status": status,
+                "score": score,
+                "genres": genres,
+                "display": f"🎬 {title} ({format_type})\n📺 {episodes} episodes | ⭐ {score}%"
+            })
+
+        return formatted
 
 
 # =============================================================================
@@ -316,119 +336,93 @@ class AniKotoAPI:
 # =============================================================================
 class AnimeClient:
     """Unified anime client that manages multiple API providers."""
-    
-    def __init__(self, preferred_provider: str = "miruro"):
+
+    def __init__(self):
         self.miruro = MiruroAPI()
-        self.anikoto = AniKotoAPI()
-        self.preferred_provider = preferred_provider
-    
+        self.animex = AnimexAPI()
+
     async def close(self):
         await self.miruro.close()
-        await self.anikoto.close()
-    
+        await self.animex.close()
+
     async def search(self, query: str) -> Dict[str, Any]:
         """Search for anime across providers."""
-        # Try preferred provider first
-        if self.preferred_provider == "miruro":
-            result = await self.miruro.search(query)
-            if result.get("success"):
+        for provider in PROVIDER_PRIORITY:
+            if provider == "animex":
+                result = await self.animex.search(query)
+            else:
+                result = await self.miruro.search(query)
+            if result.get("success") and result.get("results"):
+                result["provider"] = provider
                 return result
-            result = await self.anikoto.search(query)
-            if result.get("success"):
-                return result
-        else:
-            result = await self.anikoto.search(query)
-            if result.get("success"):
-                return result
-            result = await self.miruro.search(query)
-            if result.get("success"):
-                return result
-        
+
         return {"success": False, "message": "Search failed on all providers"}
-    
-    async def get_episodes(self, anime_id: Any, provider: str = "miruro") -> Dict[str, Any]:
+
+    async def get_episodes(self, anime_id: Any, provider: str = "animex") -> Dict[str, Any]:
         """Get episode list."""
-        if provider == "miruro":
+        if provider == "animex":
+            return await self.animex.get_episodes(str(anime_id))
+        else:
             return await self.miruro.get_episodes(anime_id)
-        else:
-            return await self.anikoto.get_episodes(anime_id)
-    
-    async def get_stream_url(self, episode_data: Dict, provider: str = "miruro") -> Dict[str, Any]:
+
+    async def get_stream_url(self, anilist_id: int, episode_number: int, provider: str = "animex", preferred_audio: str = "sub") -> Dict[str, Any]:
         """Get streaming URL for an episode."""
-        if provider == "miruro":
-            return await self.miruro.get_stream(
-                episode_data["provider"],
-                episode_data["anilist_id"],
-                episode_data["category"],
-                episode_data["slug"]
-            )
+        if provider == "animex":
+            watch_result = await self.animex.get_stream(anilist_id, episode_number)
+            if watch_result.get("success"):
+                streams = watch_result["results"].get("streams", [])
+                best = self.animex.find_best_stream(streams, preferred_audio)
+                if best:
+                    return {
+                        "success": True,
+                        "results": {
+                            "url": best["url"],
+                            "quality": best.get("quality", "unknown"),
+                            "codec": best.get("codec", ""),
+                            "fansub": best.get("fansub", ""),
+                            "audio": best.get("audio", preferred_audio),
+                        }
+                    }
+            return watch_result
         else:
-            # AniKoto flow: get servers then stream
-            servers_result = await self.anikoto.get_servers(episode_data.get("episode_ids", ""))
-            if not servers_result.get("success"):
-                return servers_result
-            
-            servers = servers_result.get("results", [])
-            # Find sub server first, then dub
-            target_server = None
-            for server in servers:
-                if server.get("type") == episode_data.get("category", "sub"):
-                    target_server = server
-                    break
-            
-            if not target_server and servers:
-                target_server = servers[0]
-            
-            if target_server:
-                return await self.anikoto.get_stream(target_server.get("link_id", ""))
-            
-            return {"success": False, "message": "No server found"}
-    
-    def format_search_results(self, results: List[Dict], provider: str = "miruro") -> List[Dict]:
+            # MiruroAPI requires provider/slug - use /watch endpoint
+            return {"success": False, "message": "MiruroAPI stream requires episode slug info"}
+
+    async def get_stream_from_miruro(self, provider: str, anilist_id: int, category: str, slug: str) -> Dict[str, Any]:
+        """Get stream URL from MiruroAPI directly."""
+        return await self.miruro.get_stream(provider, anilist_id, category, slug)
+
+    def format_search_results(self, results: List[Dict], provider: str = "animex") -> List[Dict]:
         """Format search results for display."""
+        if provider == "animex":
+            return self.animex.format_search_results(results)
+        else:
+            return self._format_miruro_results(results)
+
+    def _format_miruro_results(self, results: List[Dict]) -> List[Dict]:
+        """Format MiruroAPI search results."""
         formatted = []
         for item in results[:10]:
-            if provider == "miruro":
-                title_data = item.get("title", {})
-                title = title_data.get("english") or title_data.get("romaji") or "Unknown"
-                anime_id = item.get("id")
-                episodes = item.get("episodes", "?")
-                cover = item.get("coverImage", {}).get("large") or item.get("coverImage", {}).get("medium", "")
-                format_type = item.get("format", "")
-                status = item.get("status", "")
-                score = item.get("averageScore", 0)
-                
-                formatted.append({
-                    "id": anime_id,
-                    "title": title,
-                    "episodes": episodes,
-                    "cover": cover,
-                    "format": format_type,
-                    "status": status,
-                    "score": score,
-                    "display": f"🎬 {title} ({format_type})\n📺 {episodes} episodes | ⭐ {score}%"
-                })
-            else:
-                title = item.get("title", "Unknown")
-                slug = item.get("slug", "")
-                anime_id = item.get("animeId", slug)
-                total = item.get("total", "?")
-                sub = item.get("sub", 0)
-                dub = item.get("dub", 0)
-                poster = item.get("poster", "")
-                
-                formatted.append({
-                    "id": anime_id,
-                    "slug": slug,
-                    "title": title,
-                    "episodes": total,
-                    "cover": poster,
-                    "format": item.get("type", ""),
-                    "status": "",
-                    "score": 0,
-                    "display": f"🎬 {title}\n📺 {total} episodes (Sub: {sub}, Dub: {dub})"
-                })
-        
+            title_data = item.get("title", {})
+            title = title_data.get("english") or title_data.get("romaji") or "Unknown"
+            anime_id = item.get("id")
+            episodes = item.get("episodes", "?")
+            cover = item.get("coverImage", {}).get("large") or item.get("coverImage", {}).get("medium", "")
+            format_type = item.get("format", "")
+            status = item.get("status", "")
+            score = item.get("averageScore", 0)
+
+            formatted.append({
+                "id": anime_id,
+                "title": title,
+                "episodes": episodes,
+                "cover": cover,
+                "format": format_type,
+                "status": status,
+                "score": score,
+                "display": f"🎬 {title} ({format_type})\n📺 {episodes} episodes | ⭐ {score}%"
+            })
+
         return formatted
 
 

@@ -1073,7 +1073,7 @@ async def anime_command(client, message):
             "• <code>/anime Naruto Shippuden</code>\n"
             "• <code>/anime Attack on Titan</code>\n\n"
             "<b>💡 Features:</b>\n"
-            "• Search anime from MiruroAPI & AniKotoAPI\n"
+            "• Search anime from MiruroAPI & AnimexAPI\n"
             "• Download episodes with subtitles\n"
             "• Auto-rename with <code>/autorename</code> template",
             quote=True,
@@ -1099,6 +1099,7 @@ async def anime_command(client, message):
         # Store results for callback handling
         BOT.State.anime_search_results = results
         BOT.State.anime_search_query = query
+        BOT.State.anime_search_provider = result.get("provider", "animex")
         
         # Format results and create inline keyboard
         formatted = anime_client.format_search_results(results[:8])
