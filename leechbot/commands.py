@@ -1223,8 +1223,8 @@ async def anime_command(client, message):
                 await _download_anime_poster(cover)
 
             # ── Send task log to dump channel (no date yet — sources come first) ──
-            MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
-            Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
+            dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
+            Messages.src_link = f"https://t.me/c/{Messages.link_p}/{dump_msg.id}"
             Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
 
             # ── Create status message with thumbnail ──
@@ -1393,7 +1393,7 @@ async def anime_command(client, message):
             dt = cdt.strftime(" %d-%m-%Y")
             Messages.dump_task += f"\n\n<b>📅 Date:</b> <code>{dt}</code>"
             try:
-                await MSG.sent_msg.edit_text(
+                await dump_msg.edit_text(
                     text=Messages.dump_task,
                     disable_web_page_preview=True
                 )
@@ -1403,6 +1403,7 @@ async def anime_command(client, message):
             # ── SendLogs (completion summary with source link) ──
             BOT.Options.custom_name = ""
             BOT.Options.http_headers = None
+            Messages.download_name = display_title
             await SendLogs(is_leech=True)
 
         except ValueError:

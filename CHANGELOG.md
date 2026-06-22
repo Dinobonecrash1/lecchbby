@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.62] - 2026-06-22
+
+### Fixed
+- **🔗 Source links target correct message** — uses `dump_msg` reference instead of `MSG.sent_msg` (which gets overwritten by uploads)
+- **📛 Task complete name** — shows anime title "Solo Leveling" instead of last episode name
+
 ## [3.1.61] - 2026-06-22
 
 ### Fixed
