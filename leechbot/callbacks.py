@@ -1132,7 +1132,8 @@ async def _handle_anime_download(client, callback_query, data: str):
             try:
                 Messages.download_name = file_name
                 loop = get_running_loop()
-                await loop.run_in_executor(None, lambda: YouTubeDL(stream_url, loop))
+                from leechbot.downloader.ytdl import YTDL_Status
+                await YTDL_Status(stream_url, ep_num - start_ep + 1)
                 # Wait for yt-dlp to fully finish (HLS fragments may still be merging)
                 for _ in range(30):
                     if YTDL.complete:
