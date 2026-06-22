@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.81] - 2026-06-22
+
+### Fixed
+- **🔴 any() TypeError** — fixed `any()` call in ytdl.py (passed iterable, not multiple args)
+
 ## [3.1.80] - 2026-06-22
 
 ### Fixed

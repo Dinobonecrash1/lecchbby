@@ -246,10 +246,11 @@ def YouTubeDL(url: str, loop=None):
 
     # Dynamic concurrent fragment downloads: 1 for HLS (avoid 429), 4 for direct links
     from leechbot.utility.variables import BOT
-    is_hls = BOT.Options.http_headers and any(
-        "kwik" in str(BOT.Options.http_headers.get("Referer", "")).lower(),
-        "kwik" in str(BOT.Options.http_headers.get("Origin", "")).lower(),
-    )
+    _hdrs = BOT.Options.http_headers or {}
+    is_hls = any([
+        "kwik" in str(_hdrs.get("Referer", "")).lower(),
+        "kwik" in str(_hdrs.get("Origin", "")).lower(),
+    ])
 
     ydl_opts = {
         "format": format_str,
