@@ -13,7 +13,10 @@ File conversion module for video, archive creation, and extraction.
 
 import os
 import json
-import GPUtil
+try:
+    import GPUtil
+except ImportError:
+    GPUtil = None
 import shutil
 import logging
 import subprocess
@@ -110,7 +113,7 @@ async def videoConverter(file: str) -> str:
         return file
 
     out_file = f"{name}.{BOT.Options.video_out}"
-    gpu_available = len(GPUtil.getAvailable()) > 0
+    gpu_available = GPUtil and len(GPUtil.getAvailable()) > 0
 
     # Quality settings
     quality = ["-preset", "slow", "-qp", "0"] if BOT.Options.convert_quality else ["-preset", "fast"]
