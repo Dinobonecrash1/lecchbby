@@ -222,7 +222,6 @@ async def handle_callback(client, callback_query):
                 f"<b>Limit:</b> <code>{display_val}</code>"
             )
             await safe_answer(callback_query, "Speed limit saved ✓")
-            await safe_answer(callback_query, "Speed limit saved ✓")
 
         # --- System info ---
         elif data == "sys_refresh":
@@ -825,7 +824,7 @@ async def _handle_anime_select(client, callback_query, data: str):
             InlineKeyboardButton(f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub", callback_data="anime_cat_dub"),
         ])
 
-        # Episode buttons — individual for ≤25 eps, range for more
+        # Episode buttons — individual for ≤25 eps, season ranges for large series
         if total_episodes <= 25:
             # Individual episode buttons (up to 25)
             row = []
@@ -841,16 +840,31 @@ async def _handle_anime_select(client, callback_query, data: str):
                 f"⬇️ Download All (1-{total_episodes})",
                 callback_data=f"anime_dl_1_{total_episodes}"
             )])
-        else:
-            # Range buttons for large series
-            for start in range(1, min(total_episodes + 1, 200), 10):
-                end = min(start + 9, total_episodes)
+        elif total_episodes <= 100:
+            # 12-ep season ranges for medium series
+            for start in range(1, total_episodes + 1, 12):
+                end = min(start + 11, total_episodes)
                 buttons.append([
                     InlineKeyboardButton(
-                        f"📺 Episodes {start}-{end}",
+                        f"📺 Ep {start}-{end}",
                         callback_data=f"anime_ep_{start}_{end}"
                     )
                 ])
+        else:
+            # 24-ep season ranges for long series (One Piece, etc.)
+            for start in range(1, min(total_episodes + 1, 600), 24):
+                end = min(start + 23, total_episodes)
+                buttons.append([
+                    InlineKeyboardButton(
+                        f"📺 Ep {start}-{end}",
+                        callback_data=f"anime_ep_{start}_{end}"
+                    )
+                ])
+            if total_episodes > 600:
+                buttons.append([InlineKeyboardButton(
+                    f"... and {total_episodes - 600} more episodes",
+                    callback_data="close"
+                )])
 
         buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
 
@@ -934,7 +948,7 @@ async def _handle_anime_category(client, callback_query, data: str):
             ],
         ]
 
-        # Episode buttons — individual for ≤25 eps, range for more
+        # Episode buttons — individual for ≤25 eps, season ranges for large series
         if total_episodes <= 25:
             row = []
             for ep in range(1, total_episodes + 1):
@@ -948,15 +962,29 @@ async def _handle_anime_category(client, callback_query, data: str):
                 f"⬇️ Download All (1-{total_episodes})",
                 callback_data=f"anime_dl_1_{total_episodes}"
             )])
-        else:
-            for start in range(1, min(total_episodes + 1, 200), 10):
-                end = min(start + 9, total_episodes)
+        elif total_episodes <= 100:
+            for start in range(1, total_episodes + 1, 12):
+                end = min(start + 11, total_episodes)
                 buttons.append([
                     InlineKeyboardButton(
-                        f"📺 Episodes {start}-{end}",
+                        f"📺 Ep {start}-{end}",
                         callback_data=f"anime_ep_{start}_{end}"
                     )
                 ])
+        else:
+            for start in range(1, min(total_episodes + 1, 600), 24):
+                end = min(start + 23, total_episodes)
+                buttons.append([
+                    InlineKeyboardButton(
+                        f"📺 Ep {start}-{end}",
+                        callback_data=f"anime_ep_{start}_{end}"
+                    )
+                ])
+            if total_episodes > 600:
+                buttons.append([InlineKeyboardButton(
+                    f"... and {total_episodes - 600} more episodes",
+                    callback_data="close"
+                )])
 
         buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
 
@@ -970,8 +998,6 @@ async def _handle_anime_category(client, callback_query, data: str):
         )
 
         await safe_answer(callback_query, f"Audio: {category_label}")
-
-        await safe_answer(callback_query, f"Category: {category_label}")
 
     except Exception as e:
         logger.error("Anime category error: %s", e)
@@ -1003,11 +1029,11 @@ async def _download_anime_poster(poster_url: str):
 
 async def _handle_anime_download(client, callback_query, data: str):
     """Handle anime episode download — batch mode: download 1, upload 1, repeat."""
+    from asyncio import sleep
     from leechbot.downloader.anime import anime_client
     from leechbot.downloader.ytdl import YouTubeDL
     from leechbot.uploader.telegram import upload_file
-    from leechbot.utility.helper import thumbMaintainer
-    from os import makedirs, remove as os_remove
+    from os import makedirs, listdir
     from os import path as ospath
     import shutil
 
@@ -1048,6 +1074,7 @@ async def _handle_anime_download(client, callback_query, data: str):
         total = end_ep - start_ep + 1
         uploaded = 0
         failed = 0
+        BotStats.total_tasks += 1
 
         for ep_num in range(start_ep, end_ep + 1):
             ep_label = f"Ep {ep_num:02d}"
@@ -1104,7 +1131,7 @@ async def _handle_anime_download(client, callback_query, data: str):
                 continue
 
             # Find the downloaded file
-            files = [f for f in os.listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
+            files = [f for f in listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
             if not files:
                 failed += 1
                 shutil.rmtree(ep_dir)
@@ -1134,7 +1161,6 @@ async def _handle_anime_download(client, callback_query, data: str):
 
             # Small delay between episodes
             if ep_num < end_ep:
-                from asyncio import sleep
                 await sleep(2)
 
         # Final summary
@@ -1153,10 +1179,6 @@ async def _handle_anime_download(client, callback_query, data: str):
         )
 
         await safe_answer(callback_query, f"Uploaded {uploaded}/{total} episodes!")
-
-    except Exception as e:
-        logger.error("Anime download error: %s", e)
-        await callback_query.message.edit_text(f"<b>❌ Download error:</b> <code>{e}</code>")
 
     except Exception as e:
         logger.error("Anime download error: %s", e)

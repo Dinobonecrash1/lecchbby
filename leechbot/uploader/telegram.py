@@ -253,7 +253,7 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
         # Clean up converted file if we created one
         if upload_path != file_path and ospath.exists(upload_path):
             try:
-                ospath.remove(upload_path)
+                os.remove(upload_path)
             except Exception:
                 pass
 

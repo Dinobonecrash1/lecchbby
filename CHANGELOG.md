@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.56] - 2026-06-22
+
+### Fixed
+- **🔴 CRITICAL: `sleep` not imported** — `callbacks.py` crashed on every anime download because `sleep` was used before import
+- **🔴 CRITICAL: `ospath.remove()`** — `telegram.py` used `ospath.remove()` which doesn't exist; fixed to `os.remove()`
+- **🔴 CRITICAL: `YTDL` not imported** — `commands.py` quick mode crashed because `YTDL` was missing from imports
+- **📺 Duplicate safe_answer calls** — removed duplicate calls in bandwidth and anime category handlers
+- **📺 Duplicate except blocks** — removed unreachable dead code in anime download handler
+- **📊 BotStats tracking** — anime downloads now increment `BotStats.total_tasks`
+- **🛡️ preset.lower() crash** — `ytdl.py` now handles `None` format preset gracefully
+
+### Changed
+- **📺 Large Anime Series UI** — One Piece (1000+ eps) now shows 24-ep season ranges `[1-24] [25-48] ...` instead of 10-ep ranges
+
+---
+
 ## [3.1.55] - 2026-06-22
 
 ### Changed

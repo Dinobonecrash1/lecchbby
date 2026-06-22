@@ -66,7 +66,7 @@ FORMAT_PRESETS = {
 def get_format_string(preset: str = None) -> str:
     """Resolve a format preset name to a yt-dlp format string."""
     if preset is None:
-        preset = BOT.Options.ytdl_format
+        preset = BOT.Options.ytdl_format or "bestvideo+bestaudio/best"
 
     # If it's a known preset name, use it; otherwise treat as raw format string
     return FORMAT_PRESETS.get(preset.lower(), preset)
