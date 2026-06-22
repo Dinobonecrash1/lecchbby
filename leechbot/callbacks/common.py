@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 async def safe_answer(callback_query, *args, **kwargs):
     """Safe wrapper for callback_query.answer() to suppress QueryIdInvalid."""
     try:
-        await safe_answer(callback_query, *args, **kwargs)
+        await callback_query.answer(*args, **kwargs)
     except Exception:
         pass
 

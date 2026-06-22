@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.3] - 2026-06-22
+
+### Fixed
+- **🐛 Callback answer recursion** — fixed `safe_answer()` in `leechbot/callbacks/common.py` which was calling itself instead of `callback_query.answer()`. This caused `RecursionError` on every inline button press.
+
+---
+
 ## [3.2.2] - 2026-06-22
 
 ### Added
