@@ -129,13 +129,32 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
             )
 
         elif f_type == "photo":
-            # Photo upload (single, kept for backward compatibility)
+            # Photo upload — resize if dimensions invalid for Telegram
+            upload_photo = file_path
+            try:
+                with Image.open(file_path) as img:
+                    w, h = img.size
+                    if w < 100 or h < 100 or w > 10000 or h > 10000 or w / h > 63 / 20 or h / w > 63 / 20:
+                        img.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+                        resized_path = file_path.rsplit('.', 1)[0] + '_resized.jpg'
+                        img.convert('RGB').save(resized_path, 'JPEG', quality=90)
+                        upload_photo = resized_path
+            except Exception as e:
+                logger.warning(f"Failed to resize photo: {e}")
+
             MSG.sent_msg = await MSG.sent_msg.reply_photo(
-                photo=file_path,
+                photo=upload_photo,
                 caption=caption,
                 progress=progress_bar,
                 reply_to_message_id=MSG.sent_msg.id,
             )
+
+            # Clean up resized file
+            if upload_photo != file_path and ospath.exists(upload_photo):
+                try:
+                    os.remove(upload_photo)
+                except Exception:
+                    pass
 
         else:
             # Document upload

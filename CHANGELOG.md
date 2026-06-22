@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.67] - 2026-06-22
+
+### Fixed
+- **📐 PHOTO_INVALID_DIMENSIONS** — resize logic now also applied in `upload_file()` photo case (was only in `_upload_photo_with_progress`)
+
+## [3.1.66] - 2026-06-22
+
+### Fixed
+- **📂 Unzip overwrite prompt** — 7z now uses `-aoa` (overwrite all) + `-y` (auto-confirm) flags, no more terminal prompts
+
 ## [3.1.65] - 2026-06-22
 
 ### Fixed

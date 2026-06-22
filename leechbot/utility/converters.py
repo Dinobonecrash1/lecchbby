@@ -308,7 +308,7 @@ async def extract(zip_filepath: str, remove: bool):
     elif ext == ".gz":
         cmd = ["tar", "-zxvf", zip_filepath, "-C", Paths.temp_unzip_path]
     else:
-        cmd = ["7z", "x"] + ([f"-p{BOT.Options.unzip_pswd}"] if BOT.Options.unzip_pswd else []) + [zip_filepath, f"-o{Paths.temp_unzip_path}"]
+        cmd = ["7z", "x", "-aoa", "-y"] + ([f"-p{BOT.Options.unzip_pswd}"] if BOT.Options.unzip_pswd else []) + [zip_filepath, f"-o{Paths.temp_unzip_path}"]
         if ext == ".001":
             file_pattern = "7z"
         elif ext == ".z01":
