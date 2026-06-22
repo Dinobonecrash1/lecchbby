@@ -1285,6 +1285,19 @@ async def _handle_anime_download(client, callback_query, data: str):
                 except OSError:
                     pass
 
+            # Update status to show uploading
+            Messages.status_head = (
+                f"<b>📤 Uploading</b> <code>{ep_label}</code>\n\n"
+                f"<code>{title}</code>\n"
+            )
+            try:
+                await MSG.status_msg.edit_text(
+                    text=Messages.task_msg + Messages.status_head + sysINFO(),
+                    reply_markup=keyboard()
+                )
+            except Exception:
+                pass
+
             try:
                 await upload_file(file_path, real_name)
                 Transfer.up_bytes.append(file_size)

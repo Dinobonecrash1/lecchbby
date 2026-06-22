@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.70] - 2026-06-22
+
+### Fixed
+- **📤 Upload status shown** — status message now shows "📤 Uploading" before each episode upload (was stuck on "📥 Downloading")
+
 ## [3.1.69] - 2026-06-22
 
 ### Fixed
