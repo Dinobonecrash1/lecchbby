@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.57] - 2026-06-22
+
+### Fixed
+- **📸 Dump channel task log** — anime batch now sends full task log with hero image (matches normal workflow)
+- **🖼️ Status message with thumbnail** — anime batch creates status message with photo (user-set > anime poster > hero image priority)
+- **✅ Completion summary** — anime batch now calls `SendLogs()` for proper "TASK COMPLETE" message with name, size, speed, time, source link
+- **🔗 Source link** — dump channel messages now include "🔗 Source: Here" link back to task
+- **📊 Progress bar** — anime batch downloads now show speed/ETA/percentage progress (uses `YTDL_Status`)
+- **📈 Transfer tracking** — `Transfer.up_bytes` and `Transfer.sent_file` tracked for accurate stats
+
 ## [3.1.56] - 2026-06-22
 
 ### Fixed

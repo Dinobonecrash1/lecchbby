@@ -18,6 +18,7 @@ import os
 import signal
 import sys
 from datetime import datetime
+from time import time
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, LOG_FILE
@@ -1131,11 +1132,13 @@ async def anime_command(client, message):
 
     # ── Quick mode: episodes specified (batch: download 1, upload 1) ──
     if ep_start is not None:
-        from asyncio import get_running_loop, sleep as async_sleep
-        from leechbot.downloader.ytdl import YouTubeDL
+        from asyncio import sleep as async_sleep
         from leechbot.uploader.telegram import upload_file
-        from os import makedirs, path as ospath
+        from leechbot.utility.handler import SendLogs
+        from leechbot.utility.helper import sysINFO, keyboard
+        from os import makedirs, listdir, path as ospath
         import shutil
+        import random
 
         status = await message.reply_text(
             f"<b>🔍 Searching:</b> <code>{query}</code>...\n"
@@ -1182,42 +1185,126 @@ async def anime_command(client, message):
             episodes_list = episodes_result.get("results", [])
             BOT.State.anime_episodes = episodes_list
 
-            # Download poster
+            # ── Initialize full workflow ──
+            BOT.State.task_going = True
+            BOT.State.shutting_down = False
+            BOT.Mode.type = "normal"
+            BOT.Mode.stream = True
+            BOT.Mode.ytdl = True
+            BOT.Mode.mode = "leech"
+            BOT.Mode.is_leech = True
+
+            ep_label_range = f"Ep {ep_start}" if ep_start == ep_end else f"Ep {ep_start}-{ep_end}"
+            total = ep_end - ep_start + 1
+
+            # ── Build Messages.dump_task ──
+            Messages.task_msg = ""
+            Messages.status_head = ""
+            Messages.download_name = display_title
+            Messages.dump_task = (
+                f"🎯 <b>Task Mode:</b> Normal Leech as media\n\n"
+                f"🔗 <b>Sources:</b>\n"
+            )
+            Messages.dump_task += f"\n📅 <b>Date:</b> <code>{datetime.now().strftime('%d-%m-%Y')}</code>"
+            Messages.link_p = str(DUMP_ID)[4:]
+
+            # ── Pick hero image ──
+            try:
+                import glob as _glob
+                images = _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.jpg")) + \
+                         _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.png")) + \
+                         _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.webp"))
+                if images:
+                    Paths.HERO_IMAGE = random.choice(images)
+                    Paths.DEFAULT_HERO = images[0]
+            except Exception:
+                pass
+
+            # ── Download poster as thumbnail ──
             if cover:
                 await _download_anime_poster(cover)
 
-            referer = "https://kwik.cx/"
-            BOT.Options.http_headers = {"Referer": referer, "Origin": referer}
-            BOT.Mode.mode = "leech"
-            BOT.Mode.ytdl = True
+            # ── Send task log to dump channel ──
+            MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
+            Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
+            Messages.task_msg = f"[Normal Leech as media]({Messages.src_link})\n\n"
 
-            # Send task log to dump channel
-            from leechbot import app, DUMP_ID
-            from datetime import datetime as dt
-            ep_label_range = f"Ep {ep_start}" if ep_start == ep_end else f"Ep {ep_start}-{ep_end}"
-            dump_text = (
-                f"🎯 <b>Anime Download</b>\n\n"
-                f"🎬 <b>{display_title}</b>\n"
-                f"📺 <b>Episodes:</b> <code>{ep_label_range}</code>\n"
-                f"🔊 <b>Audio:</b> <code>{category}</code>\n"
-                f"📅 <b>Date:</b> <code>{dt.now().strftime('%d-%m-%Y')}</code>"
+            # ── Create status message with thumbnail ──
+            if BOT.Setting.thumbnail and ospath.exists(Paths.THMB_PATH):
+                img = Paths.THMB_PATH
+            else:
+                anime_poster = getattr(BOT.State, "anime_poster_path", None)
+                if anime_poster and ospath.exists(anime_poster):
+                    img = anime_poster
+                elif ospath.exists(Paths.THMB_PATH):
+                    img = Paths.THMB_PATH
+                else:
+                    img = Paths.HERO_IMAGE
+
+            caption = (
+                Messages.task_msg
+                + f"<b>📥 Anime Download</b>\n\n"
+                f"<b>🎬 Anime:</b> <code>{display_title}</code>\n"
+                f"<b>📺 Episodes:</b> <code>{ep_label_range}</code>\n"
+                f"<b>🔊 Audio:</b> <code>{category}</code>\n"
+                + "\n📝 Initializing..." + sysINFO()
             )
-            MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=dump_text, disable_web_page_preview=True)
 
-            total = ep_end - ep_start + 1
+            # Delete old status message
+            try:
+                await status.delete()
+            except Exception:
+                pass
+
+            if img and ospath.exists(img):
+                try:
+                    MSG.status_msg = await app.send_photo(
+                        chat_id=OWNER,
+                        photo=img,
+                        caption=caption,
+                        reply_markup=keyboard()
+                    )
+                except Exception:
+                    MSG.status_msg = await app.send_message(
+                        chat_id=OWNER,
+                        text=caption,
+                        reply_markup=keyboard(),
+                        disable_web_page_preview=True
+                    )
+            else:
+                MSG.status_msg = await app.send_message(
+                    chat_id=OWNER,
+                    text=caption,
+                    reply_markup=keyboard(),
+                    disable_web_page_preview=True
+                )
+
+            # ── Initialize transfer tracking ──
+            BotTimes.current_time = time()
+            Transfer.up_bytes = []
+            Transfer.sent_file = []
+            BotStats.total_tasks += 1
+
             uploaded = 0
             failed = 0
-            loop = get_running_loop()
 
             for ep_num in range(ep_start, ep_end + 1):
+                if BOT.State.shutting_down:
+                    break
+
                 ep_label = f"Ep {ep_num:02d}"
                 file_name = f"{display_title} - {ep_label}"
 
-                await status.edit_text(
-                    f"<b>📥 Downloading {ep_label}...</b>\n\n"
-                    f"<b>🎬 Anime:</b> <code>{display_title}</code>\n"
-                    f"<b>📊 Progress:</b> <code>{ep_num - ep_start}/{total}</code>",
-                )
+                Messages.status_head = f"<b>📥 Downloading</b> <code>{ep_label}</code>\n\n<code>{display_title}</code>\n"
+
+                # Update status with progress
+                try:
+                    await MSG.status_msg.edit_text(
+                        text=Messages.task_msg + Messages.status_head + "\n📊 Progress: {}/{}".format(ep_num - ep_start, total) + sysINFO(),
+                        reply_markup=keyboard()
+                    )
+                except Exception:
+                    pass
 
                 # Fetch stream URL
                 ep_info = anime_client.miruro.get_episode_stream_info(episodes_list, ep_num, category)
@@ -1234,9 +1321,17 @@ async def anime_command(client, message):
                     continue
 
                 stream_url = stream_result["results"]["url"]
-                ep_referer = stream_result["results"].get("referer", referer)
+                ep_referer = stream_result["results"].get("referer", "https://kwik.cx/")
                 BOT.Options.http_headers = {"Referer": ep_referer, "Origin": ep_referer}
                 BOT.Options.custom_name = file_name
+
+                # Add source link to dump task
+                try:
+                    src_code = f"🔗 <code>{stream_url[:80]}...</code>"
+                    if len(Messages.dump_task + src_code) < 4096:
+                        Messages.dump_task += f"\n{src_code}"
+                except Exception:
+                    pass
 
                 # Create temp folder for this episode
                 ep_dir = ospath.join(str(config.DOWNLOADS_PATH), f"ep_{ep_num}")
@@ -1245,10 +1340,10 @@ async def anime_command(client, message):
                 makedirs(ep_dir)
                 Paths.down_path = ep_dir
 
-                # Download
+                # Download with progress bar
                 try:
                     Messages.download_name = file_name
-                    from leechbot.downloader.ytdl import YTDL_Status
+                    from leechbot.downloader.ytdl import YTDL_Status, YTDL
                     await YTDL_Status(stream_url, ep_num - ep_start + 1)
                     # Wait for yt-dlp to fully finish (HLS fragments may still be merging)
                     for _ in range(30):
@@ -1263,24 +1358,17 @@ async def anime_command(client, message):
                     continue
 
                 # Find downloaded file
-                files = [f for f in os.listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
+                files = [f for f in listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
                 if not files:
                     failed += 1
                     shutil.rmtree(ep_dir)
                     continue
 
                 # Upload
-                await status.edit_text(
-                    f"<b>📤 Uploading {ep_label}...</b>\n\n"
-                    f"<b>🎬 Anime:</b> <code>{display_title}</code>\n"
-                    f"<b>📊 Progress:</b> <code>{ep_num - ep_start}/{total}</code>",
-                )
-
                 file_path = ep_dir + "/" + files[0]
                 real_name = file_name + ospath.splitext(files[0])[1]
 
                 try:
-                    MSG.status_msg = status
                     await upload_file(file_path, real_name)
                     uploaded += 1
                 except Exception as e:
@@ -1294,18 +1382,10 @@ async def anime_command(client, message):
                 if ep_num < ep_end:
                     await async_sleep(2)
 
+            # ── SendLogs (completion summary with source link) ──
             BOT.Options.custom_name = ""
             BOT.Options.http_headers = None
-
-            await status.edit_text(
-                f"<b>✅ Anime Download Complete!</b>\n\n"
-                f"<b>🎬 Anime:</b> <code>{display_title}</code>\n"
-                f"<b>📺 Episodes:</b> <code>{ep_start}-{ep_end}</code>\n"
-                f"<b>🔊 Audio:</b> <code>{category}</code>\n\n"
-                f"<b>📊 Results:</b>\n"
-                f"  ✅ Uploaded: <code>{uploaded}</code>\n"
-                f"  ❌ Failed: <code>{failed}</code>",
-            )
+            await SendLogs(is_leech=True)
 
         except ValueError:
             await status.edit_text("<b>❌ Invalid episode format.</b> Use: <code>ep 5</code> or <code>ep 1-13</code>")
