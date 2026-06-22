@@ -185,6 +185,12 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
         Transfer.sent_file.append(MSG.sent_msg)
         Transfer.sent_file_names.append(real_name)
 
+        # Track uploaded bytes
+        try:
+            Transfer.up_bytes.append(os.stat(file_path).st_size)
+        except OSError:
+            pass
+
     except asyncio.CancelledError:
         # Bot is shutting down (SIGINT/SIGTERM, Colab runtime disconnect,
         # or the /restart command). The current upload was cancelled mid-

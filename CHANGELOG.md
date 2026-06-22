@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.80] - 2026-06-22
+
+### Fixed
+- **📁 Missing download directory** — check `ep_dir` exists before `listdir`, skip episode if missing
+- **🔄 Deleted message error** — `status` variable reassigned to new message after old one deleted, preventing `MESSAGE_ID_INVALID`
+- **📊 Zero upload stats** — `Transfer.up_bytes` now tracked for video/audio/document uploads (was only tracked for photo batches)
+- **⏳ Download wait timeout** — increased from 30s to 60s for slow HLS streams
+
 ## [3.1.79] - 2026-06-22
 
 ### Added

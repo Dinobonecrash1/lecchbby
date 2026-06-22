@@ -1293,6 +1293,9 @@ async def anime_command(client, message):
                     disable_web_page_preview=True
                 )
 
+            # Reassign status to new message (old one was deleted)
+            status = MSG.status_msg
+
             # ── Initialize transfer tracking (matches original) ──
             BotTimes.current_time = time()
             Transfer.up_bytes = [0, 0]
@@ -1390,9 +1393,10 @@ async def anime_command(client, message):
                 try:
                     Messages.download_name = file_name
                     from leechbot.downloader.ytdl import YTDL_Status, YTDL
+                    YTDL.complete = False
                     await YTDL_Status(stream_url, ep_num - ep_start + 1)
                     # Wait for yt-dlp to fully finish (HLS fragments may still be merging)
-                    for _ in range(30):
+                    for _ in range(60):
                         if YTDL.complete:
                             break
                         await async_sleep(1)
@@ -1404,6 +1408,11 @@ async def anime_command(client, message):
                     continue
 
                 # Find downloaded file
+                if not ospath.exists(ep_dir):
+                    logger.warning("Episode %d: download dir missing, skipping", ep_num)
+                    failed += 1
+                    continue
+
                 files = [f for f in listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
                 if not files:
                     failed += 1
@@ -1495,10 +1504,16 @@ async def anime_command(client, message):
             await SendLogs(is_leech=True)
 
         except ValueError:
-            await status.edit_text("<b>❌ Invalid episode format.</b> Use: <code>ep 5</code> or <code>ep 1-13</code>")
+            try:
+                await status.edit_text("<b>❌ Invalid episode format.</b> Use: <code>ep 5</code> or <code>ep 1-13</code>")
+            except Exception:
+                pass
         except Exception as e:
             logger.error(f"Anime quick download error: {e}")
-            await status.edit_text(f"<b>❌ Error:</b> <code>{e}</code>")
+            try:
+                await status.edit_text(f"<b>❌ Error:</b> <code>{e}</code>")
+            except Exception:
+                pass
         return
 
     # ── Interactive mode: no episodes specified ──
