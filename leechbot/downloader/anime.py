@@ -127,7 +127,7 @@ class MiruroAPI:
         """Extract stream info for a specific episode number from episodes data."""
         providers = episodes_data.get("providers", {})
 
-        for provider_name in ["kiwi", "bee", "bonk", "bun", "ally", "nun", "twin"]:
+        for provider_name in ["kiwi", "pewe", "bee", "bonk", "bun", "ally", "nun", "twin", "cog", "moo", "hop", "telli"]:
             provider_data = providers.get(provider_name, {})
             episodes = provider_data.get("episodes", {})
             category_episodes = episodes.get(category, [])
