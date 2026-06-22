@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.79] - 2026-06-22
+
+### Added
+- **🔒 Inbuilt CF Bypass Proxy** — Cloudflare bypass proxy starts automatically with bot on port 3000
+- **🚀 Auto-Enable** — proxy auto-enables if not manually configured
+- **📡 Health Check** — `/health` endpoint for monitoring
+
 ## [3.1.78] - 2026-06-22
 
 ### Added
