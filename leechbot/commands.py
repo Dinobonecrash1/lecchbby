@@ -34,7 +34,15 @@ def set_user_context(message):
     """Set per-user context from a message. Call at start of every handler."""
     uid = message.from_user.id
     current_user_id.set(uid)
-    return UserRegistry.get(uid)
+    ctx = UserRegistry.get(uid)
+
+    # Check moderation access
+    from leechbot.utility.moderation import Moderation
+    allowed, reason = Moderation.check_access(uid)
+    if not allowed:
+        return None, reason
+
+    return ctx, ""
 import config
 
 logger = logging.getLogger(__name__)
@@ -241,7 +249,10 @@ async def speed_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("tupload") & filters.private)
 async def telegram_upload_command(client, message):
-    ctx = set_user_context(message)
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
@@ -269,7 +280,10 @@ https://example.com/file2.mp4
 # =============================================================================
 @app.on_message(filters.command("gdupload") & filters.private)
 async def gdrive_upload_command(client, message):
-    ctx = set_user_context(message)
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     BOT.Mode.mode = "mirror"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
@@ -296,7 +310,10 @@ https://example.com/file2.mp4
 # =============================================================================
 @app.on_message(filters.command("drupload") & filters.private)
 async def directory_upload_command(client, message):
-    ctx = set_user_context(message)
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     BOT.Mode.mode = "dir-leech"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
@@ -318,7 +335,10 @@ async def directory_upload_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("ytupload") & filters.private)
 async def ytdl_upload_command(client, message):
-    ctx = set_user_context(message)
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = True
     BOT.Mode.gallery = False
@@ -344,7 +364,10 @@ https://youtu.be/xxxxx
 # =============================================================================
 @app.on_message(filters.command("glupload") & filters.private)
 async def gallery_upload_command(client, message):
-    ctx = set_user_context(message)
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = True
@@ -1106,6 +1129,13 @@ async def anime_command(client, message):
     current_user_id.set(uid)
     ctx = UserRegistry.get(uid)
 
+    # Check moderation access
+    from leechbot.utility.moderation import Moderation
+    allowed, reason = Moderation.check_access(uid)
+    if not allowed:
+        await message.reply_text(reason)
+        return
+
     if len(message.command) < 2:
         msg = await message.reply_text(
             "<b>🎬 Anime Episode Downloader</b>\n\n"
@@ -1580,3 +1610,250 @@ async def anime_command(client, message):
     except Exception as e:
         logger.error(f"Anime search error: {e}")
         await status.edit_text(f"<b>❌ Search error:</b> <code>{e}</code>")
+
+
+# =============================================================================
+# Moderation Commands (Admin Only)
+# =============================================================================
+@app.on_message(filters.command("warn") & filters.private)
+async def warn_command(client, message):
+    """Warn a user. Usage: /warn <user_id> [reason]"""
+    from leechbot.utility.moderation import ModerationDB, Moderation
+
+    uid = message.from_user.id
+    if not Admin.is_admin(uid):
+        await message.reply_text("❌ Admin only command.")
+        return
+
+    args = message.command[1:]
+    if not args:
+        await message.reply_text(
+            "<b>⚠️ Warn User</b>\n\n"
+            "<b>Usage:</b> <code>/warn &lt;user_id&gt; [reason]</code>\n"
+            "<b>Example:</b> <code>/warn 123456789 Downloading copyrighted content</code>"
+        )
+        return
+
+    try:
+        target_id = int(args[0])
+    except ValueError:
+        await message.reply_text("❌ Invalid user ID.")
+        return
+
+    reason = " ".join(args[1:]) if len(args) > 1 else "No reason specified"
+    warns = ModerationDB.warn(target_id, reason)
+    max_w = config.MAX_WARNS
+
+    if warns >= max_w:
+        await message.reply_text(
+            f"🚫 <b>User <code>{target_id}</code> auto-banned!</b>\n"
+            f"<b>Reason:</b> {warns} warns reached\n"
+            f"<b>Last warn:</b> {reason}"
+        )
+        # Notify the user if in private group
+        if config.BOT_PRIVATE and config.PRIVATE_GROUP_ID:
+            try:
+                await app.send_message(
+                    target_id,
+                    f"🚫 <b>You have been banned!</b>\n\n"
+                    f"<b>Reason:</b> {warns} warnings reached\n"
+                    f"<b>Last warn:</b> {reason}"
+                )
+            except Exception:
+                pass
+    else:
+        await message.reply_text(
+            f"⚠️ <b>User <code>{target_id}</code> warned!</b>\n"
+            f"<b>Warns:</b> {warns}/{max_w}\n"
+            f"<b>Reason:</b> {reason}"
+        )
+
+
+@app.on_message(filters.command("unwarn") & filters.private)
+async def unwarn_command(client, message):
+    """Remove a warn from a user. Usage: /unwarn <user_id>"""
+    from leechbot.utility.moderation import ModerationDB
+
+    uid = message.from_user.id
+    if not Admin.is_admin(uid):
+        await message.reply_text("❌ Admin only command.")
+        return
+
+    args = message.command[1:]
+    if not args:
+        await message.reply_text(
+            "<b>✅ Unwarn User</b>\n\n"
+            "<b>Usage:</b> <code>/unwarn &lt;user_id&gt;</code>"
+        )
+        return
+
+    try:
+        target_id = int(args[0])
+    except ValueError:
+        await message.reply_text("❌ Invalid user ID.")
+        return
+
+    warns = ModerationDB.unwarn(target_id)
+    await message.reply_text(
+        f"✅ <b>User <code>{target_id}</code> unwarned!</b>\n"
+        f"<b>Remaining warns:</b> {warns}/{config.MAX_WARNS}"
+    )
+
+
+@app.on_message(filters.command("ban") & filters.private)
+async def ban_command(client, message):
+    """Ban a user. Usage: /ban <user_id> [reason]"""
+    from leechbot.utility.moderation import ModerationDB
+
+    uid = message.from_user.id
+    if not Admin.is_admin(uid):
+        await message.reply_text("❌ Admin only command.")
+        return
+
+    args = message.command[1:]
+    if not args:
+        await message.reply_text(
+            "<b>🚫 Ban User</b>\n\n"
+            "<b>Usage:</b> <code>/ban &lt;user_id&gt; [reason]</code>\n"
+            "<b>Example:</b> <code>/ban 123456789 Abusing bot</code>"
+        )
+        return
+
+    try:
+        target_id = int(args[0])
+    except ValueError:
+        await message.reply_text("❌ Invalid user ID.")
+        return
+
+    # Can't ban admins
+    if Admin.is_admin(target_id):
+        await message.reply_text("❌ Cannot ban an admin.")
+        return
+
+    reason = " ".join(args[1:]) if len(args) > 1 else "Banned by admin"
+    ModerationDB.ban(target_id, reason)
+
+    await message.reply_text(
+        f"🚫 <b>User <code>{target_id}</code> banned!</b>\n"
+        f"<b>Reason:</b> {reason}"
+    )
+
+    # Notify the user
+    if config.BOT_PRIVATE and config.PRIVATE_GROUP_ID:
+        try:
+            await app.send_message(
+                target_id,
+                f"🚫 <b>You have been banned!</b>\n\n"
+                f"<b>Reason:</b> {reason}"
+            )
+        except Exception:
+            pass
+
+
+@app.on_message(filters.command("unban") & filters.private)
+async def unban_command(client, message):
+    """Unban a user. Usage: /unban <user_id>"""
+    from leechbot.utility.moderation import ModerationDB
+
+    uid = message.from_user.id
+    if not Admin.is_admin(uid):
+        await message.reply_text("❌ Admin only command.")
+        return
+
+    args = message.command[1:]
+    if not args:
+        await message.reply_text(
+            "<b>✅ Unban User</b>\n\n"
+            "<b>Usage:</b> <code>/unban &lt;user_id&gt;</code>"
+        )
+        return
+
+    try:
+        target_id = int(args[0])
+    except ValueError:
+        await message.reply_text("❌ Invalid user ID.")
+        return
+
+    ModerationDB.unban(target_id)
+    await message.reply_text(f"✅ <b>User <code>{target_id}</code> unbanned!</b>")
+
+
+@app.on_message(filters.command("warns") & filters.private)
+async def warns_command(client, message):
+    """Check warnings for a user. Usage: /warns <user_id>"""
+    from leechbot.utility.moderation import ModerationDB, Moderation
+
+    uid = message.from_user.id
+    if not Admin.is_admin(uid):
+        await message.reply_text("❌ Admin only command.")
+        return
+
+    args = message.command[1:]
+    if not args:
+        # Show own warns
+        info = Moderation.format_user_info(uid)
+        await message.reply_text(f"<b>📊 Your Stats:</b>\n\n{info}")
+        return
+
+    try:
+        target_id = int(args[0])
+    except ValueError:
+        await message.reply_text("❌ Invalid user ID.")
+        return
+
+    info = Moderation.format_user_info(target_id)
+    await message.reply_text(info)
+
+
+@app.on_message(filters.command("banned") & filters.private)
+async def banned_list_command(client, message):
+    """List all banned users."""
+    from leechbot.utility.moderation import ModerationDB
+
+    uid = message.from_user.id
+    if not Admin.is_admin(uid):
+        await message.reply_text("❌ Admin only command.")
+        return
+
+    banned = ModerationDB.list_banned()
+    if not banned:
+        await message.reply_text("✅ No banned users.")
+        return
+
+    text = "<b>🚫 Banned Users:</b>\n\n"
+    for b in banned:
+        text += f"• <code>{b['user_id']}</code> — {b['reason']}\n"
+
+    await message.reply_text(text)
+
+
+@app.on_message(filters.command("activity") & filters.private)
+async def activity_command(client, message):
+    """Show user activity summary for admin."""
+    from leechbot.utility.moderation import ModerationDB
+
+    uid = message.from_user.id
+    if not Admin.is_admin(uid):
+        await message.reply_text("❌ Admin only command.")
+        return
+
+    db = ModerationDB
+    db._load()
+
+    total_users = len(db._data)
+    banned = sum(1 for u in db._data.values() if u.get("banned"))
+    warned = sum(1 for u in db._data.values() if u.get("warns", 0) > 0 and not u.get("banned"))
+    total_downloads = sum(u.get("total_downloads", 0) for u in db._data.values())
+    total_uploads = sum(u.get("total_uploads", 0) for u in db._data.values())
+
+    text = (
+        f"<b>📊 Bot Activity Summary</b>\n\n"
+        f"<b>👥 Total Users:</b> {total_users}\n"
+        f"<b>✅ Active:</b> {total_users - banned - warned}\n"
+        f"<b>⚠️ Warned:</b> {warned}\n"
+        f"<b>🚫 Banned:</b> {banned}\n"
+        f"<b>📥 Total Downloads:</b> {total_downloads}\n"
+        f"<b>📤 Total Uploads:</b> {total_uploads}\n"
+    )
+
+    await message.reply_text(text)

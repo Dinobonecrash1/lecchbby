@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.1] - 2026-06-22
+
+### Added
+- **🛡️ Moderation System** — warn/unwarn, ban/unban, activity tracking
+- **🔒 Private Group Mode** — `BOT_PRIVATE=true` + `PRIVATE_GROUP_ID` for group-only bot
+- **⚠️ Auto-Ban** — auto-ban after MAX_WARNS (default 3)
+- **📊 Activity Tracking** — track downloads, uploads, last activity per user
+- **👮 Admin Commands** — `/warn`, `/unwarn`, `/ban`, `/unban`, `/warns`, `/banned`, `/activity`
+- **🚫 Banned User Block** — banned users cannot use bot at all
+
+### New Env Vars
+- `BOT_PRIVATE=true|false` — enable private group mode
+- `PRIVATE_GROUP_ID=-100...` — group ID for private mode
+- `MAX_WARNS=3` — auto-ban threshold
+
 ## [3.2.0] - 2026-06-22
 
 ### Added

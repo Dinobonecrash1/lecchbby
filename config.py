@@ -136,9 +136,18 @@ ALLOWED_ADMINS = [
 MAX_CONCURRENT_TASKS = int(os.getenv("MAX_CONCURRENT_TASKS", "3"))
 
 # =============================================================================
+# Private Group Mode
+# =============================================================================
+# When BOT_PRIVATE=true, bot works only in PRIVATE_GROUP_ID group
+# When BOT_PRIVATE=false, bot works in private chats (default)
+BOT_PRIVATE = os.getenv("BOT_PRIVATE", "false").lower() == "true"
+PRIVATE_GROUP_ID = int(os.getenv("PRIVATE_GROUP_ID", "0"))
+MAX_WARNS = int(os.getenv("MAX_WARNS", "3"))  # Auto-ban after N warns
+
+# =============================================================================
 # Version Info
 # =============================================================================
-VERSION = "3.2.0"
+VERSION = "3.2.1"
 
 # Cloudflare bypass proxy — NOT compatible with yt-dlp (reverse proxy, not CONNECT proxy)
 # Use http_headers with Referer/Origin for Cloudflare bypass instead

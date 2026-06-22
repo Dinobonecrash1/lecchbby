@@ -30,8 +30,16 @@ def set_handler_context(message):
     if message.from_user:
         uid = message.from_user.id
         current_user_id.set(uid)
-        return UserRegistry.get(uid)
-    return None
+        ctx = UserRegistry.get(uid)
+
+        # Check moderation access
+        from leechbot.utility.moderation import Moderation
+        allowed, reason = Moderation.check_access(uid)
+        if not allowed:
+            return None, reason
+
+        return ctx, ""
+    return None, ""
 
 
 # =============================================================================
@@ -40,7 +48,7 @@ def set_handler_context(message):
 @app.on_message(filters.reply)
 async def handle_reply(client, message):
     """Handle reply messages for setting prefix/suffix/autorename."""
-    ctx = set_handler_context(message)
+    ctx, err = set_handler_context(message)
     text = message.text or message.caption
     if not text:
         return  # Ignore non-text replies (photos, stickers, etc.)
@@ -79,7 +87,10 @@ async def handle_url(client, message):
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
     # Set per-user context
-    ctx = set_handler_context(message)
+    ctx, err = set_handler_context(message)
+    if err:
+        await message.reply_text(err)
+        return
 
     # Reset options
     BOT.Options.custom_name = ""

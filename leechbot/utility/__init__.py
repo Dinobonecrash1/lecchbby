@@ -14,6 +14,7 @@ Exports all core modules and functions.
 
 from .variables import BOT, YTDL, Transfer, TaskError, BotTimes, Paths, Messages, MSG, Aria2c, Gdrive, MAX_FILE_SIZE, VERSION, get_ctx, current_user_id
 from .user_state import UserContext, UserRegistry, TaskQueue, UserPaths
+from .moderation import ModerationDB, Moderation
 from .helper import isLink, getTime, sizeUnit, fileType, getSize, sysINFO, speedETA, status_bar, keyboard, message_deleter, send_settings, status_keyboard
 from .handler import Leech, Zip_Handler, Unzip_Handler, SendLogs, cancelTask
 from .task_manager import taskScheduler, task_starter
@@ -38,6 +39,8 @@ __all__ = [
     "UserRegistry",
     "TaskQueue",
     "UserPaths",
+    "ModerationDB",
+    "Moderation",
     "isLink",
     "getTime",
     "sizeUnit",
