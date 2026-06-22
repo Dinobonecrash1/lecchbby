@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.48] - 2026-06-22
+
+### Reverted
+- **⏪ Reverted all 21–22 Jun 2026 changes** — rolled back 79 commits (v3.1.49 through v3.3.5) to restore the codebase to the stable v3.1.47 baseline. This removes anime/autorename features, multi-user state, moderation system, CF bypass proxy, hosting files, and the accidentally committed `.env` file from the working tree.
+
+---
+
 ## [3.1.47] - 2026-06-08
 
 ### Changed
