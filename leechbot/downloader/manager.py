@@ -104,6 +104,14 @@ async def downloadManager(sources: list, is_ytdl: bool):
                 BotStats.failed_tasks += 1
                 return
 
+            # Small delay between episodes to avoid 429 rate limit
+            if i < len(sources) - 1:
+                await sleep(2)
+
+        # Reset custom_name after downloads — files already have correct names from outtmpl
+        # If we don't reset, applyCustomName() would rename ALL files to the last episode's name
+        BOT.Options.custom_name = ""
+
         try:
             await MSG.status_msg.edit_text(
                 text=Messages.task_msg + Messages.status_head + merge_msg + sysINFO(),

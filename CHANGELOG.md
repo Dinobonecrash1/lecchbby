@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.54] - 2026-06-22
+
+### Fixed
+- **📺 Multi-Episode Overwrite Bug** — after download loop, `custom_name` was still set to last episode's name; `applyCustomName()` then renamed ALL files to that name, causing overwrites. Now resets `custom_name` to empty after downloads complete
+- **⏱️ Episode Download Delay** — added 2s delay between episodes to prevent 429 rate limiting
+
+---
+
 ## [3.1.53] - 2026-06-22
 
 ### Added
