@@ -254,7 +254,7 @@ def YouTubeDL(url: str, loop=None):
 
     ydl_opts = {
         "format": format_str,
-        "merge_output_format": "mp4" if not is_audio_only else None,
+        "merge_output_format": "mkv" if not is_audio_only else None,
         "writethumbnail": True,
         "concurrent_fragment_downloads": 1 if is_hls else 4,
         "overwrites": True,

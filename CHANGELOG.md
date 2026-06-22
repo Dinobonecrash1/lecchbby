@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.85] - 2026-06-22
+
+### Fixed
+- **🎬 FFmpeg merge error** — changed merge format from mp4 to mkv (more compatible with separate video+audio streams)
+
 ## [3.1.84] - 2026-06-22
 
 ### Fixed
