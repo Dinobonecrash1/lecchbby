@@ -1217,7 +1217,7 @@ async def _handle_anime_download(client, callback_query, data: str):
             ep_dir = ospath.join(str(config.DOWNLOADS_PATH), f"ep_{ep_num}")
             if ospath.exists(ep_dir):
                 shutil.rmtree(ep_dir)
-            makedirs(ep_dir)
+            makedirs(ep_dir, exist_ok=True)
             Paths.down_path = ep_dir
 
             # Download episode with progress bar
@@ -1255,12 +1255,12 @@ async def _handle_anime_download(client, callback_query, data: str):
             # Apply autorename template if set
             if BOT.Setting.autorename_template:
                 from leechbot.utility.handler import _apply_autorename_template
-                import re
-                # Detect quality from stream URL
-                quality = ""
-                q_match = re.search(r'(\d{3,4}p)', stream_url, re.IGNORECASE)
-                if q_match:
-                    quality = q_match.group(1).upper()
+                quality = stream_result["results"].get("quality", "")
+                if not quality:
+                    import re
+                    q_match = re.search(r'(\d{3,4}p)', stream_url, re.IGNORECASE)
+                    if q_match:
+                        quality = q_match.group(1).upper()
                 file_metadata = {
                     'title': title,
                     'audio': category.upper(),

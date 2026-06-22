@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.74] - 2026-06-22
+
+### Fixed
+- **🔴 Task cancel NoneType** — `BOT.TASK` now checked for None before calling `.cancel()`
+- **📁 Download directory** — `makedirs` now uses `exist_ok=True` to prevent directory creation errors
+
+## [3.1.73] - 2026-06-22
+
+### Fixed
+- **🏷️ Autorename quality from API** — quality now taken from `stream_result["results"]["quality"]` (API response), fallback to URL detection
+
 ## [3.1.72] - 2026-06-22
 
 ### Fixed
