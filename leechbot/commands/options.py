@@ -27,6 +27,7 @@ from leechbot.utility.helper import (
     send_settings, message_deleter, format_stats, sysINFO, getTime, sizeUnit,
 )
 from leechbot.utility.handler import cancelTask
+from leechbot.aliases import set_alias, remove_alias, get_aliases
 import config
 
 logger = logging.getLogger(__name__)
@@ -140,5 +141,81 @@ async def unzipaswd_command(client, message):
     else:
         BOT.Options.unzip_pswd = message.command[1]
         msg = await message.reply_text("<b>🔓 Unzip Password Set Successfully</b> ✓", quote=True)
+    await message_deleter(message, msg)
+
+# =============================================================================
+# /alias <name> <target>
+# =============================================================================
+@app.on_message(filters.command("alias") & filters.private)
+async def alias_command(client, message):
+    if message.chat.id != OWNER:
+        return
+
+    if len(message.command) < 3:
+        msg = await message.reply_text(
+            "<b>⚠️ Usage:</b> <code>/alias &lt;name&gt; &lt;target&gt;</code>\n\n"
+            "<b>Example:</b> <code>/alias dl tupload</code>\n"
+            "<b>Result:</b> <code>/dl</code> will behave like <code>/tupload</code>",
+            quote=True,
+        )
+        await message_deleter(message, msg)
+        return
+
+    name = message.command[1]
+    target = message.command[2]
+    if set_alias(name, target):
+        msg = await message.reply_text(
+            f"<b>✅ Alias set:</b> <code>/{name}</code> → <code>/{target}</code>", quote=True
+        )
+    else:
+        msg = await message.reply_text(
+            "<b>⚠️ Invalid alias.</b> Name and target cannot be empty or identical.", quote=True
+        )
+    await message_deleter(message, msg)
+
+# =============================================================================
+# /aliases
+# =============================================================================
+@app.on_message(filters.command("aliases") & filters.private)
+async def aliases_command(client, message):
+    if message.chat.id != OWNER:
+        return
+
+    aliases = get_aliases()
+    if not aliases:
+        msg = await message.reply_text("<b>ℹ️ No aliases set.</b>", quote=True)
+        await message_deleter(message, msg)
+        return
+
+    lines = "\n".join([f"• <code>/{name}</code> → <code>/{target}</code>" for name, target in aliases.items()])
+    msg = await message.reply_text(
+        f"<b>🔀 Command Aliases</b>\n\n{lines}", quote=True
+    )
+    await message_deleter(message, msg)
+
+# =============================================================================
+# /unalias <name>
+# =============================================================================
+@app.on_message(filters.command("unalias") & filters.private)
+async def unalias_command(client, message):
+    if message.chat.id != OWNER:
+        return
+
+    if len(message.command) < 2:
+        msg = await message.reply_text(
+            "<b>⚠️ Usage:</b> <code>/unalias &lt;name&gt;</code>", quote=True
+        )
+        await message_deleter(message, msg)
+        return
+
+    name = message.command[1]
+    if remove_alias(name):
+        msg = await message.reply_text(
+            f"<b>✅ Alias removed:</b> <code>/{name}</code>", quote=True
+        )
+    else:
+        msg = await message.reply_text(
+            f"<b>ℹ️ Alias not found:</b> <code>/{name}</code>", quote=True
+        )
     await message_deleter(message, msg)
 

@@ -56,6 +56,7 @@ LeechBot is a **Pyrogram-based Telegram bot** for downloading files from various
 | `config.py` | All env vars, paths, feature flags, credentials loading |
 | `leechbot/__init__.py` | Pyrogram `app` client creation, exports |
 | `leechbot/__main__.py` | Entry point, handler imports, web server startup |
+| `leechbot/aliases.py` | Command alias pre-processor (built-in shortcuts + custom aliases) |
 | `leechbot/commands/` | `/command` handler package (admin, downloads, options, settings, start_help, status) |
 | `leechbot/callbacks/` | Inline keyboard callback package (dispatcher, navigation, settings, system, update, upload) |
 | `leechbot/handlers.py` | Message handlers (URL, photo, text, reply) |

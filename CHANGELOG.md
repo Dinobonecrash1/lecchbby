@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.2] - 2026-06-22
+
+### Added
+- **🔀 Custom command aliases** — owner can now create short aliases for any command:
+  - `/alias <name> <target>` — create alias (e.g., `/alias dl tupload` makes `/dl` behave like `/tupload`)
+  - `/aliases` — list all aliases
+  - `/unalias <name>` — remove an alias
+  - Aliases are persisted to `aliases.json` in `BASE_DIR` so they survive restarts.
+  - New `leechbot/aliases.py` pre-processor rewrites aliased messages before the real command handlers run.
+
+---
+
 ## [3.2.1] - 2026-06-22
 
 ### Changed

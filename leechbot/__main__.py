@@ -46,6 +46,7 @@ logger = logging.getLogger(__name__)
 # These imports trigger the @app.on_message() and @app.on_callback_query()
 # decorators in each module. Without these, the bot is unresponsive.
 # =============================================================================
+import leechbot.aliases      # registers alias pre-processor before real commands
 import leechbot.commands
 import leechbot.callbacks
 import leechbot.handlers
@@ -119,6 +120,9 @@ async def _register_commands():
         BotCommand("setname", "✏️ Set custom filename"),
         BotCommand("zipaswd", "🔐 Set zip password"),
         BotCommand("unzipaswd", "🔓 Set unzip password"),
+        BotCommand("alias", "🔀 Create command alias"),
+        BotCommand("aliases", "📋 List command aliases"),
+        BotCommand("unalias", "❌ Remove command alias"),
         BotCommand("format", "🎬 Set YT-DLP quality"),
         BotCommand("speed", "⚡ Set bandwidth limit"),
         BotCommand("queue", "📋 View download queue"),

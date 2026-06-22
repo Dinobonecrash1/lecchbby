@@ -1469,11 +1469,12 @@ LeechBot/
 ├── leechbot/
 │   ├── __init__.py         # Pyrogram client setup
 │   ├── __main__.py         # Entry point (run with: python3 -m leechbot)
+│   ├── aliases.py          # Command alias pre-processor
 │   ├── commands/           # /command handlers
 │   │   ├── __init__.py
 │   │   ├── admin.py        # Admin & control commands
 │   │   ├── downloads.py    # Download / upload commands
-│   │   ├── options.py      # Quick option commands
+│   │   ├── options.py      # Quick option commands + aliases
 │   │   ├── settings.py     # Settings / format / speed commands
 │   │   ├── start_help.py   # /start and /help commands
 │   │   └── status.py       # Status / stats / queue commands
