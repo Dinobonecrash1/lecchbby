@@ -266,7 +266,7 @@ def YouTubeDL(url: str, loop=None):
         "logger": MyLogger(loop),
         "user_agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
         ),
         "outtmpl": {
             "default": f"{Paths.down_path}/%(title)s.%(ext)s",
@@ -283,6 +283,12 @@ def YouTubeDL(url: str, loop=None):
     custom_headers = getattr(BOT.Options, "http_headers", None)
     if custom_headers:
         ydl_opts["http_headers"] = custom_headers
+
+    # Use CF bypass proxy if configured
+    import config
+    if hasattr(config, 'CF_BYPASS_PROXY') and config.CF_BYPASS_PROXY:
+        ydl_opts["proxy"] = config.CF_BYPASS_PROXY
+        logger.info("Using CF bypass proxy: %s", config.CF_BYPASS_PROXY)
 
     # Merge cookie authentication options (fixes YouTube bot detection)
     ydl_opts.update(_get_cookie_opts())

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.78] - 2026-06-22
+
+### Added
+- **🔒 CF Bypass Proxy** — optional Cloudflare bypass proxy support via `CF_BYPASS_PROXY` env var
+- **📦 cf-bypass-server** — cloned and ready to run locally
+
 ## [3.1.77] - 2026-06-22
 
 ### Fixed
