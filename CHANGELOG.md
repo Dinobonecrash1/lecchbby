@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.50] - 2026-06-22
+
+### Fixed
+- **🛡️ Cloudflare 403 on Anime Streams** — MiruroAPI M3U8 streams require `Referer: https://kwik.cx/` header; yt-dlp now receives custom HTTP headers for Cloudflare-protected streams
+- **📡 yt-dlp HTTP Headers** — `YouTubeDL()`, `get_YT_Name()`, and `list_formats()` now all use `BOT.Options.http_headers` when set
+
+### Changed
+- **🔧 Runtime HTTP Headers** — added `BOT.Options.http_headers` attribute for custom headers per task
+
+---
+
 ## [3.1.49] - 2026-06-22
 
 ### Changed

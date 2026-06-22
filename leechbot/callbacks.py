@@ -1028,6 +1028,10 @@ async def _handle_anime_download(client, callback_query, data: str):
         BOT.Mode.gallery = False
         BOT.Options.custom_name = ""
 
+        # Pass referer header for Cloudflare-protected streams
+        referer = streaming_urls[0].get("referer", "https://kwik.cx/")
+        BOT.Options.http_headers = {"Referer": referer, "Origin": referer}
+
         # Store episode metadata for autorename
         BOT.State.anime_selected["episode_range"] = (start_ep, end_ep)
         BOT.State.anime_selected["audio_type"] = category

@@ -262,6 +262,11 @@ def YouTubeDL(url: str, loop=None):
         },
     }
 
+    # Add custom HTTP headers (e.g. Referer for Cloudflare-protected streams)
+    custom_headers = getattr(BOT.Options, "http_headers", None)
+    if custom_headers:
+        ydl_opts["http_headers"] = custom_headers
+
     # Merge cookie authentication options (fixes YouTube bot detection)
     ydl_opts.update(_get_cookie_opts())
 
@@ -317,6 +322,10 @@ async def get_YT_Name(link: str) -> str:
     try:
         opts = {"logger": MyLogger(), "quiet": True}
         opts.update(_get_cookie_opts())
+        # Add custom HTTP headers (e.g. Referer for Cloudflare-protected streams)
+        custom_headers = getattr(BOT.Options, "http_headers", None)
+        if custom_headers:
+            opts["http_headers"] = custom_headers
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(link, download=False)
             return info.get("title", "Unknown")
@@ -338,6 +347,10 @@ async def list_formats(link: str) -> str:
     try:
         opts = {"quiet": True, "no_warnings": True}
         opts.update(_get_cookie_opts())
+        # Add custom HTTP headers (e.g. Referer for Cloudflare-protected streams)
+        custom_headers = getattr(BOT.Options, "http_headers", None)
+        if custom_headers:
+            opts["http_headers"] = custom_headers
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(link, download=False)
             formats = info.get("formats", [])

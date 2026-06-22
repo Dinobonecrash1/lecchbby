@@ -72,6 +72,7 @@ async def handle_url(client, message):
     BOT.Options.custom_name = ""
     BOT.Options.zip_pswd = ""
     BOT.Options.unzip_pswd = ""
+    BOT.Options.http_headers = None
 
     if hasattr(BOT, '_src_request_msg') and BOT._src_request_msg:
         try:

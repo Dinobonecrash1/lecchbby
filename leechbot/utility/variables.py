@@ -68,6 +68,7 @@ class BOT:
         unzip_pswd: str = ""
         ytdl_format: str = "bestvideo+bestaudio/best"  # YT-DLP format string
         bandwidth_limit: str = config.BANDWIDTH_LIMIT
+        http_headers: dict = None  # Custom HTTP headers (e.g. Referer for Cloudflare streams)
 
     class Mode:
         """Current task mode."""
