@@ -33,7 +33,7 @@ Pillow>=10.2.0
 
 # System monitoring & utilities
 psutil>=5.9.8
-GPUtil>=1.4.0
+GPUtil>=1.4.0; python_version<"3.12"
 natsort>=8.4.0
 pytz>=2024.1
 

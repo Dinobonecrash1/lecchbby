@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.88] - 2026-06-22
+
+### Added
+- **🐳 Dockerfile** — Docker support for all hosting platforms
+- **🚂 Procfile** — Railway/Render/Heroku deployment support
+- **📦 railway.json** — Railway-specific config
+- **🚀 Production-ready entry point** — `leechbot.py` works on all platforms
+
+### Fixed
+- **📦 GPUtil conditional** — only installed on Python < 3.12 (distutils removed in 3.13)
+- **🔐 .env loading** — robust dotenv loading for all hosting platforms
+
 ## [3.1.86] - 2026-06-22
 
 ### Fixed
