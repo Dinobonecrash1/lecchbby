@@ -1074,6 +1074,18 @@ async def _handle_anime_download(client, callback_query, data: str):
         BOT.Mode.mode = "leech"
         BOT.Mode.ytdl = True
 
+        # Send task log to dump channel (required for uploads to go there)
+        from leechbot import app, DUMP_ID
+        ep_label_range = f"Ep {start_ep}" if start_ep == end_ep else f"Ep {start_ep}-{end_ep}"
+        dump_text = (
+            f"🎯 <b>Anime Download</b>\n\n"
+            f"🎬 <b>{title}</b>\n"
+            f"📺 <b>Episodes:</b> <code>{ep_label_range}</code>\n"
+            f"🔊 <b>Audio:</b> <code>{category}</code>\n"
+            f"📅 <b>Date:</b> <code>{datetime.now().strftime('%d-%m-%Y')}</code>"
+        )
+        MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=dump_text, disable_web_page_preview=True)
+
         total = end_ep - start_ep + 1
         uploaded = 0
         failed = 0
@@ -1152,7 +1164,6 @@ async def _handle_anime_download(client, callback_query, data: str):
 
             try:
                 MSG.status_msg = callback_query.message
-                MSG.sent_msg = callback_query.message
                 await upload_file(file_path, real_name)
                 uploaded += 1
             except Exception as e:

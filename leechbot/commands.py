@@ -1191,6 +1191,19 @@ async def anime_command(client, message):
             BOT.Mode.mode = "leech"
             BOT.Mode.ytdl = True
 
+            # Send task log to dump channel
+            from leechbot import app, DUMP_ID
+            from datetime import datetime as dt
+            ep_label_range = f"Ep {ep_start}" if ep_start == ep_end else f"Ep {ep_start}-{ep_end}"
+            dump_text = (
+                f"🎯 <b>Anime Download</b>\n\n"
+                f"🎬 <b>{display_title}</b>\n"
+                f"📺 <b>Episodes:</b> <code>{ep_label_range}</code>\n"
+                f"🔊 <b>Audio:</b> <code>{category}</code>\n"
+                f"📅 <b>Date:</b> <code>{dt.now().strftime('%d-%m-%Y')}</code>"
+            )
+            MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=dump_text, disable_web_page_preview=True)
+
             total = ep_end - ep_start + 1
             uploaded = 0
             failed = 0
@@ -1267,7 +1280,6 @@ async def anime_command(client, message):
 
                 try:
                     MSG.status_msg = status
-                    MSG.sent_msg = status
                     await upload_file(file_path, real_name)
                     uploaded += 1
                 except Exception as e:
