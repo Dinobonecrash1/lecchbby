@@ -284,7 +284,7 @@ class UserContext:
     task_start: datetime = field(default_factory=datetime.now)
 
     def __post_init__(self):
-        if not self.paths.base:
+        if not self.paths.WORK_PATH:
             self.paths = UserPaths.create(self.user_id)
 
     def reset_task(self):
