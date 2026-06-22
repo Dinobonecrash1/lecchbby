@@ -1037,7 +1037,7 @@ async def _handle_anime_download(client, callback_query, data: str):
     from leechbot.downloader.anime import anime_client
     from leechbot.uploader.telegram import upload_file
     from leechbot.utility.handler import SendLogs
-    from leechbot.utility.helper import sysINFO, keyboard
+    from leechbot.utility.helper import sysINFO, keyboard, sizeUnit
     from os import makedirs, listdir
     from os import path as ospath
     import shutil
@@ -1065,7 +1065,7 @@ async def _handle_anime_download(client, callback_query, data: str):
         ep_label_range = f"Ep {start_ep}" if start_ep == end_ep else f"Ep {start_ep}-{end_ep}"
         total = end_ep - start_ep + 1
 
-        # ── Build Messages.dump_task (matches normal task_starter flow) ──
+        # ── Set mode (matches normal task_starter) ──
         BOT.Mode.type = "normal"
         BOT.Mode.stream = True
         BOT.Mode.ytdl = True
@@ -1073,16 +1073,11 @@ async def _handle_anime_download(client, callback_query, data: str):
         BOT.Mode.is_leech = True
         BOT.Options.http_headers = {"Referer": "https://kwik.cx/", "Origin": "https://kwik.cx/"}
 
-        Messages.task_msg = ""
-        Messages.status_head = ""
+        # ── Build Messages.dump_task (exact match to original task_starter) ──
         Messages.download_name = title
-        Messages.dump_task = (
-            f"🎯 <b>Task Mode:</b> Normal Leech as media\n\n"
-            f"🔗 <b>Sources:</b>\n"
-        )
-
-        # Add episode source links (we'll add them as we fetch)
-        Messages.dump_task += f"\n📅 <b>Date:</b> <code>{datetime.now().strftime('%d-%m-%Y')}</code>"
+        Messages.task_msg = "<b>🎯 Task Mode:</b> "
+        mode_label = "Leech"
+        Messages.dump_task = Messages.task_msg + f"<code>{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}</code>\n\n<b>🔗 Sources:</b>"
         Messages.link_p = str(DUMP_ID)[4:]
 
         # ── Pick hero image ──
@@ -1101,10 +1096,15 @@ async def _handle_anime_download(client, callback_query, data: str):
         if cover:
             await _download_anime_poster(cover)
 
+        # ── Add date (matches original) ──
+        cdt = datetime.now()
+        dt = cdt.strftime(" %d-%m-%Y")
+        Messages.dump_task += f"\n\n<b>📅 Date:</b> <code>{dt}</code>"
+
         # ── Send task log to dump channel ──
         MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
         Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
-        Messages.task_msg = f"[Normal Leech as media]({Messages.src_link})\n\n"
+        Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
 
         # ── Create status message with thumbnail ──
         # Thumbnail priority: user-set > anime poster > hero image
@@ -1121,10 +1121,7 @@ async def _handle_anime_download(client, callback_query, data: str):
 
         caption = (
             Messages.task_msg
-            + f"<b>📥 Anime Download</b>\n\n"
-            f"<b>🎬 Anime:</b> <code>{title}</code>\n"
-            f"<b>📺 Episodes:</b> <code>{ep_label_range}</code>\n"
-            f"<b>🔊 Audio:</b> <code>{category}</code>\n"
+            + Messages.status_head
             + "\n📝 Initializing..." + sysINFO()
         )
 
@@ -1157,10 +1154,13 @@ async def _handle_anime_download(client, callback_query, data: str):
                 disable_web_page_preview=True
             )
 
-        # ── Initialize transfer tracking ──
+        # ── Initialize transfer tracking (matches original) ──
         BotTimes.current_time = time()
-        Transfer.up_bytes = []
+        Transfer.up_bytes = [0, 0]
         Transfer.sent_file = []
+        Transfer.sent_file_names = []
+        Transfer.down_bytes = [0, 0]
+        Transfer.total_down_size = 0
         BotStats.total_tasks += 1
 
         uploaded = 0
@@ -1173,12 +1173,15 @@ async def _handle_anime_download(client, callback_query, data: str):
             ep_label = f"Ep {ep_num:02d}"
             file_name = f"{title} - {ep_label}"
 
-            Messages.status_head = f"<b>📥 Downloading</b> <code>{ep_label}</code>\n\n<code>{title}</code>\n"
+            Messages.status_head = (
+                f"<b>📥 Downloading</b> <code>{ep_label}</code>\n\n"
+                f"<code>{title}</code>\n"
+            )
 
-            # Update status with progress
+            # Update status
             try:
                 await MSG.status_msg.edit_text(
-                    text=Messages.task_msg + Messages.status_head + "\n📊 Progress: {}/{}".format(ep_num - start_ep, total) + sysINFO(),
+                    text=Messages.task_msg + Messages.status_head + sysINFO(),
                     reply_markup=keyboard()
                 )
             except Exception:
@@ -1204,11 +1207,11 @@ async def _handle_anime_download(client, callback_query, data: str):
             BOT.Options.http_headers = {"Referer": ep_referer, "Origin": ep_referer}
             BOT.Options.custom_name = file_name
 
-            # Add source link to dump task
+            # Add source link to dump task (matches original icon format)
             try:
-                src_code = f"🔗 <code>{stream_url[:80]}...</code>"
-                if len(Messages.dump_task + src_code) < 4096:
-                    Messages.dump_task += f"\n{src_code}"
+                code_link = f"\n\n🏮 `{stream_url[:100]}...`"
+                if len(Messages.dump_task + code_link) < 4096:
+                    Messages.dump_task += code_link
             except Exception:
                 pass
 

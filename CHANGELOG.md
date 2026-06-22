@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.59] - 2026-06-22
+
+### Fixed
+- **🔗 Source links in dump task** — anime batch now adds stream URLs with 🏮 icon (matches original format)
+- **🎯 Task mode format** — status message now shows `🎯 Task Mode: Normal Leech as media` with source link
+- **📊 Transfer tracking** — `Transfer.up_bytes` initialized as `[0, 0]` (not `[]`) for proper size/speed calculation
+- **📝 Status head** — matches original format `📥 Downloading Link 01` with anime name
+- **🖼️ Thumbnail cleanup** — only clears anime poster, preserves user-set thumbnail
+
 ## [3.1.58] - 2026-06-22
 
 ### Fixed
