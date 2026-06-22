@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.71] - 2026-06-22
+
+### Fixed
+- **🖼️ Thumbnail persists during task** — removed thumbnail clear at task START (was deleting user's custom thumbnail immediately). Thumbnail now only clears AFTER task completes in SendLogs()
+
 ## [3.1.70] - 2026-06-22
 
 ### Fixed
