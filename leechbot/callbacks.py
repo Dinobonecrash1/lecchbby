@@ -764,15 +764,15 @@ async def _handle_anime_select(client, callback_query, data: str):
         # Extract title and ID based on provider
         if provider == "animex":
             anime_id = selected.get("anilistId") or selected.get("id", "")
-            title = selected.get("titleRomaji") or selected.get("titleEnglish") or "Unknown"
-            cover = selected.get("coverImage", {}).get("extraLarge", "")
-            episodes = selected.get("episodeCount", "?")
+            title = selected.get("display_title") or selected.get("title") or selected.get("titleEnglish") or selected.get("titleRomaji") or "Unknown"
+            cover = selected.get("cover", "") or selected.get("coverImage", {}).get("extraLarge", "")
+            episodes = selected.get("episodes") or selected.get("episodeCount", "?")
         else:
             # MiruroAPI format
             anime_id = selected.get("id")
             title_data = selected.get("title", {})
-            title = title_data.get("english") or title_data.get("romaji") or "Unknown"
-            cover = selected.get("coverImage", {}).get("extraLarge", "")
+            title = selected.get("display_title") or selected.get("title") or title_data.get("english") or title_data.get("romaji") or "Unknown"
+            cover = selected.get("cover", "") or selected.get("coverImage", {}).get("extraLarge", "")
             episodes = selected.get("episodes", "?")
 
         BOT.State.anime_selected["provider"] = provider
@@ -818,14 +818,31 @@ async def _handle_anime_select(client, callback_query, data: str):
         # Create episode selection UI
         buttons = []
 
-        # Category selection (sub/dub)
+        # Category selection (sub/dub) — default to sub
+        category = BOT.State.anime_selected.get("category", "sub")
         buttons.append([
-            InlineKeyboardButton("🇯🇵 Sub", callback_data="anime_cat_sub"),
-            InlineKeyboardButton("🇺🇸 Dub", callback_data="anime_cat_dub"),
+            InlineKeyboardButton(f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub", callback_data="anime_cat_sub"),
+            InlineKeyboardButton(f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub", callback_data="anime_cat_dub"),
         ])
 
-        # Episode range buttons (if more than 10 episodes)
-        if total_episodes > 10:
+        # Episode buttons — individual for ≤25 eps, range for more
+        if total_episodes <= 25:
+            # Individual episode buttons (up to 25)
+            row = []
+            for ep in range(1, total_episodes + 1):
+                row.append(InlineKeyboardButton(f"{ep}", callback_data=f"anime_ep_{ep}_{ep}"))
+                if len(row) == 5:
+                    buttons.append(row)
+                    row = []
+            if row:
+                buttons.append(row)
+            # Download all button
+            buttons.append([InlineKeyboardButton(
+                f"⬇️ Download All (1-{total_episodes})",
+                callback_data=f"anime_dl_1_{total_episodes}"
+            )])
+        else:
+            # Range buttons for large series
             for start in range(1, min(total_episodes + 1, 200), 10):
                 end = min(start + 9, total_episodes)
                 buttons.append([
@@ -833,11 +850,6 @@ async def _handle_anime_select(client, callback_query, data: str):
                         f"📺 Episodes {start}-{end}",
                         callback_data=f"anime_ep_{start}_{end}"
                     )
-                ])
-        else:
-            for ep in range(1, total_episodes + 1):
-                buttons.append([
-                    InlineKeyboardButton(f"📺 Episode {ep}", callback_data=f"anime_ep_{ep}_{ep}")
                 ])
 
         buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
@@ -857,7 +869,7 @@ async def _handle_anime_select(client, callback_query, data: str):
 
 
 async def _handle_anime_episode(client, callback_query, data: str):
-    """Handle episode selection."""
+    """Handle episode selection — show download confirmation with category."""
     try:
         parts = data.replace("anime_ep_", "").split("_")
         start_ep = int(parts[0])
@@ -865,25 +877,38 @@ async def _handle_anime_episode(client, callback_query, data: str):
 
         BOT.State.anime_selected["episode_range"] = (start_ep, end_ep)
 
+        title = BOT.State.anime_selected.get("title", "Unknown")
+        category = BOT.State.anime_selected.get("category", "sub")
+        category_label = "🇯🇵 Sub" if category == "sub" else "🇺🇸 Dub"
+
+        ep_label = f"Ep {start_ep}" if start_ep == end_ep else f"Ep {start_ep}-{end_ep}"
         buttons = [
             [InlineKeyboardButton(
-                f"⬇️ Download Episodes {start_ep}-{end_ep}",
+                f"⬇️ Download {ep_label}",
                 callback_data=f"anime_dl_{start_ep}_{end_ep}"
             )],
+            [
+                InlineKeyboardButton(
+                    f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub",
+                    callback_data="anime_cat_sub"
+                ),
+                InlineKeyboardButton(
+                    f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub",
+                    callback_data="anime_cat_dub"
+                ),
+            ],
             [InlineKeyboardButton("❌ Cancel", callback_data="close")],
         ]
 
-        title = BOT.State.anime_selected.get("title", "Unknown")
-
         await callback_query.message.edit_text(
             f"<b>🎬 {title}</b>\n\n"
-            f"<b>📺 Selected:</b> Episodes <code>{start_ep}</code> to <code>{end_ep}</code>\n\n"
-            f"<b>💡 Set autorename template:</b>\n"
-            f"<code>/autorename [S{{season}} E{{episode}}] {title} [{{quality}}]</code>",
+            f"<b>🔊 Audio:</b> <code>{category_label}</code>\n"
+            f"<b>📺 Selected:</b> <code>{ep_label}</code>\n\n"
+            f"<b>Ready to download:</b>",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
 
-        await safe_answer(callback_query, f"Episodes {start_ep}-{end_ep}")
+        await safe_answer(callback_query, f"{ep_label} selected")
 
     except Exception as e:
         logger.error("Anime episode error: %s", e)
@@ -891,38 +916,60 @@ async def _handle_anime_episode(client, callback_query, data: str):
 
 
 async def _handle_anime_category(client, callback_query, data: str):
-    """Handle category (sub/dub) selection."""
+    """Handle category (sub/dub) selection — re-renders full UI with episode buttons."""
     try:
         category = data.replace("anime_cat_", "")
         BOT.State.anime_selected["category"] = category
 
-        category_label = "🇯🇵 Japanese (Sub)" if category == "sub" else "🇺🇸 English (Dub)"
+        title = BOT.State.anime_selected.get("title", "Unknown")
+        total_episodes = BOT.State.anime_selected.get("total_episodes", 0)
+        if isinstance(total_episodes, str):
+            total_episodes = int(total_episodes) if total_episodes.isdigit() else 0
 
-        # Update the keyboard to show selected category
+        # Re-render full UI with category checkmark + episode buttons
         buttons = [
             [
                 InlineKeyboardButton(f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub", callback_data="anime_cat_sub"),
                 InlineKeyboardButton(f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub", callback_data="anime_cat_dub"),
             ],
-            [InlineKeyboardButton("❌ Cancel", callback_data="close")],
         ]
 
-        # Preserve episode range if set
-        selected = BOT.State.anime_selected
-        episode_range = selected.get("episode_range")
-        if episode_range:
-            start_ep, end_ep = episode_range
-            buttons.insert(0, [InlineKeyboardButton(
-                f"⬇️ Download Episodes {start_ep}-{end_ep}",
-                callback_data=f"anime_dl_{start_ep}_{end_ep}"
+        # Episode buttons — individual for ≤25 eps, range for more
+        if total_episodes <= 25:
+            row = []
+            for ep in range(1, total_episodes + 1):
+                row.append(InlineKeyboardButton(f"{ep}", callback_data=f"anime_ep_{ep}_{ep}"))
+                if len(row) == 5:
+                    buttons.append(row)
+                    row = []
+            if row:
+                buttons.append(row)
+            buttons.append([InlineKeyboardButton(
+                f"⬇️ Download All (1-{total_episodes})",
+                callback_data=f"anime_dl_1_{total_episodes}"
             )])
-            buttons.pop()  # Remove duplicate cancel
+        else:
+            for start in range(1, min(total_episodes + 1, 200), 10):
+                end = min(start + 9, total_episodes)
+                buttons.append([
+                    InlineKeyboardButton(
+                        f"📺 Episodes {start}-{end}",
+                        callback_data=f"anime_ep_{start}_{end}"
+                    )
+                ])
 
+        buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
+
+        category_label = "🇯🇵 Sub" if category == "sub" else "🇺🇸 Dub"
         await callback_query.message.edit_text(
-            f"<b>✅ Category:</b> <code>{category_label}</code>\n\n"
-            f"<b>Select episode range:</b>",
+            f"<b>🎬 {title}</b>\n\n"
+            f"<b>🔊 Audio:</b> <code>{category_label}</code>\n"
+            f"<b>📺 Episodes:</b> <code>{total_episodes}</code>\n\n"
+            f"<b>Select episodes to download:</b>",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
+
+        await safe_answer(callback_query, f"Audio: {category_label}")
 
         await safe_answer(callback_query, f"Category: {category_label}")
 

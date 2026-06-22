@@ -324,6 +324,7 @@ class AnimexAPI:
                 "id": anime_id,
                 "slug": slug,
                 "title": title,
+                "display_title": display_title,
                 "episodes": episodes,
                 "cover": cover,
                 "banner": banner,

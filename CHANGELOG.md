@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.52] - 2026-06-22
+
+### Fixed
+- **🇯🇵 Japanese Title Bug** — `_handle_anime_select` now uses `display_title` (English) instead of `titleRomaji` (Japanese); formatted results now include `display_title` field
+- **📺 Episode Buttons Disappearing** — clicking SUB/DUB now re-renders full UI with episode buttons + category checkmark (no more lost buttons)
+- **🔢 Specific Episode Selection** — shows individual episode buttons for ≤25 episodes in a 5-column grid; "Download All" button at bottom
+
+---
+
 ## [3.1.51] - 2026-06-22
 
 ### Fixed
