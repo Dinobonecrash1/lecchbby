@@ -770,7 +770,10 @@ async def _handle_anime_select(client, callback_query, data: str):
             # MiruroAPI format
             anime_id = selected.get("id")
             title_data = selected.get("title", {})
-            title = selected.get("display_title") or selected.get("title") or title_data.get("english") or title_data.get("romaji") or "Unknown"
+            if isinstance(title_data, dict):
+                title = selected.get("display_title") or title_data.get("english") or title_data.get("romaji") or "Unknown"
+            else:
+                title = selected.get("display_title") or title_data or "Unknown"
             cover = selected.get("cover", "") or selected.get("coverImage", {}).get("extraLarge", "")
             episodes = selected.get("episodes", "?")
 
@@ -1149,6 +1152,7 @@ async def _handle_anime_download(client, callback_query, data: str):
 
             try:
                 MSG.status_msg = callback_query.message
+                MSG.sent_msg = callback_query.message
                 await upload_file(file_path, real_name)
                 uploaded += 1
             except Exception as e:

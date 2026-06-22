@@ -1267,6 +1267,7 @@ async def anime_command(client, message):
 
                 try:
                     MSG.status_msg = status
+                    MSG.sent_msg = status
                     await upload_file(file_path, real_name)
                     uploaded += 1
                 except Exception as e:
