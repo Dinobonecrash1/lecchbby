@@ -932,21 +932,22 @@ async def _handle_anime_category(client, callback_query, data: str):
 
 
 async def _download_anime_poster(poster_url: str):
-    """Download anime poster and save as thumbnail."""
+    """Download anime poster and save as status thumbnail (not video thumbnail)."""
     if not poster_url:
         return False
 
     try:
         import aiohttp
+        poster_path = str(Paths.THMB_PATH).replace("Thumbnail.jpg", "anime_poster.jpg")
         async with aiohttp.ClientSession() as session:
             async with session.get(poster_url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
                 if resp.status == 200:
                     data = await resp.read()
                     if len(data) > 1024:  # At least 1KB
-                        with open(Paths.THMB_PATH, "wb") as f:
+                        with open(poster_path, "wb") as f:
                             f.write(data)
-                        BOT.Setting.thumbnail = True
-                        logger.info("Anime poster saved as thumbnail: %s", Paths.THMB_PATH)
+                        BOT.State.anime_poster_path = poster_path
+                        logger.info("Anime poster saved: %s", poster_path)
                         return True
     except Exception as e:
         logger.warning("Failed to download anime poster: %s", e)
@@ -1026,6 +1027,14 @@ async def _handle_anime_download(client, callback_query, data: str):
         BOT.Mode.type = "normal"
         BOT.Mode.ytdl = True
         BOT.Mode.gallery = False
+
+        # Store per-episode metadata for custom naming during download
+        BOT.State.anime_episode_meta = [
+            {"title": title, "episode": s["episode"], "quality": s.get("quality", "")}
+            for s in streaming_urls
+        ]
+        # Set download name directly to avoid get_YT_Name 429 on M3U8 URLs
+        Messages.download_name = f"{title} - Ep {start_ep}" if start_ep == end_ep else f"{title} - Ep {start_ep}-{end_ep}"
         BOT.Options.custom_name = ""
 
         # Pass referer header for Cloudflare-protected streams

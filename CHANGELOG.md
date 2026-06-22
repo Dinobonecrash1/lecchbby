@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.51] - 2026-06-22
+
+### Fixed
+- **🛡️ 429 Rate Limit Storm** — reduced `concurrent_fragment_downloads` from 5→1; `YTDL_Status` now uses pre-set `Messages.download_name` instead of calling `get_YT_Name()` on M3U8 URLs (prevents 429 cascade)
+- **📝 Multi-Episode Naming** — each episode now gets its own filename (`Title - Ep 01.mp4`, `Title - Ep 02.mp4`) instead of all episodes sharing one name and overwriting each other
+- **🖼️ Thumbnail Fix** — anime poster now saved to separate path (`anime_poster.jpg`); no longer overwrites `THMB_PATH` which is used for video thumbnails (prevents portrait/Shorts-style thumbnails on uploaded videos)
+- **📋 applyCustomName** — now preserves file extensions when renaming
+
+---
+
 ## [3.1.50] - 2026-06-22
 
 ### Fixed

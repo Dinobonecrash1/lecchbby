@@ -583,7 +583,8 @@ def applyCustomName():
         files = os.listdir(Paths.down_path)
         for file_ in files:
             current = ospath.join(Paths.down_path, file_)
-            new = ospath.join(Paths.down_path, BOT.Options.custom_name)
+            _, ext = ospath.splitext(file_)
+            new = ospath.join(Paths.down_path, BOT.Options.custom_name + ext)
             try:
                 os.rename(current, new)
             except OSError as e:

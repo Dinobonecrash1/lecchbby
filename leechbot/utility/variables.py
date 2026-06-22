@@ -90,6 +90,8 @@ class BOT:
         anime_search_provider: str = "animex"  # Which provider returned results
         anime_selected: dict = {}  # Currently selected anime info
         anime_episodes: list = []  # Episodes data for selected anime
+        anime_episode_meta: list = []  # Per-episode metadata for download naming
+        anime_poster_path: str = ""  # Path to downloaded anime poster
         shutting_down: bool = False  # Set True when SIGINT/SIGTERM received — blocks new long tasks
 
 

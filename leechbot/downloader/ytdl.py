@@ -112,7 +112,8 @@ async def YTDL_Status(link: str, num: int):
     """
     from asyncio import get_running_loop
 
-    name = await get_YT_Name(link)
+    # Use pre-set download name (e.g. anime title) to avoid 429 on M3U8 URLs
+    name = Messages.download_name if Messages.download_name else await get_YT_Name(link)
     Messages.status_head = (
         f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n<code>{name}</code>\n"
     )
@@ -243,7 +244,7 @@ def YouTubeDL(url: str, loop=None):
         "format": format_str,
         "merge_output_format": "mp4" if not is_audio_only else None,
         "writethumbnail": True,
-        "concurrent_fragment_downloads": 5,
+        "concurrent_fragment_downloads": 1,
         "overwrites": True,
         "progress_hooks": [_make_progress_hook(loop)],
         "writesubtitles": True,
@@ -261,6 +262,11 @@ def YouTubeDL(url: str, loop=None):
             "thumbnail": f"{Paths.thumbnail_ytdl}/%(title)s.%(ext)s",
         },
     }
+
+    # Use custom name as filename if set (e.g. anime title)
+    custom_name = getattr(BOT.Options, "custom_name", "")
+    if custom_name:
+        ydl_opts["outtmpl"]["default"] = f"{Paths.down_path}/{custom_name}.%(ext)s"
 
     # Add custom HTTP headers (e.g. Referer for Cloudflare-protected streams)
     custom_headers = getattr(BOT.Options, "http_headers", None)

@@ -88,7 +88,12 @@ async def downloadManager(sources: list, is_ytdl: bool):
 
     if is_ytdl:
         # YT-DLP mode — all links go through yt-dlp
+        episode_meta = getattr(BOT.State, "anime_episode_meta", None)
         for i, link in enumerate(sources):
+            # Set per-episode custom name for anime downloads
+            if episode_meta and i < len(episode_meta):
+                meta = episode_meta[i]
+                BOT.Options.custom_name = f"{meta['title']} - Ep {meta['episode']:02d}"
             try:
                 await _with_retry(
                     lambda l=link, n=i+1: YTDL_Status(l, n),
