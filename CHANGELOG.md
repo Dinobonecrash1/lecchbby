@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.77] - 2026-06-22
+
+### Fixed
+- **🔄 Multi-provider fallback** — if primary provider fails, auto-tries miruro → animex → kiwi → pewe → bee
+- **⏭️ Skip broken episodes** — logs clear message and moves to next episode
+- **📝 Better error logging** — shows which provider failed and why
+
 ## [3.1.76] - 2026-06-22
 
 ### Fixed

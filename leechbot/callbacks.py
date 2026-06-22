@@ -1185,22 +1185,46 @@ async def _handle_anime_download(client, callback_query, data: str):
             except Exception:
                 pass
 
-            # Fetch stream URL for this episode
+            # Fetch stream URL — try multiple providers if one fails
             episodes_data = BOT.State.anime_episodes
             ep_info = anime_client.miruro.get_episode_stream_info(episodes_data, ep_num, category)
             if not ep_info:
+                logger.warning("Ep %d: no episode info found, skipping", ep_num)
                 failed += 1
                 continue
 
             ep_info["anilist_id"] = anime_id
-            stream_result = await anime_client.get_stream_from_miruro(
-                ep_info["provider"], anime_id, category, ep_info["slug"]
-            )
-            if not stream_result.get("success"):
+
+            # Try primary provider first, then fallback providers
+            providers_to_try = [ep_info["provider"]]
+            # Add other providers as fallbacks
+            for p in ["miruro", "animex", "kiwi", "pewe", "bee"]:
+                if p not in providers_to_try:
+                    providers_to_try.append(p)
+
+            stream_result = None
+            stream_url = None
+            for prov in providers_to_try:
+                try:
+                    result = await anime_client.get_stream_from_miruro(
+                        prov, anime_id, category, ep_info["slug"]
+                    )
+                    if result.get("success") and result.get("results", {}).get("url"):
+                        stream_result = result
+                        stream_url = result["results"]["url"]
+                        logger.info("Ep %d: stream found via %s", ep_num, prov)
+                        break
+                    else:
+                        logger.warning("Ep %d: provider %s failed — %s", ep_num, prov, result.get("message", "no stream"))
+                except Exception as e:
+                    logger.warning("Ep %d: provider %s error — %s", ep_num, prov, e)
+                    continue
+
+            if not stream_result or not stream_url:
+                logger.error("Ep %d: all providers failed, skipping", ep_num)
                 failed += 1
                 continue
 
-            stream_url = stream_result["results"]["url"]
             ep_referer = stream_result["results"].get("referer", "https://kwik.cx/")
             BOT.Options.http_headers = {"Referer": ep_referer, "Origin": ep_referer}
             BOT.Options.custom_name = file_name
