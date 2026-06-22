@@ -1330,11 +1330,19 @@ async def anime_command(client, message):
                 BOT.Options.http_headers = {"Referer": ep_referer, "Origin": ep_referer}
                 BOT.Options.custom_name = file_name
 
-                # Add source link to dump task (matches original icon format)
+                # Add source link to dump task and update dump message
                 try:
                     code_link = f"\n\n🏮 `{stream_url[:100]}...`"
                     if len(Messages.dump_task + code_link) < 4096:
                         Messages.dump_task += code_link
+                        # Update the dump message with new source link
+                        try:
+                            await MSG.sent_msg.edit_text(
+                                text=Messages.dump_task,
+                                disable_web_page_preview=True
+                            )
+                        except Exception:
+                            pass
                 except Exception:
                     pass
 
@@ -1369,12 +1377,17 @@ async def anime_command(client, message):
                     shutil.rmtree(ep_dir)
                     continue
 
+                # Set transfer total for progress tracking
+                file_size = ospath.getsize(ep_dir + "/" + files[0])
+                Transfer.total_down_size = file_size
+
                 # Upload
                 file_path = ep_dir + "/" + files[0]
                 real_name = file_name + ospath.splitext(files[0])[1]
 
                 try:
                     await upload_file(file_path, real_name)
+                    Transfer.up_bytes.append(file_size)
                     uploaded += 1
                 except Exception as e:
                     logger.error("Episode %d upload failed: %s", ep_num, e)

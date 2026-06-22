@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.60] - 2026-06-22
+
+### Fixed
+- **🔗 Source links now visible** — dump message is edited after each episode to show stream URLs with 🏮 icon
+- **📊 Transfer tracking fixed** — `Transfer.total_down_size` set to file size before upload, `Transfer.up_bytes` appended after each upload for proper size/speed calculation
+
 ## [3.1.59] - 2026-06-22
 
 ### Fixed
