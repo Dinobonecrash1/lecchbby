@@ -25,7 +25,7 @@ from leechbot import OWNER, app, DUMP_ID
 from leechbot.downloader.manager import calDownSize, get_d_name, downloadManager
 from leechbot.utility.helper import getSize, applyCustomName, keyboard, sysINFO, is_google_drive, is_ytdl_link, is_mega, is_terabox, is_torrent
 from leechbot.utility.handler import Leech, Unzip_Handler, Zip_Handler, SendLogs, cancelTask
-from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError, BotStats, current_user_id
+from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError, BotStats, current_user_id, get_ctx
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +98,7 @@ async def taskScheduler():
     Messages.dump_task = Messages.task_msg + f"<code>{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}</code>\n\n<b>🔗 Sources:</b>"
 
     # Reset transfer state
-    Paths.down_path = str(config.DOWNLOADS_PATH)
+    Paths.down_path = str(get_ctx().paths.down_path)
     Transfer.sent_file = []
     Transfer.sent_file_names = []
     Transfer.down_bytes = [0, 0]
@@ -155,10 +155,8 @@ async def taskScheduler():
     # Create working directories
     if ospath.exists(Paths.WORK_PATH):
         shutil.rmtree(Paths.WORK_PATH, ignore_errors=True)
-        makedirs(Paths.down_path)
-    else:
-        makedirs(Paths.WORK_PATH)
-        makedirs(Paths.down_path)
+    makedirs(Paths.WORK_PATH, exist_ok=True)
+    makedirs(Paths.down_path, exist_ok=True)
 
     Messages.link_p = str(DUMP_ID)[4:]
 
