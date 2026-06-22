@@ -251,6 +251,9 @@ async def handle_photo(client, message):
 @app.on_message(filters.document & filters.private)
 async def handle_document(client, message):
     """Handle document uploads — auto-detect cookies.txt for yt-dlp."""
+    if message.chat.id != OWNER:
+        return
+
     ctx, err = set_handler_context(message)
     if err:
         await message.reply_text(err)

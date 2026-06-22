@@ -1258,8 +1258,8 @@ async def _handle_anime_download(client, callback_query, data: str):
         Transfer.total_down_size = 0
         BotStats.total_tasks += 1
 
-        # Set MSG.sent_msg for upload_file to reply to
-        MSG.sent_msg = dump_msg
+        # Set MSG.sent_msg for upload_file to reply to (user's chat, not dump)
+        MSG.sent_msg = MSG.status_msg
 
         uploaded = 0
         failed = 0

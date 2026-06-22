@@ -194,8 +194,8 @@ async def _taskScheduler_main():
         pass
 
     # Send task log
-    MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
-    Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
+    dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
+    Messages.src_link = f"https://t.me/c/{Messages.link_p}/{dump_msg.id}"
     Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
 
     # Update status message
@@ -237,6 +237,9 @@ async def _taskScheduler_main():
             reply_markup=keyboard(),
             disable_web_page_preview=True
         )
+
+    # Uploads should go to user's private chat, not dump channel
+    MSG.sent_msg = MSG.status_msg
 
     # Calculate download size
     await calDownSize(get_ctx().task.source)

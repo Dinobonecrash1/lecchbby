@@ -10,6 +10,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+---
+
+## [3.3.2] - 2026-06-22
+
+### Fixed
+- **Uploads now go to user's private chat** — `MSG.sent_msg` points to user's status message instead of dump channel
+- **Reverted dangerous public commands** — `/cancel_all`, `/admin`, `/broadcast`, `/setcookies`, `/clearcookies`, `/restart`, `/logs`, `/update`, and document uploads are owner-only again
+- **Normal users can use**: `/settings`, `/format`, `/speed`, `/formats`, `/preview`, `/status`, `/queue`, `/cancel`
+
 ## [3.3.1] - 2026-06-22
 
 ### Changed

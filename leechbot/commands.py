@@ -22,7 +22,7 @@ from datetime import datetime
 from time import time
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from leechbot import app, LOG_FILE, DUMP_ID
+from leechbot import app, OWNER, LOG_FILE, DUMP_ID
 from leechbot.utility.variables import BOT, MSG, YTDL, BotStats, BotTimes, Transfer, Messages, Paths, current_user_id, UserRegistry, Admin
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.helper import (
@@ -772,6 +772,8 @@ async def cancel_all_command(client, message):
     if err:
         await message.reply_text(err)
         return
+    if message.chat.id != OWNER:
+        return
 
     from leechbot.utility.user_state import TaskQueue
     TaskQueue.clear()
@@ -789,9 +791,7 @@ async def cancel_all_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("admin") & filters.private)
 async def admin_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     if len(message.command) < 2:
@@ -850,6 +850,9 @@ async def broadcast_command(client, message):
         await message.reply_text(err)
         return
     from asyncio import sleep
+
+    if message.chat.id != OWNER:
+        return
 
     if not BOT.State.task_going and not Transfer.sent_file:
         msg = await message.reply_text(
@@ -976,9 +979,7 @@ Upload a <code>cookies.txt</code> file here as a backup:
 # =============================================================================
 @app.on_message(filters.command("setcookies") & filters.private)
 async def setcookies_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     text = """<b>🍪 Upload Cookies File</b>
@@ -1006,9 +1007,7 @@ Send me your <code>cookies.txt</code> file <b>as a document</b> (not as text).
 # =============================================================================
 @app.on_message(filters.command("clearcookies") & filters.private)
 async def clearcookies_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     cookie_path = Paths.COOKIE_FILE
@@ -1028,9 +1027,7 @@ async def clearcookies_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("restart") & filters.private)
 async def restart_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     if BOT.State.task_going:
@@ -1067,9 +1064,7 @@ async def restart_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("logs") & filters.private)
 async def logs_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     args = message.text.split(maxsplit=1)
@@ -1140,9 +1135,7 @@ async def logs_command(client, message):
 async def update_command(client, message):
     from leechbot.updater import check_for_updates, get_local_version, get_changelog_since
 
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     msg = await message.reply_text("<b>🔄 Checking for updates...</b>", quote=True)
