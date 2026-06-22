@@ -135,6 +135,9 @@ ALLOWED_ADMINS = [
 # Max concurrent tasks (0 = unlimited)
 MAX_CONCURRENT_TASKS = int(os.getenv("MAX_CONCURRENT_TASKS", "3"))
 
+# Max queued tasks per user
+MAX_QUEUE_PER_USER = int(os.getenv("MAX_QUEUE_PER_USER", "5"))
+
 # =============================================================================
 # Private Group Mode
 # =============================================================================
@@ -147,7 +150,7 @@ MAX_WARNS = int(os.getenv("MAX_WARNS", "3"))  # Auto-ban after N warns
 # =============================================================================
 # Version Info
 # =============================================================================
-VERSION = "3.2.5"
+VERSION = "3.3.0"
 
 # Cloudflare bypass proxy — NOT compatible with yt-dlp (reverse proxy, not CONNECT proxy)
 # Use http_headers with Referer/Origin for Cloudflare bypass instead

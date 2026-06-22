@@ -14,6 +14,7 @@ Task scheduler and orchestrator for download/upload workflows.
 import pytz
 import shutil
 import random
+import asyncio
 import logging
 from time import time
 from datetime import datetime
@@ -70,7 +71,26 @@ async def task_starter(message, text: str):
 # =============================================================================
 async def taskScheduler():
     """
-    Main task scheduler that orchestrates the entire download/upload workflow.
+    Main task scheduler wrapper that orchestrates the workflow and manages
+    per-user task state / global queue handoff.
+    """
+    ctx = get_ctx()
+    ctx.task.task = asyncio.current_task()
+    ctx.task.task_going = True
+    try:
+        await _taskScheduler_main()
+    except Exception as e:
+        logger.exception("taskScheduler failed: %s", e)
+    finally:
+        ctx.task.task_going = False
+        ctx.task.task = None
+        from leechbot.utility.user_state import TaskQueue
+        TaskQueue._try_start_next()
+
+
+async def _taskScheduler_main():
+    """
+    Core download/upload workflow.
     """
     from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError
 

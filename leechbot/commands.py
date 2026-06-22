@@ -17,22 +17,30 @@ import logging
 import os
 import signal
 import sys
+import config
 from datetime import datetime
 from time import time
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, LOG_FILE, DUMP_ID
-from leechbot.utility.variables import BOT, MSG, YTDL, BotStats, BotTimes, Transfer, Messages, Queue, Paths, current_user_id, UserRegistry, Admin
+from leechbot.utility.variables import BOT, MSG, YTDL, BotStats, BotTimes, Transfer, Messages, Paths, current_user_id, UserRegistry, Admin
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.helper import (
     send_settings, message_deleter, format_stats, sysINFO, getTime, sizeUnit,
 )
 from leechbot.utility.handler import cancelTask
 
+logger = logging.getLogger(__name__)
+
 
 def set_user_context(message):
     """Set per-user context from a message. Call at start of every handler."""
     uid = message.from_user.id
+
+    # Rate limit check
+    if not UserRegistry.check_rate_limit(uid):
+        return None, "<b>⏳ Please slow down.</b> Wait a few seconds before sending another command."
+
     current_user_id.set(uid)
     ctx = UserRegistry.get(uid)
 
@@ -43,9 +51,6 @@ def set_user_context(message):
         return None, reason
 
     return ctx, ""
-import config
-
-logger = logging.getLogger(__name__)
 
 # =============================================================================
 # /start
@@ -632,6 +637,8 @@ async def status_command(client, message):
     if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
         return
 
+    from leechbot.utility.user_state import TaskQueue
+
     if BOT.State.task_going:
         task_elapsed = ""
         try:
@@ -665,14 +672,12 @@ async def status_command(client, message):
     else:
         active_section = "<b>🎯 Active Task</b>\n\n• <code>No task running</code>"
 
-    pending = Queue.pending
-    current = Queue.current
-    if pending or current:
-        queue_lines = [f"<b>📋 Queue</b> (<code>{pending} pending</code>)"]
-        if current:
-            link = current["links"][0][:60] + ("..." if len(current["links"][0]) > 60 else "")
-            queue_lines.append(f"• 🔄 <b>Current:</b> <code>{link}</code> ({len(current['links'])} link(s))")
-        for line in Queue.list_items()[:5]:
+    pending = TaskQueue.pending
+    active_count = TaskQueue.active_count
+    max_c = TaskQueue.max_concurrent
+    if pending or active_count:
+        queue_lines = [f"<b>📋 Queue</b> <code>({active_count}/{max_c} active, {pending} pending)</code>"]
+        for line in TaskQueue.list_items()[:5]:
             queue_lines.append(line)
         if pending > 5:
             queue_lines.append(f"• _... and {pending - 5} more_")
@@ -705,20 +710,23 @@ async def queue_command(client, message):
     if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
         return
 
-    items = Queue.list_items()
-    current = Queue.current
+    from leechbot.utility.user_state import TaskQueue
 
-    text = "<b>📋 Download Queue</b>\n\n"
-    if current:
-        text += f"• 🔄 <b>Active:</b> <code>{current.get('name', 'Unknown')}</code>\n"
-        text += f"• 📦 <b>Links:</b> <code>{len(current.get('links', []))}</code>\n\n"
+    items = TaskQueue.list_items()
+    active = TaskQueue.active_count
+    pending = TaskQueue.pending
+    max_c = TaskQueue.max_concurrent
+
+    text = f"<b>📋 Download Queue</b> <code>({active}/{max_c} active)</code>\n\n"
+    if active:
+        text += f"• 🔄 <b>Active tasks:</b> <code>{active}</code>\n\n"
     else:
-        text += "<b>🔄 Active:</b> <code>None</code>\n\n"
+        text += f"• 🔄 <b>Active:</b> <code>None</code>\n\n"
 
     if items:
         for item in items:
             text += f"{item}\n"
-        text += f"\n<b>📊 Total Queued:</b> <code>{Queue.size()}</code>"
+        text += f"\n<b>📊 Total Queued:</b> <code>{pending}</code>"
     else:
         text += "<b>📭 Queue is empty</b>"
 
@@ -759,7 +767,8 @@ async def cancel_all_command(client, message):
     if message.chat.id != OWNER:
         return
 
-    Queue.clear()
+    from leechbot.utility.user_state import TaskQueue
+    TaskQueue.clear()
 
     if BOT.State.task_going:
         await cancelTask("User cancelled all tasks")

@@ -29,6 +29,11 @@ def set_handler_context(message):
     """Set per-user context for message handlers."""
     if message.from_user:
         uid = message.from_user.id
+
+        # Rate limit check
+        if not UserRegistry.check_rate_limit(uid):
+            return None, "<b>⏳ Please slow down.</b> Wait a few seconds before sending another message."
+
         current_user_id.set(uid)
         ctx = UserRegistry.get(uid)
 
@@ -149,17 +154,49 @@ async def handle_url(client, message):
             )
 
             await message.delete()
-            ctx.task.task_going = True
             BOT.State.started = False
             ctx.start_time = datetime.now()
 
-            event_loop = get_running_loop()
+            import contextvars
+            from leechbot.utility.user_state import TaskQueue
+
             BotStats.total_tasks += 1
-            ctx.task.task = event_loop.create_task(taskScheduler())
-            try:
-                await ctx.task.task
-            finally:
-                ctx.task.task_going = False
+            info = {
+                "mode": BOT.Mode.mode,
+                "type": BOT.Mode.type,
+                "links": list(get_ctx().task.source),
+            }
+            started, position = TaskQueue.add(
+                user_id=message.from_user.id,
+                factory=taskScheduler,
+                context=contextvars.copy_context(),
+                info=info,
+            )
+
+            if not started:
+                if position == -1:
+                    try:
+                        await MSG.status_msg.edit_text(
+                            "<b>⚠️ Queue Limit Reached</b>\n\n"
+                            "You have too many queued tasks. Please wait for one to finish.",
+                            reply_markup=InlineKeyboardMarkup(
+                                [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
+                            ),
+                        )
+                    except Exception:
+                        pass
+                    return
+                try:
+                    await MSG.status_msg.edit_text(
+                        f"<b>⏳ Task Queued</b>\n\n"
+                        f"Position: <code>{position}</code>\n"
+                        f"Max concurrent tasks reached. Your task will start automatically.",
+                        reply_markup=InlineKeyboardMarkup(
+                            [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
+                        ),
+                    )
+                except Exception:
+                    pass
             return
 
         keyboard = InlineKeyboardMarkup([

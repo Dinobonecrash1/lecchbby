@@ -20,6 +20,9 @@ Each user gets their own UserContext with isolated:
 """
 
 import os
+import asyncio
+import logging
+import contextvars
 import config
 from time import time
 from dataclasses import dataclass, field
@@ -28,6 +31,36 @@ from pathlib import Path
 from collections import deque
 from typing import Optional
 from asyncio import Task
+
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Rate Limiter (per-user flood protection)
+# =============================================================================
+class RateLimiter:
+    """Simple per-user rate limiter."""
+
+    def __init__(self, max_calls: int = 1, period: float = 2.0):
+        self._max = max_calls
+        self._period = period
+        self._history: dict[int, list[float]] = {}
+
+    def check(self, user_id: int) -> bool:
+        now = time()
+        history = self._history.get(user_id, [])
+        # Remove entries outside the time window
+        history = [t for t in history if now - t < self._period]
+        if len(history) >= self._max:
+            self._history[user_id] = history
+            return False
+        history.append(now)
+        self._history[user_id] = history
+        return True
+
+
+# Global rate limiter: 1 action per user per 2 seconds
+_command_rate_limiter = RateLimiter(max_calls=1, period=2.0)
 
 
 # =============================================================================
@@ -353,6 +386,11 @@ class UserRegistry:
         return sum(1 for u in cls._users.values() if u.task.task_going)
 
     @classmethod
+    def check_rate_limit(cls, user_id: int) -> bool:
+        """Check if user is within rate limit."""
+        return _command_rate_limiter.check(user_id)
+
+    @classmethod
     def queue_position(cls, user_id: int) -> int:
         """Get user's position in the global queue (1-based, 0 if not queued)."""
         pos = 1
@@ -367,48 +405,96 @@ class UserRegistry:
 # =============================================================================
 # Global Task Queue with Priority (admin > user)
 # =============================================================================
-class PriorityQueue:
+class GlobalTaskQueue:
     """
-    Task queue with priority: admin tasks go first.
+    Production-ready global task queue.
+
+    - Enforces MAX_CONCURRENT_TASKS globally
+    - Preserves per-user contextvars when starting queued tasks
+    - Admin tasks get priority
+    - Tracks active tasks and auto-starts next when one finishes
     """
 
-    def __init__(self):
+    def __init__(self, max_concurrent: int = 1):
+        # 0 means unlimited concurrent tasks
+        self._max = max(0, max_concurrent)
         self._queue: deque = deque()
+        self._active: set = set()
 
-    def add(self, user_id: int, task_data: dict):
-        """Add task to queue. Admin tasks are inserted at the front."""
-        entry = {"user_id": user_id, **task_data, "added_at": datetime.now()}
+    def _is_admin(self, user_id: int) -> bool:
+        return user_id == config.OWNER_ID or user_id in config.ALLOWED_ADMINS
 
-        is_admin = user_id == config.OWNER_ID or user_id in config.ALLOWED_ADMINS
-
-        if is_admin:
-            # Admin tasks go to the front (after any currently running admin task)
+    def _insert(self, entry: dict):
+        """Insert entry with admin priority."""
+        user_id = entry["user_id"]
+        if self._is_admin(user_id):
             insert_pos = 0
             for i, item in enumerate(self._queue):
-                if not (item["user_id"] == config.OWNER_ID or
-                        item["user_id"] in config.ALLOWED_ADMINS):
+                if not self._is_admin(item["user_id"]):
                     break
                 insert_pos = i + 1
             self._queue.insert(insert_pos, entry)
         else:
             self._queue.append(entry)
 
-    def next(self) -> Optional[dict]:
-        """Get next task from queue."""
-        if self._queue:
-            return self._queue.popleft()
-        return None
+    def add(self, user_id: int, factory, context: contextvars.Context,
+            info: dict = None) -> tuple[bool, int]:
+        """
+        Add a task to the queue.
 
-    def peek(self) -> Optional[dict]:
-        """Look at next task without removing."""
-        return self._queue[0] if self._queue else None
+        Returns:
+            (started_now: bool, position: int) — position is 0 if started now,
+            otherwise 1-based queue position. Returns (-1, -1) if user has
+            reached their per-user queue limit.
+        """
+        info = info or {}
 
-    def remove_user(self, user_id: int):
-        """Remove all tasks for a specific user."""
-        self._queue = deque(item for item in self._queue if item["user_id"] != user_id)
+        # Per-user queue limit
+        user_queued = sum(1 for item in self._queue if item["user_id"] == user_id)
+        if user_queued >= config.MAX_QUEUE_PER_USER:
+            return False, -1
+
+        entry = {
+            "user_id": user_id,
+            "factory": factory,
+            "context": context,
+            "info": info,
+            "added_at": datetime.now(),
+        }
+
+        if self._max == 0 or len(self._active) < self._max:
+            self._start(entry)
+            return True, 0
+
+        self._insert(entry)
+        return False, self.position(user_id)
+
+    def _start(self, entry: dict):
+        """Start a task from an entry."""
+        user_id = entry["user_id"]
+        factory = entry["factory"]
+        ctx = entry["context"]
+
+        async def runner():
+            try:
+                await factory()
+            except Exception as e:
+                logger.exception("Queued task failed for user %s: %s", user_id, e)
+            finally:
+                self._active.discard(task)
+                self._try_start_next()
+
+        task = asyncio.create_task(runner(), context=ctx)
+        self._active.add(task)
+
+    def _try_start_next(self):
+        """Start queued tasks if under concurrency limit."""
+        while self._queue and (self._max == 0 or len(self._active) < self._max):
+            entry = self._queue.popleft()
+            self._start(entry)
 
     def position(self, user_id: int) -> int:
-        """Get user's position in queue (1-based, 0 if not queued)."""
+        """Get user's earliest position in queue (1-based, 0 if not queued)."""
         for i, item in enumerate(self._queue, 1):
             if item["user_id"] == user_id:
                 return i
@@ -418,19 +504,48 @@ class PriorityQueue:
     def pending(self) -> int:
         return len(self._queue)
 
+    @property
+    def active_count(self) -> int:
+        return len(self._active)
+
+    @property
+    def max_concurrent(self) -> int:
+        return self._max
+
+    @max_concurrent.setter
+    def max_concurrent(self, value: int):
+        self._max = max(0, value)
+        self._try_start_next()
+
     def clear(self):
+        """Clear all queued tasks (not active ones)."""
         self._queue.clear()
+
+    def cancel_active(self):
+        """Cancel all active tasks."""
+        for task in list(self._active):
+            try:
+                task.cancel()
+            except Exception:
+                pass
 
     def list_items(self) -> list:
         """Return summary of queued items."""
         items = []
         for i, item in enumerate(self._queue, 1):
             uid = item["user_id"]
-            is_admin = uid == config.OWNER_ID or uid in config.ALLOWED_ADMINS
-            label = "👑 Admin" if is_admin else f"User {uid}"
-            items.append(f"  {i}. {label}")
+            label = "👑 Admin" if self._is_admin(uid) else f"User {uid}"
+            info = item.get("info", {})
+            mode = info.get("mode", "leech")
+            typ = info.get("type", "normal")
+            links = info.get("links", [])
+            first = links[0][:50] if links else "N/A"
+            items.append(
+                f"  {i}. {label} — <code>{mode}/{typ}</code>\n"
+                f"     <code>{first}{'...' if len(first) > 50 else ''}</code>"
+            )
         return items
 
 
-# Global priority queue instance
-TaskQueue = PriorityQueue()
+# Global task queue instance — concurrency set from config
+TaskQueue = GlobalTaskQueue(max_concurrent=getattr(config, "MAX_CONCURRENT_TASKS", 1))

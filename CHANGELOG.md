@@ -6,6 +6,25 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+---
+
+## [3.3.0] - 2026-06-22
+
+### Added
+- **Production-ready global task queue** — `GlobalTaskQueue` enforces `MAX_CONCURRENT_TASKS`, preserves per-user `contextvars`, auto-starts next task when one finishes
+- **Admin task priority** — admin tasks jump to the front of the queue
+- **Per-user queue limit** — `MAX_QUEUE_PER_USER` prevents abuse (default 5)
+- **Rate limiting** — 1 command/message/callback per user per 2 seconds to prevent Telegram flood bans
+- **Queue status** — `/queue`, `/status`, `/cancel_all`, and web dashboard now show real queue info
+
+### Changed
+- Tasks are now queued when max concurrency is reached; users see position instead of immediate start
+- Anime download callback now resets `task_going` in `finally` block
+- `.env.example` updated with new env vars
+
+### Removed
+- **Legacy global `DownloadQueue` / `Queue`** — replaced by `GlobalTaskQueue`
+
 ## [3.2.5] - 2026-06-22
 
 ### Fixed

@@ -25,7 +25,7 @@ from asyncio import get_running_loop
 
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, DUMP_ID
-from leechbot.utility.variables import BOT, MSG, Messages, YTDL, BotTimes, BotStats, Paths, Transfer, current_user_id
+from leechbot.utility.variables import BOT, MSG, Messages, YTDL, BotTimes, BotStats, Paths, Transfer, current_user_id, get_ctx
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
 import config
@@ -54,6 +54,15 @@ async def handle_callback(client, callback_query):
 
     # Set per-user context for this callback
     uid = callback_query.from_user.id
+
+    # Rate limit check
+    if not UserRegistry.check_rate_limit(uid):
+        try:
+            await safe_answer(callback_query, "⏳ Please slow down. Wait a few seconds before clicking again.", show_alert=True)
+        except Exception:
+            pass
+        return
+
     current_user_id.set(uid)
     ctx = UserRegistry.get(uid)
 
@@ -320,16 +329,49 @@ async def _handle_upload_type(client, callback_query, data: str, ctx=None):
         disable_web_page_preview=True
     )
 
-    ctx.task.task_going = True
     BOT.State.started = False
     ctx.start_time = datetime.now()
 
-    event_loop = get_running_loop()
-    ctx.task.task = event_loop.create_task(taskScheduler())
-    try:
-        await ctx.task.task
-    finally:
-        ctx.task.task_going = False
+    import contextvars
+    from leechbot.utility.task_manager import taskScheduler
+    from leechbot.utility.user_state import TaskQueue
+
+    info = {
+        "mode": BOT.Mode.mode,
+        "type": BOT.Mode.type,
+        "links": list(get_ctx().task.source),
+    }
+    started, position = TaskQueue.add(
+        user_id=callback_query.from_user.id,
+        factory=taskScheduler,
+        context=contextvars.copy_context(),
+        info=info,
+    )
+
+    if not started:
+        if position == -1:
+            try:
+                await MSG.status_msg.edit_text(
+                    "<b>⚠️ Queue Limit Reached</b>\n\n"
+                    "You have too many queued tasks. Please wait for one to finish.",
+                    reply_markup=InlineKeyboardMarkup(
+                        [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
+                    ),
+                )
+            except Exception:
+                pass
+            return
+        try:
+            await MSG.status_msg.edit_text(
+                f"<b>⏳ Task Queued</b>\n\n"
+                f"Position: <code>{position}</code>\n"
+                f"Max concurrent tasks reached. Your task will start automatically.",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
+                ),
+            )
+        except Exception:
+            pass
 
 # =============================================================================
 # Video Settings
@@ -515,16 +557,49 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
         disable_web_page_preview=True
     )
 
-    ctx.task.task_going = True
     BOT.State.started = False
     ctx.start_time = datetime.now()
 
-    event_loop = get_running_loop()
-    ctx.task.task = event_loop.create_task(taskScheduler())
-    try:
-        await ctx.task.task
-    finally:
-        ctx.task.task_going = False
+    import contextvars
+    from leechbot.utility.task_manager import taskScheduler
+    from leechbot.utility.user_state import TaskQueue
+
+    info = {
+        "mode": BOT.Mode.mode,
+        "type": BOT.Mode.type,
+        "links": list(get_ctx().task.source),
+    }
+    started, position = TaskQueue.add(
+        user_id=uid,
+        factory=taskScheduler,
+        context=contextvars.copy_context(),
+        info=info,
+    )
+
+    if not started:
+        if position == -1:
+            try:
+                await MSG.status_msg.edit_text(
+                    "<b>⚠️ Queue Limit Reached</b>\n\n"
+                    "You have too many queued tasks. Please wait for one to finish.",
+                    reply_markup=InlineKeyboardMarkup(
+                        [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
+                    ),
+                )
+            except Exception:
+                pass
+            return
+        try:
+            await MSG.status_msg.edit_text(
+                f"<b>⏳ Task Queued</b>\n\n"
+                f"Position: <code>{position}</code>\n"
+                f"Max concurrent tasks reached. Your task will start automatically.",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
+                ),
+            )
+        except Exception:
+            pass
 
 # =============================================================================
 # Do Update
@@ -1405,3 +1480,6 @@ async def _handle_anime_download(client, callback_query, data: str):
             await MSG.status_msg.edit_text(f"<b>❌ Download error:</b> <code>{e}</code>")
         except Exception:
             pass
+    finally:
+        ctx.task.task_going = False
+        ctx.task.task = None

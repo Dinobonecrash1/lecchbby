@@ -40,8 +40,9 @@ def _get_bot_state() -> dict:
 
     try:
         from leechbot.utility.variables import (
-            BOT, Queue, BotTimes, Messages, Transfer, BotStats, Paths
+            BOT, BotTimes, Messages, Transfer, BotStats, Paths
         )
+        from leechbot.utility.user_state import TaskQueue
         from leechbot.utility.helper import getSize, sizeUnit, getTime
     except ImportError:
         # Bot modules not loaded — return minimal state
@@ -66,7 +67,7 @@ def _get_bot_state() -> dict:
 
     # Queue info
     queue_items = []
-    for i, item in enumerate(list(Queue._queue), 1):
+    for i, item in enumerate(list(TaskQueue._queue), 1):
         queue_items.append({
             "index": i,
             "links": len(item.get("links", [])),
@@ -105,8 +106,9 @@ def _get_bot_state() -> dict:
             "down_size_human": sizeUnit(down_size),
         },
         "queue": {
-            "pending": Queue.pending,
-            "current": bool(Queue.current),
+            "pending": TaskQueue.pending,
+            "active": TaskQueue.active_count,
+            "max_concurrent": TaskQueue.max_concurrent,
             "items": queue_items,
         },
         "transfer": {
@@ -173,7 +175,6 @@ async def handle_queue(request):
     if not _check_auth(request):
         return web.json_response({"error": "Unauthorized"}, status=401)
 
-    from leechbot.utility.variables import Queue
     state = _get_bot_state()
     return web.json_response(state["queue"])
 
@@ -224,8 +225,8 @@ async def handle_queue_clear(request):
         return web.json_response({"error": "Unauthorized"}, status=401)
 
     try:
-        from leechbot.utility.variables import Queue
-        Queue.clear()
+        from leechbot.utility.user_state import TaskQueue
+        TaskQueue.clear()
         return web.json_response({"ok": True, "message": "Queue cleared"})
     except ImportError:
         return web.json_response({"ok": False, "message": "Bot not ready"})

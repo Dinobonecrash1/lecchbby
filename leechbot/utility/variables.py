@@ -22,7 +22,6 @@ import config
 import contextvars
 from datetime import datetime
 from pathlib import Path
-from collections import deque
 
 # Import per-user state system
 from leechbot.utility.user_state import (
@@ -102,61 +101,6 @@ class BOT:
     Options = _OptionsProxy()
     Mode = _ModeProxy()
     State = _StateProxy()
-
-
-# =============================================================================
-# Download Queue (backward-compatible)
-# =============================================================================
-class DownloadQueue:
-    """Thread-safe download queue."""
-
-    def __init__(self):
-        self._queue: deque = deque()
-        self._current = None
-
-    def add(self, links: list, mode: str = "leech", upload_type: str = "normal"):
-        self._queue.append({
-            "links": links,
-            "mode": mode,
-            "type": upload_type,
-            "added_at": datetime.now(),
-        })
-
-    def next(self):
-        if self._queue:
-            self._current = self._queue.popleft()
-            return self._current
-        self._current = None
-        return None
-
-    def peek(self):
-        return self._queue[0] if self._queue else None
-
-    @property
-    def pending(self) -> int:
-        return len(self._queue)
-
-    @property
-    def current(self):
-        return self._current
-
-    def clear(self):
-        self._queue.clear()
-        self._current = None
-
-    def size(self) -> int:
-        return len(self._queue)
-
-    def list_items(self) -> list:
-        items = []
-        for i, item in enumerate(self._queue, 1):
-            link_count = len(item["links"])
-            first_link = item["links"][0][:60] if item["links"] else "N/A"
-            items.append(f"  {i}. `{first_link}{'...' if len(item['links'][0]) > 60 else ''}` ({link_count} link{'s' if link_count > 1 else ''})")
-        return items
-
-
-Queue = DownloadQueue()
 
 
 # =============================================================================
