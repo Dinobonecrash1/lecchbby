@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.3.4] - 2026-06-22
+
+### Fixed
+- **YouTube PO token provider server** — Dockerfile now installs Node.js and runs `bgutil-ytdlp-pot-provider` HTTP server on port 4416
+- **yt-dlp extractor args** — explicitly configured to use `youtubepot-bgutilhttp` provider for YouTube PO tokens
+
 ## [3.3.3] - 2026-06-22
 
 ### Fixed

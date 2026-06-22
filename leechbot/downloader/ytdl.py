@@ -263,6 +263,9 @@ def YouTubeDL(url: str, loop=None):
         "subtitleslangs": ["en", "en-US", "en-GB"],
         "extractor_args": {
             "subtitlesformat": "srt",
+            "youtubepot-bgutilhttp": {
+                "base_url": "http://127.0.0.1:4416",
+            },
         },
         "logger": MyLogger(loop),
         "user_agent": (
