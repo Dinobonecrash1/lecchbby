@@ -510,38 +510,73 @@ async def unzipaswd_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("ping") & filters.private)
 async def ping_command(client, message):
+    from asyncio import sleep as async_sleep
+    import aiohttp
+
     start = datetime.now()
-    msg = await message.reply_text("<b>🏓 Pinging...</b>", quote=True)
+    msg = await message.reply_text("<b>⚡ Checking...</b>", quote=True)
     latency_ms = (datetime.now() - start).total_seconds() * 1000
     uptime = getTime(int((datetime.now() - BotStats.start_time).total_seconds()))
 
     if latency_ms < 200:
         quality = "Excellent"
+        quality_icon = "🟢"
     elif latency_ms < 500:
         quality = "Good"
+        quality_icon = "🟡"
     elif latency_ms < 1000:
         quality = "Average"
+        quality_icon = "🟠"
     else:
         quality = "Poor"
+        quality_icon = "🔴"
 
     pct = max(5, min(100, int((1 - latency_ms / 2000) * 100)))
     filled = pct // 5
     empty = 20 - filled
-    bar = f"{'█' * filled}{'░' * empty}"
+    bar = f"{'━' * filled}{'─' * empty}"
 
-    server_status = "Online" if latency_ms < 5000 else "Slow"
+    server_status = "🟢 Online" if latency_ms < 5000 else "🔴 Slow"
+
+    # Check API health
+    api_results = []
+    apis = [
+        ("Miruro API", "https://mirurotvapi.vercel.app/api/health"),
+        ("Animex API", "https://animexoneapi.vercel.app/api/health"),
+    ]
+    async with aiohttp.ClientSession() as session:
+        for name, url in apis:
+            try:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
+                    if resp.status == 200:
+                        api_results.append(f"  🟢  {name}  »  Online")
+                    else:
+                        api_results.append(f"  🔴  {name}  »  Error {resp.status}")
+            except Exception:
+                api_results.append(f"  🔴  {name}  »  Offline")
+
+    api_text = "\n".join(api_results)
 
     ping_text = f"""<code>
-┌───────────────────────────────┐
-        🏓  PONG
-├───────────────────────────────┤
-  ⚡  Latency   »  {latency_ms:.1f} ms
-  📊  Quality   »  {quality}
-  {bar}  {pct}%
-  ⏱️  Uptime    »  {uptime}
-  🤖  Version   »  v{config.VERSION}
-  📡  Server    »  {server_status}
-└───────────────────────────────┘
+╔═══════════════════════════════════╗
+║           ⚡ P O N G             ║
+╠═══════════════════════════════════╣
+║                                   ║
+║  🏓  Latency    ║  {latency_ms:.1f} ms
+║  {quality_icon}  Quality     ║  {quality}
+║  ╰─────────────────────────────╯
+║  {bar}  {pct}%
+║  ╰─────────────────────────────╯
+║  ⏱️  Uptime     ║  {uptime}
+║  🤖  Version    ║  v{config.VERSION}
+║  📡  Server     ║  {server_status}
+║                                   ║
+╠═══════════════════════════════════╣
+║           🌐 A P I S             ║
+╠═══════════════════════════════════╣
+{api_text}
+║                                   ║
+╚═══════════════════════════════════╝
 </code>"""
     await msg.edit(ping_text, disable_web_page_preview=True)
     await message_deleter(message, msg)

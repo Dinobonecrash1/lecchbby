@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.64] - 2026-06-22
+
+### Changed
+- **🏓 Ping box redesign** — unique box-drawing style with ╔═╣╚═ characters
+- **🌐 API health check** — ping now checks Miruro API + Animex API status
+- ** quality icons** — 🟢🟡🟠🔴 color-coded quality indicators
+
 ## [3.1.63] - 2026-06-22
 
 ### Fixed
