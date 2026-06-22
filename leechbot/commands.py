@@ -1249,7 +1249,7 @@ async def anime_command(client, message):
                     continue
 
                 # Find downloaded file
-                files = [f for f in ospath.listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
+                files = [f for f in os.listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
                 if not files:
                     failed += 1
                     shutil.rmtree(ep_dir)

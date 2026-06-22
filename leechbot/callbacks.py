@@ -1104,7 +1104,7 @@ async def _handle_anime_download(client, callback_query, data: str):
                 continue
 
             # Find the downloaded file
-            files = [f for f in ospath.listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
+            files = [f for f in os.listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
             if not files:
                 failed += 1
                 shutil.rmtree(ep_dir)
