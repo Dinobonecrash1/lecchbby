@@ -287,11 +287,8 @@ def YouTubeDL(url: str, loop=None):
 
     # Use CF bypass proxy if configured
     import config
-    # Use CF bypass proxy if configured (e.g. Railway-deployed CloudflareBypassForScraping)
-    cf_proxy = getattr(config, 'CF_BYPASS_PROXY', '') or os.environ.get('CF_BYPASS_PROXY', '')
-    if cf_proxy:
-        ydl_opts["proxy"] = cf_proxy
-        logger.info("Using CF bypass proxy: %s", cf_proxy)
+    # CF bypass proxy incompatible with yt-dlp (reverse proxy, not CONNECT proxy)
+    # Cloudflare bypass uses http_headers (Referer/Origin) instead
 
     # Merge cookie authentication options (fixes YouTube bot detection)
     ydl_opts.update(_get_cookie_opts())

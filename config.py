@@ -128,8 +128,9 @@ ALLOWED_USERS = [
 # =============================================================================
 # Version Info
 # =============================================================================
-VERSION = "3.1.83"
+VERSION = "3.1.84"
 
-# Cloudflare bypass proxy (set to Railway/external CF bypass URL)
+# Cloudflare bypass proxy — NOT compatible with yt-dlp (reverse proxy, not CONNECT proxy)
+# Use http_headers with Referer/Origin for Cloudflare bypass instead
 CF_BYPASS_PROXY = os.environ.get("CF_BYPASS_PROXY", "")
 BUILD_DATE = "2026-06-08"

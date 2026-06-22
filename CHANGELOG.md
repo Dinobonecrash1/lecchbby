@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.84] - 2026-06-22
+
+### Fixed
+- **🔗 CF proxy incompatibility** — Railway CF bypass proxy is reverse proxy (x-hostname), not CONNECT proxy — yt-dlp can't use it. Removed from defaults.
+
 ## [3.1.83] - 2026-06-22
 
 ### Added
