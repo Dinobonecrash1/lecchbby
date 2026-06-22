@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.55] - 2026-06-22
+
+### Changed
+- **⚡ Batch Anime Download** — episodes now download 1 → upload 1 → repeat (no more batch download then batch upload). Prevents file overwrites, saves disk space, gives instant feedback
+- Both interactive (`/anime Solo Leveling` → click episodes) and quick (`/anime Solo Leveling ep 1-5 sub`) modes use batch flow
+
+---
+
 ## [3.1.54] - 2026-06-22
 
 ### Fixed

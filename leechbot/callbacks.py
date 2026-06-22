@@ -1002,9 +1002,14 @@ async def _download_anime_poster(poster_url: str):
 
 
 async def _handle_anime_download(client, callback_query, data: str):
-    """Handle anime episode download."""
+    """Handle anime episode download — batch mode: download 1, upload 1, repeat."""
     from leechbot.downloader.anime import anime_client
-    from leechbot.utility.task_manager import taskScheduler
+    from leechbot.downloader.ytdl import YouTubeDL
+    from leechbot.uploader.telegram import upload_file
+    from leechbot.utility.helper import thumbMaintainer
+    from os import makedirs, remove as os_remove
+    from os import path as ospath
+    import shutil
 
     try:
         if BOT.State.shutting_down:
@@ -1034,90 +1039,119 @@ async def _handle_anime_download(client, callback_query, data: str):
         if cover:
             await _download_anime_poster(cover)
 
-        # Collect streaming URLs for selected episodes
-        streaming_urls = []
+        # Pass referer header for Cloudflare-protected streams
+        referer = "https://kwik.cx/"
+        BOT.Options.http_headers = {"Referer": referer, "Origin": referer}
+        BOT.Mode.mode = "leech"
+        BOT.Mode.ytdl = True
+
+        total = end_ep - start_ep + 1
+        uploaded = 0
+        failed = 0
 
         for ep_num in range(start_ep, end_ep + 1):
+            ep_label = f"Ep {ep_num:02d}"
+            file_name = f"{title} - {ep_label}"
+
             await callback_query.message.edit_text(
-                f"<b>🔍 Fetching stream for Episode {ep_num}...</b>\n\n"
-                f"<b>🎬 Anime:</b> <code>{title}</code>"
+                f"<b>📥 Downloading {ep_label}...</b>\n\n"
+                f"<b>🎬 Anime:</b> <code>{title}</code>\n"
+                f"<b>📊 Progress:</b> <code>{ep_num - start_ep}/{total}</code>",
             )
 
-            # Always use MiruroAPI for streaming (AnimexAPI returns 403)
+            # Fetch stream URL for this episode
             episodes_data = BOT.State.anime_episodes
             ep_info = anime_client.miruro.get_episode_stream_info(episodes_data, ep_num, category)
-            if ep_info:
-                ep_info["anilist_id"] = anime_id
-                stream_result = await anime_client.get_stream_from_miruro(
-                    ep_info["provider"], anime_id, category, ep_info["slug"]
-                )
-                if stream_result.get("success"):
-                    streaming_urls.append({
-                        "episode": ep_num,
-                        "url": stream_result["results"]["url"],
-                        "quality": stream_result["results"].get("quality", "unknown"),
-                        "codec": stream_result["results"].get("codec", ""),
-                        "fansub": stream_result["results"].get("fansub", ""),
-                        "audio": stream_result["results"].get("audio", category),
-                    })
+            if not ep_info:
+                failed += 1
+                continue
 
-        if not streaming_urls:
-            await callback_query.message.edit_text(
-                f"<b>❌ Failed to get streaming URLs.</b>\n\n"
-                f"Try a different provider or episode."
+            ep_info["anilist_id"] = anime_id
+            stream_result = await anime_client.get_stream_from_miruro(
+                ep_info["provider"], anime_id, category, ep_info["slug"]
             )
-            return
+            if not stream_result.get("success"):
+                failed += 1
+                continue
 
-        # Store streaming data for download
-        BOT.SOURCE = [s["url"] for s in streaming_urls]
-        BOT.Mode.mode = "leech"
-        BOT.Mode.type = "normal"
-        BOT.Mode.ytdl = True
-        BOT.Mode.gallery = False
+            stream_url = stream_result["results"]["url"]
+            ep_referer = stream_result["results"].get("referer", referer)
+            BOT.Options.http_headers = {"Referer": ep_referer, "Origin": ep_referer}
+            BOT.Options.custom_name = file_name
 
-        # Store per-episode metadata for custom naming during download
-        BOT.State.anime_episode_meta = [
-            {"title": title, "episode": s["episode"], "quality": s.get("quality", "")}
-            for s in streaming_urls
-        ]
-        # Set download name directly to avoid get_YT_Name 429 on M3U8 URLs
-        Messages.download_name = f"{title} - Ep {start_ep}" if start_ep == end_ep else f"{title} - Ep {start_ep}-{end_ep}"
+            # Create temp folder for this episode
+            ep_dir = ospath.join(str(Paths.DOWNLOADS_PATH), f"ep_{ep_num}")
+            if ospath.exists(ep_dir):
+                shutil.rmtree(ep_dir)
+            makedirs(ep_dir)
+            Paths.down_path = ep_dir
+
+            # Download episode
+            try:
+                Messages.download_name = file_name
+                loop = get_running_loop()
+                await loop.run_in_executor(None, lambda: YouTubeDL(stream_url, loop))
+            except Exception as e:
+                logger.error("Episode %d download failed: %s", ep_num, e)
+                failed += 1
+                if ospath.exists(ep_dir):
+                    shutil.rmtree(ep_dir)
+                continue
+
+            # Find the downloaded file
+            files = [f for f in ospath.listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
+            if not files:
+                failed += 1
+                shutil.rmtree(ep_dir)
+                continue
+
+            # Upload the file
+            await callback_query.message.edit_text(
+                f"<b>📤 Uploading {ep_label}...</b>\n\n"
+                f"<b>🎬 Anime:</b> <code>{title}</code>\n"
+                f"<b>📊 Progress:</b> <code>{ep_num - start_ep}/{total}</code>",
+            )
+
+            file_path = ep_dir + "/" + files[0]
+            real_name = file_name + ospath.splitext(files[0])[1]
+
+            try:
+                MSG.status_msg = callback_query.message
+                await upload_file(file_path, real_name)
+                uploaded += 1
+            except Exception as e:
+                logger.error("Episode %d upload failed: %s", ep_num, e)
+                failed += 1
+
+            # Cleanup
+            if ospath.exists(ep_dir):
+                shutil.rmtree(ep_dir)
+
+            # Small delay between episodes
+            if ep_num < end_ep:
+                from asyncio import sleep
+                await sleep(2)
+
+        # Final summary
         BOT.Options.custom_name = ""
+        BOT.Options.http_headers = None
+        BOT.State.task_going = False
 
-        # Pass referer header for Cloudflare-protected streams
-        referer = streaming_urls[0].get("referer", "https://kwik.cx/")
-        BOT.Options.http_headers = {"Referer": referer, "Origin": referer}
-
-        # Store episode metadata for autorename
-        BOT.State.anime_selected["episode_range"] = (start_ep, end_ep)
-        BOT.State.anime_selected["audio_type"] = category
-        BOT.State.anime_selected["title"] = title
-
-        # Build stream info summary
-        stream_info = ""
-        for s in streaming_urls:
-            stream_info += f"  • Ep {s['episode']}: {s['quality']} ({s['codec']}) [{s['audio']}]\n"
-
-        # Create status message and start download
-        MSG.status_msg = await callback_query.message.edit_text(
-            f"<b>🚀 Starting download...</b>\n\n"
+        await callback_query.message.edit_text(
+            f"<b>✅ Anime Download Complete!</b>\n\n"
             f"<b>🎬 Anime:</b> <code>{title}</code>\n"
             f"<b>📺 Episodes:</b> <code>{start_ep}-{end_ep}</code>\n"
-            f"<b>🎵 Audio:</b> <code>{category}</code>\n"
-            f"<b>🔗 URLs:</b> <code>{len(streaming_urls)}</code>\n\n"
-            f"<b>📊 Stream Info:</b>\n{stream_info}",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]])
+            f"<b>🎵 Audio:</b> <code>{category}</code>\n\n"
+            f"<b>📊 Results:</b>\n"
+            f"  ✅ Uploaded: <code>{uploaded}</code>\n"
+            f"  ❌ Failed: <code>{failed}</code>",
         )
 
-        BOT.State.task_going = True
-        BOT.State.started = False
-        BotTimes.start_time = datetime.now()
+        await safe_answer(callback_query, f"Uploaded {uploaded}/{total} episodes!")
 
-        event_loop = get_running_loop()
-        BotStats.total_tasks += 1
-        BOT.TASK = event_loop.create_task(taskScheduler())
-
-        await safe_answer(callback_query, "Download started!")
+    except Exception as e:
+        logger.error("Anime download error: %s", e)
+        await callback_query.message.edit_text(f"<b>❌ Download error:</b> <code>{e}</code>")
 
     except Exception as e:
         logger.error("Anime download error: %s", e)
