@@ -128,7 +128,7 @@ ALLOWED_USERS = [
 # =============================================================================
 # Version Info
 # =============================================================================
-VERSION = "3.1.88"
+VERSION = "3.1.89"
 
 # Cloudflare bypass proxy — NOT compatible with yt-dlp (reverse proxy, not CONNECT proxy)
 # Use http_headers with Referer/Origin for Cloudflare bypass instead

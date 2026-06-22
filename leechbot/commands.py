@@ -1273,21 +1273,21 @@ async def anime_command(client, message):
             if img and ospath.exists(img):
                 try:
                     MSG.status_msg = await app.send_photo(
-                        chat_id=OWNER,
+                        chat_id=message.from_user.id,
                         photo=img,
                         caption=caption,
                         reply_markup=keyboard()
                     )
                 except Exception:
                     MSG.status_msg = await app.send_message(
-                        chat_id=OWNER,
+                        chat_id=message.from_user.id,
                         text=caption,
                         reply_markup=keyboard(),
                         disable_web_page_preview=True
                     )
             else:
                 MSG.status_msg = await app.send_message(
-                    chat_id=OWNER,
+                    chat_id=message.from_user.id,
                     text=caption,
                     reply_markup=keyboard(),
                     disable_web_page_preview=True
@@ -1305,8 +1305,8 @@ async def anime_command(client, message):
             Transfer.total_down_size = 0
             BotStats.total_tasks += 1
 
-            # Set MSG.sent_msg for upload_file to reply to
-            MSG.sent_msg = dump_msg
+            # Set MSG.sent_msg for upload_file to reply to (user's chat, not dump)
+            MSG.sent_msg = MSG.status_msg
 
             uploaded = 0
             failed = 0

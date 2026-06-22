@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.89] - 2026-06-22
+
+### Fixed
+- **👤 Multi-user anime** — status messages and uploads now go to user's chat, not OWNER_ID
+
 ## [3.1.88] - 2026-06-22
 
 ### Added
