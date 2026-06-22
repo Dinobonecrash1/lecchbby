@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.83] - 2026-06-22
+
+### Added
+- **🔗 CF Bypass Proxy Support** — optional Railway-deployed CF bypass proxy via `CF_BYPASS_PROXY` env var
+
 ## [3.1.82] - 2026-06-22
 
 ### Fixed
