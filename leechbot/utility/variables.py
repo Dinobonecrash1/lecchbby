@@ -204,6 +204,7 @@ class YTDL:
     eta: str = ""
     done: str = ""
     left: str = ""
+    complete: bool = False  # Set to True when download finishes
 
 
 # =============================================================================

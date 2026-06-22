@@ -220,6 +220,10 @@ def _make_progress_hook(loop):
             _schedule_state_update(
                 loop, _set_header, "\n⏳ <code>Download finished, processing...</code>"
             )
+            # Signal completion for batch mode
+            def _set_complete():
+                YTDL.complete = True
+            _schedule_state_update(loop, _set_complete)
 
     return _progress_hook
 
@@ -286,6 +290,9 @@ def YouTubeDL(url: str, loop=None):
 
     if not ospath.exists(Paths.thumbnail_ytdl):
         makedirs(Paths.thumbnail_ytdl)
+
+    # Reset completion flag for batch mode
+    YTDL.complete = False
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:

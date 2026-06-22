@@ -1226,7 +1226,7 @@ async def anime_command(client, message):
                 BOT.Options.custom_name = file_name
 
                 # Create temp folder for this episode
-                ep_dir = ospath.join(str(Paths.DOWNLOADS_PATH), f"ep_{ep_num}")
+                ep_dir = ospath.join(str(config.DOWNLOADS_PATH), f"ep_{ep_num}")
                 if ospath.exists(ep_dir):
                     shutil.rmtree(ep_dir)
                 makedirs(ep_dir)
@@ -1236,6 +1236,11 @@ async def anime_command(client, message):
                 try:
                     Messages.download_name = file_name
                     await loop.run_in_executor(None, lambda: YouTubeDL(stream_url, loop))
+                    # Wait for yt-dlp to fully finish (HLS fragments may still be merging)
+                    for _ in range(30):
+                        if YTDL.complete:
+                            break
+                        await async_sleep(1)
                 except Exception as e:
                     logger.error("Episode %d download failed: %s", ep_num, e)
                     failed += 1

@@ -24,7 +24,7 @@ from asyncio import get_running_loop
 
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, MSG, Messages, BotTimes, BotStats, Paths
+from leechbot.utility.variables import BOT, MSG, Messages, YTDL, BotTimes, BotStats, Paths
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
 import config
@@ -1080,7 +1080,7 @@ async def _handle_anime_download(client, callback_query, data: str):
             BOT.Options.custom_name = file_name
 
             # Create temp folder for this episode
-            ep_dir = ospath.join(str(Paths.DOWNLOADS_PATH), f"ep_{ep_num}")
+            ep_dir = ospath.join(str(config.DOWNLOADS_PATH), f"ep_{ep_num}")
             if ospath.exists(ep_dir):
                 shutil.rmtree(ep_dir)
             makedirs(ep_dir)
@@ -1091,6 +1091,11 @@ async def _handle_anime_download(client, callback_query, data: str):
                 Messages.download_name = file_name
                 loop = get_running_loop()
                 await loop.run_in_executor(None, lambda: YouTubeDL(stream_url, loop))
+                # Wait for yt-dlp to fully finish (HLS fragments may still be merging)
+                for _ in range(30):
+                    if YTDL.complete:
+                        break
+                    await sleep(1)
             except Exception as e:
                 logger.error("Episode %d download failed: %s", ep_num, e)
                 failed += 1
