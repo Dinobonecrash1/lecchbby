@@ -1219,6 +1219,7 @@ async def anime_command(client, message):
 
             # ── Download poster as thumbnail ──
             if cover:
+                from leechbot.callbacks import _download_anime_poster
                 await _download_anime_poster(cover)
 
             # ── Add date (matches original) ──
