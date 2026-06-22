@@ -1255,11 +1255,18 @@ async def _handle_anime_download(client, callback_query, data: str):
             # Apply autorename template if set
             if BOT.Setting.autorename_template:
                 from leechbot.utility.handler import _apply_autorename_template
+                import re
+                # Detect quality from stream URL
+                quality = ""
+                q_match = re.search(r'(\d{3,4}p)', stream_url, re.IGNORECASE)
+                if q_match:
+                    quality = q_match.group(1).upper()
                 file_metadata = {
                     'title': title,
-                    'audio': category,
+                    'audio': category.upper(),
                     'episode': str(ep_num),
                     'season': '1',
+                    'quality': quality,
                 }
                 new_name = _apply_autorename_template(real_name, BOT.Setting.autorename_template, file_metadata)
                 new_file_path = ospath.join(ep_dir, new_name)

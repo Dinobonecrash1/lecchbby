@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.72] - 2026-06-22
+
+### Fixed
+- **🏷️ Autorename quality detection** — quality now detected from stream URL and passed to template metadata
+- **🏷️ Autorename audio uppercase** — audio type now uppercase (SUB, DUB) in template output
+
 ## [3.1.71] - 2026-06-22
 
 ### Fixed
