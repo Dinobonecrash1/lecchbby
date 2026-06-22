@@ -531,12 +531,7 @@ async def ping_command(client, message):
         quality = "Poor"
         quality_icon = "🔴"
 
-    pct = max(5, min(100, int((1 - latency_ms / 2000) * 100)))
-    filled = pct // 5
-    empty = 20 - filled
-    bar = f"{'━' * filled}{'─' * empty}"
-
-    server_status = "🟢 Online" if latency_ms < 5000 else "🔴 Slow"
+    server_status = "Online" if latency_ms < 5000 else "Slow"
 
     # Check API health
     api_results = []
@@ -549,35 +544,24 @@ async def ping_command(client, message):
             try:
                 async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
                     if resp.status == 200:
-                        api_results.append(f"  🟢  {name}  »  Online")
+                        api_results.append(f"  🟢 <code>{name}</code> » Online")
                     else:
-                        api_results.append(f"  🔴  {name}  »  Error {resp.status}")
+                        api_results.append(f"  🔴 <code>{name}</code> » Error {resp.status}")
             except Exception:
-                api_results.append(f"  🔴  {name}  »  Offline")
+                api_results.append(f"  🔴 <code>{name}</code> » Offline")
 
     api_text = "\n".join(api_results)
 
-    ping_text = f"""<code>
-╔═══════════════════════════════════╗
-║           ⚡ P O N G             ║
-╠═══════════════════════════════════╣
-║                                   ║
-║  🏓  Latency    ║  {latency_ms:.1f} ms
-║  {quality_icon}  Quality     ║  {quality}
-║  ╰─────────────────────────────╯
-║  {bar}  {pct}%
-║  ╰─────────────────────────────╯
-║  ⏱️  Uptime     ║  {uptime}
-║  🤖  Version    ║  v{config.VERSION}
-║  📡  Server     ║  {server_status}
-║                                   ║
-╠═══════════════════════════════════╣
-║           🌐 A P I S             ║
-╠═══════════════════════════════════╣
-{api_text}
-║                                   ║
-╚═══════════════════════════════════╝
-</code>"""
+    ping_text = f"""<b>⚡ PONG</b>
+
+<b>🏓 Latency:</b> <code>{latency_ms:.1f} ms</code>
+<b>{quality_icon} Quality:</b> <code>{quality}</code>
+<b>⏱️ Uptime:</b> <code>{uptime}</code>
+<b>🤖 Version:</b> <code>v{config.VERSION}</code>
+<b>📡 Server:</b> <code>{server_status}</code>
+
+<b>🌐 APIs:</b>
+{api_text}"""
     await msg.edit(ping_text, disable_web_page_preview=True)
     await message_deleter(message, msg)
 
