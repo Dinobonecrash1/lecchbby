@@ -37,8 +37,9 @@ def set_user_context(message):
     """Set per-user context from a message. Call at start of every handler."""
     uid = message.from_user.id
 
-    # Rate limit check
-    if not UserRegistry.check_rate_limit(uid):
+    # Rate limit check (normal users only — admins/owners bypass)
+    is_admin = uid == config.OWNER_ID or uid in config.ALLOWED_ADMINS
+    if not is_admin and not UserRegistry.check_rate_limit(uid):
         return None, "<b>⏳ Please slow down.</b> Wait a few seconds before sending another command."
 
     current_user_id.set(uid)

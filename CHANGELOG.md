@@ -12,6 +12,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+---
+
+## [3.3.3] - 2026-06-22
+
+### Fixed
+- **Rate limit bypass for admins/owners** — normal users still get "Please slow down" but admins/owners can send commands/clicks freely
+
 ## [3.3.2] - 2026-06-22
 
 ### Fixed
