@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.1] - 2026-06-22
+
+### Changed
+- **📚 Updated documentation for v3.2.0 modular structure** — refreshed project structure diagrams and file references in `README.md`, `GUIDE.md`, `ARCHITECTURE.md`, and `AGENTS.md` to use `leechbot/commands/` and `leechbot/callbacks/` packages instead of the old monolithic `commands.py`/`callbacks.py` files. Also updated the "Adding a New Command" agent instructions to point to the correct submodules.
+
+---
+
 ## [3.2.0] - 2026-06-22
 
 ### Changed

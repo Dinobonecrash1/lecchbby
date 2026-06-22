@@ -317,8 +317,23 @@ LeechBot/
 ├── leechbot/
 │   ├── __init__.py          # Pyrogram client
 │   ├── __main__.py          # Entry point
-│   ├── commands.py          # /command handlers (32 commands)
-│   ├── callbacks.py         # Button callbacks
+│   ├── commands/            # /command handlers (32 commands)
+│   │   ├── __init__.py
+│   │   ├── admin.py         # Admin & control commands
+│   │   ├── downloads.py     # Download / upload commands
+│   │   ├── options.py       # Quick option commands
+│   │   ├── settings.py      # Settings / format / speed commands
+│   │   ├── start_help.py    # /start and /help commands
+│   │   └── status.py        # Status / stats / queue commands
+│   ├── callbacks/           # Button callbacks
+│   │   ├── __init__.py
+│   │   ├── common.py        # Shared callback utilities
+│   │   ├── dispatcher.py    # Main callback router
+│   │   ├── navigation.py    # Help / about / start navigation
+│   │   ├── settings.py      # Settings menus
+│   │   ├── system.py        # System info callbacks
+│   │   ├── update.py        # Update callback
+│   │   └── upload.py        # Upload type / YT-DLP callbacks
 │   ├── handlers.py          # Message handlers
 │   ├── debug.py             # Error reporting
 │   ├── updater.py           # Auto-update

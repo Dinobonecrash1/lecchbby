@@ -20,10 +20,10 @@ LeechBot is a **Pyrogram-based Telegram bot** for downloading files from various
 ┌─────────────────────────────────────────────────────┐
 │                    __main__.py                       │
 │              (entry point, startup)                  │
-├──────────┬──────────┬──────────┬────────────────────┤
-│commands.py│callbacks.py│handlers.py│  (Pyrogram       │
-│  /cmd     │  buttons  │  messages │   handlers)       │
-├──────────┴──────────┴──────────┴────────────────────┤
+├───────────┬───────────┬─────────────┬───────────────┤
+│ commands/ │ callbacks/│  handlers.py│  (Pyrogram    │
+│  /cmd     │  buttons  │  messages   │   handlers)   │
+├───────────┴───────────┴─────────────┴───────────────┤
 │              utility/task_manager.py                 │
 │           (orchestrates download → upload)           │
 ├─────────────────────┬───────────────────────────────┤
@@ -56,8 +56,8 @@ LeechBot is a **Pyrogram-based Telegram bot** for downloading files from various
 | `config.py` | All env vars, paths, feature flags, credentials loading |
 | `leechbot/__init__.py` | Pyrogram `app` client creation, exports |
 | `leechbot/__main__.py` | Entry point, handler imports, web server startup |
-| `leechbot/commands.py` | All `/command` handlers (32 commands) |
-| `leechbot/callbacks.py` | Inline keyboard callback routing |
+| `leechbot/commands/` | `/command` handler package (admin, downloads, options, settings, start_help, status) |
+| `leechbot/callbacks/` | Inline keyboard callback package (dispatcher, navigation, settings, system, update, upload) |
 | `leechbot/handlers.py` | Message handlers (URL, photo, text, reply) |
 | `leechbot/utility/variables.py` | **ALL global mutable state** — single source of truth |
 | `leechbot/utility/helper.py` | Link detection, UI builders, file utils, status bar |
@@ -93,7 +93,7 @@ Key state classes:
 
 ```
 User sends /tupload + link
-  → commands.py: task_starter()
+  → leechbot/commands/downloads.py: task_starter()
   → task_manager.py: orchestrates pipeline
     → downloader/manager.py: routes to correct downloader
       → aria2.py / ytdl.py / gallery.py / etc.
@@ -145,7 +145,7 @@ Every `.py` file starts with:
 ## Common Tasks
 
 ### Adding a New Command
-1. Add handler in `leechbot/commands.py` with `@app.on_message(filters.command("cmd"))`
+1. Add handler in the appropriate `leechbot/commands/<module>.py` (e.g., `downloads.py`, `admin.py`) with `@app.on_message(filters.command("cmd"))`. If a new category is needed, create a module and import it in `leechbot/commands/__init__.py`.
 2. Register command description in `__main__.py` `_register_commands()`
 3. Add any new state to `leechbot/utility/variables.py`
 4. Update `GUIDE.md` commands table

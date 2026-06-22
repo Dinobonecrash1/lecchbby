@@ -1469,8 +1469,23 @@ LeechBot/
 ├── leechbot/
 │   ├── __init__.py         # Pyrogram client setup
 │   ├── __main__.py         # Entry point (run with: python3 -m leechbot)
-│   ├── commands.py         # All /command handlers
-│   ├── callbacks.py        # Inline keyboard callback handlers
+│   ├── commands/           # /command handlers
+│   │   ├── __init__.py
+│   │   ├── admin.py        # Admin & control commands
+│   │   ├── downloads.py    # Download / upload commands
+│   │   ├── options.py      # Quick option commands
+│   │   ├── settings.py     # Settings / format / speed commands
+│   │   ├── start_help.py   # /start and /help commands
+│   │   └── status.py       # Status / stats / queue commands
+│   ├── callbacks/          # Inline keyboard callback handlers
+│   │   ├── __init__.py
+│   │   ├── common.py       # Shared callback utilities
+│   │   ├── dispatcher.py   # Main callback router
+│   │   ├── navigation.py   # Help / about / start navigation
+│   │   ├── settings.py     # Settings menus
+│   │   ├── system.py       # System info callbacks
+│   │   ├── update.py       # Update callback
+│   │   └── upload.py       # Upload type / YT-DLP callbacks
 │   ├── handlers.py         # Message handlers (URL, photo, text)
 │   ├── updater.py          # Auto-update from GitHub
 │   ├── debug.py            # Error reporting to Telegram

@@ -61,13 +61,17 @@ __main__.py
   ├── imports: web.server                     (starts dashboard)
   └── runs: app.start() + idle()
 
-commands.py ─────────────────────────────────────────────┐
+commands/  ──────────────────────────────────────────────┐
+  │ admin.py / downloads.py / options.py / settings.py    │
+  │ start_help.py / status.py                             │
   ├── imports: app, OWNER                                │
   ├── imports: variables.BOT, Queue, BotStats            │
   ├── imports: task_manager.task_starter                  │
   └── imports: handler.cancelTask, helper.*               │
                                                           │
-callbacks.py ────────────────────────────────────────────┤
+callbacks/ ──────────────────────────────────────────────┤
+  │ common.py / dispatcher.py / navigation.py             │
+  │ settings.py / system.py / update.py / upload.py       │
   ├── imports: app, OWNER                                │
   ├── imports: variables.BOT, MSG, BotTimes, Paths       │
   └── imports: handler.cancelTask, helper.*               │
@@ -150,7 +154,7 @@ MSG.sent_msg = new_message
 Telegram → Pyrogram event loop → @app.on_message handler
 ```
 
-### 2. Command handler (`commands.py`)
+### 2. Command handlers (`leechbot/commands/` package)
 
 ```python
 @app.on_message(filters.command("tupload"))
