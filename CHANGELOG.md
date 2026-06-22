@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ## [3.2.4] - 2026-06-22
 
 ### Fixed
+- **UserPaths never initialized** — `Path('.')` is truthy so `__post_init__` skipped `create()`. Now checks `WORK_PATH` string instead
 - **Status messages routed to user** — all `chat_id=OWNER` in status/progress messages changed to `current_user_id.get()`
 - **Missing WORK_PATH** — added `WORK_PATH`, `FONT_FILE`, `MOUNTED_DRIVE` to `UserPaths`
 - **Docker builder** — switched Railway from nixpacks to Dockerfile builder for reliable dependency installation
