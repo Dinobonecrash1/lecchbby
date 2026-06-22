@@ -134,6 +134,10 @@ async def _register_commands():
         BotCommand("restart", "🔄 Restart the bot"),
         BotCommand("logs", "📋 Recent log lines"),
         BotCommand("admin", "👥 Manage allowed users"),
+        BotCommand("rss_add", "📰 Add RSS auto-download feed"),
+        BotCommand("rss_list", "📋 List RSS feeds"),
+        BotCommand("rss_remove", "❌ Remove RSS feed"),
+        BotCommand("rss_check", "🔍 Check RSS feeds now"),
         BotCommand("broadcast", "📢 Broadcast to chats"),
         BotCommand("cookies", "🍪 YT-DLP auth status"),
         BotCommand("setcookies", "📤 Upload cookies.txt"),
@@ -172,6 +176,14 @@ async def startup():
     # Install error reporting (sends errors to DUMP_ID channel)
     await setup_error_reporting(app, config.DUMP_ID, config.OWNER_ID)
 
+    # Start RSS auto-download poller
+    try:
+        from leechbot.utility.rss_manager import start_rss_poller
+        start_rss_poller()
+        logger.info("📰 RSS auto-download poller started")
+    except Exception as e:
+        logger.warning("⚠️ RSS poller failed to start: %s", e)
+
     logger.info("=" * 60)
     logger.info("LeechBot started successfully")
     logger.info("Developer: Shinei Nouzen")
@@ -200,9 +212,17 @@ async def startup():
     # check this flag and bail instead of starting new long-running tasks
     # (download + upload) that will get cancelled mid-flight and produce
     # a noisy CancelledError traceback. See callbacks.py:_handle_upload_type
-    # and task_manager.py:taskScheduler for the bail-out checks.
+    # and task_manager.py:taskScheduler for the full shutdown flow.
     BOT.State.shutting_down = True
     logger.info("🛑 Shutdown signal received — blocking new tasks, draining queue...")
+
+    # Stop RSS poller
+    try:
+        from leechbot.utility.rss_manager import stop_rss_poller
+        stop_rss_poller()
+    except Exception as e:
+        logger.warning("⚠️ RSS poller stop failed: %s", e)
+
     await app.stop()
 
 

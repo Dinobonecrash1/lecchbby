@@ -269,7 +269,7 @@ conda install -c conda-forge libtorrent
 
 ## 📋 Commands
 
-All 32 commands are organized into 6 categories in the **interactive `/help` menu**.
+All bot commands are organized into categories in the **interactive `/help`** menu.
 
 | Category | Commands | Usage |
 |----------|----------|-------|
@@ -278,6 +278,7 @@ All 32 commands are organized into 6 categories in the **interactive `/help` men
 | **⚙️ Status & Settings** | 7 | `settings`, `status`, `stats`, `logs`, `ping`, `restart`, `update` |
 | **🍪 Cookies** | 3 | `cookies`, `setcookies`, `clearcookies` |
 | **🛠 Admin** | 2 | `admin`, `broadcast` |
+| **📰 RSS** | 4 | `rss_add`, `rss_list`, `rss_remove`, `rss_check` |
 
 > 💡 **Try it on Telegram:** Send `/help` — the bot will show category buttons.
 > Type `/help <command>` (e.g. `/help ytupload`) for direct help without navigating the menu.

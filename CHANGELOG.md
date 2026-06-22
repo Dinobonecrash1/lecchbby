@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.5] - 2026-06-22
+
+### Added
+- **📰 RSS Auto-Download** — background RSS feed monitor for automatic downloads:
+  - `/rss_add <url> <command> [interval]` — subscribe to an RSS/Atom feed
+  - `/rss_list` — list configured feeds
+  - `/rss_remove <id>` — remove a feed
+  - `/rss_check` — manually trigger a feed check
+  - New feeds are saved to `rss_feeds.json` in `BASE_DIR`
+  - New entries are dispatched to the chosen command (`tupload`, `ytupload`, `gdupload`, etc.)
+  - Added `feedparser` dependency and started the poller from `leechbot/__main__.py`
+
+---
+
 ## [3.2.4] - 2026-06-22
 
 ### Added
