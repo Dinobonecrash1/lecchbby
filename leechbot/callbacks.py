@@ -1050,6 +1050,21 @@ async def _handle_anime_download(client, callback_query, data: str):
 
         BOT.State.task_going = True
 
+        # Clear any previous thumbnail so hero image is used
+        BOT.Setting.thumbnail = False
+        BOT.State.anime_poster_path = None
+        try:
+            if ospath.exists(Paths.THMB_PATH):
+                os.remove(Paths.THMB_PATH)
+        except Exception:
+            pass
+        anime_poster = str(Paths.THMB_PATH).replace("Thumbnail.jpg", "anime_poster.jpg")
+        try:
+            if ospath.exists(anime_poster):
+                os.remove(anime_poster)
+        except Exception:
+            pass
+
         # Parse episode range
         parts = data.replace("anime_dl_", "").split("_")
         start_ep = int(parts[0])

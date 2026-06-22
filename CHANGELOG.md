@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.69] - 2026-06-22
+
+### Fixed
+- **🖼️ Thumbnail clear at task START** — thumbnail now cleared at the beginning of each anime task (not just at end), so old thumbnails never persist
+
 ## [3.1.68] - 2026-06-22
 
 ### Fixed

@@ -1212,6 +1212,21 @@ async def anime_command(client, message):
             BOT.Mode.ytdl = True
             BOT.Mode.mode = "leech"
             BOT.Mode.is_leech = True
+
+            # Clear any previous thumbnail so hero image is used
+            BOT.Setting.thumbnail = False
+            BOT.State.anime_poster_path = None
+            try:
+                if ospath.exists(Paths.THMB_PATH):
+                    os.remove(Paths.THMB_PATH)
+            except Exception:
+                pass
+            anime_poster = str(Paths.THMB_PATH).replace("Thumbnail.jpg", "anime_poster.jpg")
+            try:
+                if ospath.exists(anime_poster):
+                    os.remove(anime_poster)
+            except Exception:
+                pass
             BOT.Options.http_headers = {"Referer": "https://kwik.cx/", "Origin": "https://kwik.cx/"}
 
             ep_label_range = f"Ep {ep_start}" if ep_start == ep_end else f"Ep {ep_start}-{ep_end}"
