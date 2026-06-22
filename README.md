@@ -223,6 +223,9 @@ pip install -r requirements.txt
 cp .env.example .env
 nano .env
 
+# Either run command works
+python3 leechbot.py
+# or
 python3 -m leechbot
 ```
 
@@ -301,6 +304,7 @@ All 32 commands are organized into 6 categories in the **interactive `/help` men
 
 ```
 LeechBot/
+├── leechbot.py              # Simple entry point: python3 leechbot.py
 ├── main.py                  # Colab deployer
 ├── config.py                # Configuration (env vars, paths)
 ├── requirements.txt         # Dependencies

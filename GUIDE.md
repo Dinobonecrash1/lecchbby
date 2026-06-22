@@ -205,6 +205,8 @@ TOKEN_PICKLE_PATH=
 
 ```bash
 cd LeechBot
+python3 leechbot.py
+# or
 python3 -m leechbot
 ```
 
@@ -221,7 +223,7 @@ On first start:
 **Option 1: Screen (simple)**
 ```bash
 screen -S leechbot
-python3 -m leechbot
+python3 leechbot.py
 # Press Ctrl+A, then D to detach
 # Re-attach with: screen -r leechbot
 ```
@@ -229,7 +231,7 @@ python3 -m leechbot
 **Option 2: tmux**
 ```bash
 tmux new -s leechbot
-python3 -m leechbot
+python3 leechbot.py
 # Press Ctrl+B, then D to detach
 # Re-attach with: tmux attach -t leechbot
 ```
@@ -246,7 +248,7 @@ After=network.target
 Type=simple
 User=your_username
 WorkingDirectory=/path/to/LeechBot
-ExecStart=/usr/bin/python3 -m leechbot
+ExecStart=/usr/bin/python3 leechbot.py
 Restart=always
 RestartSec=10
 
@@ -299,7 +301,7 @@ The dashboard is hosted at **https://shineii86.github.io/LeechBot/** — no setu
 
 **Option 2: Local Dashboard (VPS / Self-hosted)**
 
-1. Start the bot: `python3 -m leechbot`
+1. Start the bot: `python3 leechbot.py` (or `python3 -m leechbot`)
 2. Open `http://your-server-ip:8080` in your browser
 3. Enter the token from the bot logs
 
@@ -1458,6 +1460,7 @@ Bot:   🚀 Initializing Task...
 
 ```
 LeechBot/
+├── leechbot.py             # Simple entry point: python3 leechbot.py
 ├── main.py                 # Colab deployer (Google Colab only)
 ├── config.py               # Central configuration (loads .env)
 ├── requirements.txt        # Python dependencies
@@ -1467,6 +1470,7 @@ LeechBot/
 ├── GUIDE.md                # This file
 ├── README.md               # Project overview
 ├── leechbot/
+│   ├── __init__.py         # Pyrogram client setup
 │   ├── __init__.py         # Pyrogram client setup
 │   ├── __main__.py         # Entry point (run with: python3 -m leechbot)
 │   ├── aliases.py          # Command alias pre-processor

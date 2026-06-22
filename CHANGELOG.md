@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.4] - 2026-06-22
+
+### Added
+- **🚀 Simple entry point `leechbot.py`** — added a root-level wrapper so the bot can be started with either:
+  - `python3 leechbot.py`
+  - `python3 -m leechbot`
+  - Updated `README.md` and `GUIDE.md` to show both options.
+
+---
+
 ## [3.2.3] - 2026-06-22
 
 ### Fixed
