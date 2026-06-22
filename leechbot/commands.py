@@ -1132,6 +1132,7 @@ async def anime_command(client, message):
     # ── Quick mode: episodes specified ──
     if ep_start is not None:
         from asyncio import get_running_loop
+        from leechbot.callbacks import _download_anime_poster
 
         status = await message.reply_text(
             f"<b>🔍 Searching:</b> <code>{query}</code>...\n"
