@@ -22,7 +22,7 @@ from datetime import datetime
 from time import time
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from leechbot import app, OWNER, LOG_FILE, DUMP_ID
+from leechbot import app, LOG_FILE, DUMP_ID
 from leechbot.utility.variables import BOT, MSG, YTDL, BotStats, BotTimes, Transfer, Messages, Paths, current_user_id, UserRegistry, Admin
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.helper import (
@@ -139,10 +139,16 @@ async def help_command(client, message):
 • /formats — List available formats for a video URL
 • /speed — Set bandwidth limit
 
-<b>─── Admin ───</b>
+<b>─── Admin / Bot Control ───</b>
 • /admin — Manage allowed users
 • /broadcast — Send file to multiple chats
 • /stats — Bot &amp; system statistics
+• /status — Current task &amp; queue status
+• /queue — View download queue
+• /cancel — Cancel your current task
+• /cancel_all — Cancel all tasks &amp; clear queue
+• /restart — Restart the bot
+• /logs — View recent logs
 • /update — Check for updates
 • /help — Show this help message
 
@@ -179,9 +185,12 @@ Terabox, Mega, Pixeldrain, Mediafire"""
 # =============================================================================
 @app.on_message(filters.command("settings") & filters.private)
 async def settings_command(client, message):
-    if message.chat.id == OWNER:
-        await message.delete()
-        await send_settings(client, message, message.id, True)
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
+    await message.delete()
+    await send_settings(client, message, message.id, True)
 
 # =============================================================================
 # /format
@@ -191,8 +200,6 @@ async def format_command(client, message):
     ctx, err = set_user_context(message)
     if err:
         await message.reply_text(err)
-        return
-    if message.chat.id != OWNER:
         return
 
     keyboard = InlineKeyboardMarkup([
@@ -224,7 +231,9 @@ async def format_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("speed") & filters.private)
 async def speed_command(client, message):
-    if message.chat.id != OWNER:
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
         return
 
     keyboard = InlineKeyboardMarkup([
@@ -470,7 +479,9 @@ async def autorename_command(client, message):
 async def formats_command(client, message):
     from leechbot.downloader.ytdl import list_formats
 
-    if message.chat.id != OWNER:
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
         return
 
     parts = (message.text or "").split(maxsplit=1)
@@ -500,7 +511,9 @@ async def formats_command(client, message):
 async def preview_command(client, message):
     from leechbot.downloader.gallery import list_gallery_content
 
-    if message.chat.id != OWNER:
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
         return
 
     parts = (message.text or "").split(maxsplit=1)
@@ -634,10 +647,6 @@ async def status_command(client, message):
     if err:
         await message.reply_text(err)
         return
-    if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
-        return
-
-    from leechbot.utility.user_state import TaskQueue
 
     if BOT.State.task_going:
         task_elapsed = ""
@@ -672,6 +681,7 @@ async def status_command(client, message):
     else:
         active_section = "<b>🎯 Active Task</b>\n\n• <code>No task running</code>"
 
+    from leechbot.utility.user_state import TaskQueue
     pending = TaskQueue.pending
     active_count = TaskQueue.active_count
     max_c = TaskQueue.max_concurrent
@@ -706,8 +716,6 @@ async def queue_command(client, message):
     ctx, err = set_user_context(message)
     if err:
         await message.reply_text(err)
-        return
-    if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
         return
 
     from leechbot.utility.user_state import TaskQueue
@@ -764,8 +772,6 @@ async def cancel_all_command(client, message):
     if err:
         await message.reply_text(err)
         return
-    if message.chat.id != OWNER:
-        return
 
     from leechbot.utility.user_state import TaskQueue
     TaskQueue.clear()
@@ -783,7 +789,9 @@ async def cancel_all_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("admin") & filters.private)
 async def admin_command(client, message):
-    if message.chat.id != OWNER:
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
         return
 
     if len(message.command) < 2:
@@ -842,9 +850,6 @@ async def broadcast_command(client, message):
         await message.reply_text(err)
         return
     from asyncio import sleep
-
-    if message.chat.id != OWNER:
-        return
 
     if not BOT.State.task_going and not Transfer.sent_file:
         msg = await message.reply_text(
@@ -975,8 +980,6 @@ async def setcookies_command(client, message):
     if err:
         await message.reply_text(err)
         return
-    if message.chat.id != OWNER:
-        return
 
     text = """<b>🍪 Upload Cookies File</b>
 
@@ -1007,8 +1010,6 @@ async def clearcookies_command(client, message):
     if err:
         await message.reply_text(err)
         return
-    if message.chat.id != OWNER:
-        return
 
     cookie_path = Paths.COOKIE_FILE
     if os.path.isfile(cookie_path):
@@ -1030,8 +1031,6 @@ async def restart_command(client, message):
     ctx, err = set_user_context(message)
     if err:
         await message.reply_text(err)
-        return
-    if message.chat.id != OWNER:
         return
 
     if BOT.State.task_going:
@@ -1068,7 +1067,9 @@ async def restart_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("logs") & filters.private)
 async def logs_command(client, message):
-    if message.chat.id != OWNER:
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
         return
 
     args = message.text.split(maxsplit=1)
@@ -1139,7 +1140,9 @@ async def logs_command(client, message):
 async def update_command(client, message):
     from leechbot.updater import check_for_updates, get_local_version, get_changelog_since
 
-    if message.chat.id != OWNER:
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
         return
 
     msg = await message.reply_text("<b>🔄 Checking for updates...</b>", quote=True)

@@ -256,9 +256,6 @@ async def handle_document(client, message):
         await message.reply_text(err)
         return
 
-    if message.chat.id != OWNER:
-        return
-
     file_name = message.document.file_name or ""
     if file_name.lower() == "cookies.txt":
         msg = await message.reply_text("<b>🍪 Downloading cookies file...</b>")

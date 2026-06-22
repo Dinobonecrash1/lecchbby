@@ -8,6 +8,17 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+---
+
+## [3.3.1] - 2026-06-22
+
+### Changed
+- **All commands are now public** — removed owner/ALLOWED_USERS restrictions from /settings, /format, /speed, /formats, /preview, /status, /queue, /cancel_all, /admin, /broadcast, /setcookies, /clearcookies, /restart, /logs, /update, and document uploads
+- **Help menu updated** to show all public commands
+
+### Security Note
+This version makes previously owner-only commands available to all users. For untrusted public groups, this allows any user to restart, update, broadcast, cancel all tasks, and read logs.
+
 ## [3.3.0] - 2026-06-22
 
 ### Added
