@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.65] - 2026-06-22
+
+### Fixed
+- **🏷️ Autorename template for anime** — anime batch downloads now apply `/autorename` template before upload
+
 ## [3.1.64] - 2026-06-22
 
 ### Changed

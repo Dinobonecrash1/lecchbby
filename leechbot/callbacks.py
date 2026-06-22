@@ -1252,6 +1252,24 @@ async def _handle_anime_download(client, callback_query, data: str):
             file_path = ep_dir + "/" + files[0]
             real_name = file_name + ospath.splitext(files[0])[1]
 
+            # Apply autorename template if set
+            if BOT.Setting.autorename_template:
+                from leechbot.utility.handler import _apply_autorename_template
+                file_metadata = {
+                    'title': title,
+                    'audio': category,
+                    'episode': str(ep_num),
+                    'season': '1',
+                }
+                new_name = _apply_autorename_template(real_name, BOT.Setting.autorename_template, file_metadata)
+                new_file_path = ospath.join(ep_dir, new_name)
+                try:
+                    os.rename(file_path, new_file_path)
+                    file_path = new_file_path
+                    real_name = new_name
+                except OSError:
+                    pass
+
             try:
                 await upload_file(file_path, real_name)
                 Transfer.up_bytes.append(file_size)
