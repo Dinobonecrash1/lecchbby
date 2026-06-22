@@ -1389,6 +1389,11 @@ async def anime_command(client, message):
 
                 # Set transfer total for progress tracking
                 file_size = ospath.getsize(ep_dir + "/" + files[0])
+                if file_size == 0:
+                    logger.warning("Episode %d: downloaded file is 0 bytes, skipping", ep_num)
+                    failed += 1
+                    shutil.rmtree(ep_dir)
+                    continue
                 Transfer.total_down_size = file_size
 
                 # Upload

@@ -1220,18 +1220,37 @@ async def _handle_anime_download(client, callback_query, data: str):
             makedirs(ep_dir, exist_ok=True)
             Paths.down_path = ep_dir
 
-            # Download episode with progress bar
-            try:
-                Messages.download_name = file_name
-                from leechbot.downloader.ytdl import YTDL_Status, YTDL
-                await YTDL_Status(stream_url, ep_num - start_ep + 1)
-                # Wait for yt-dlp to fully finish (HLS fragments may still be merging)
-                for _ in range(30):
-                    if YTDL.complete:
+            # Download episode with retry
+            download_ok = False
+            for attempt in range(2):
+                try:
+                    Messages.download_name = file_name
+                    from leechbot.downloader.ytdl import YTDL_Status, YTDL
+                    await YTDL_Status(stream_url, ep_num - start_ep + 1)
+                    # Wait for yt-dlp to fully finish (HLS fragments may still be merging)
+                    for _ in range(30):
+                        if YTDL.complete:
+                            break
+                        await sleep(1)
+                    # Check if file was actually downloaded
+                    temp_files = [f for f in listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
+                    if temp_files and ospath.getsize(ep_dir + "/" + temp_files[0]) > 0:
+                        download_ok = True
                         break
-                    await sleep(1)
-            except Exception as e:
-                logger.error("Episode %d download failed: %s", ep_num, e)
+                    else:
+                        logger.warning("Episode %d attempt %d: empty file, retrying", ep_num, attempt + 1)
+                        if ospath.exists(ep_dir):
+                            shutil.rmtree(ep_dir)
+                        makedirs(ep_dir, exist_ok=True)
+                        await sleep(2)
+                except Exception as e:
+                    logger.error("Episode %d attempt %d failed: %s", ep_num, attempt + 1, e)
+                    if ospath.exists(ep_dir):
+                        shutil.rmtree(ep_dir)
+                    makedirs(ep_dir, exist_ok=True)
+                    await sleep(2)
+
+            if not download_ok:
                 failed += 1
                 if ospath.exists(ep_dir):
                     shutil.rmtree(ep_dir)
@@ -1246,6 +1265,11 @@ async def _handle_anime_download(client, callback_query, data: str):
 
             # Set transfer total for progress tracking
             file_size = ospath.getsize(ep_dir + "/" + files[0])
+            if file_size == 0:
+                logger.warning("Episode %d: downloaded file is 0 bytes, skipping", ep_num)
+                failed += 1
+                shutil.rmtree(ep_dir)
+                continue
             Transfer.total_down_size = file_size
 
             # Upload the file

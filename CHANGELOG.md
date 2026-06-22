@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.76] - 2026-06-22
+
+### Fixed
+- **📁 0-byte file upload** — skip files with 0 bytes instead of uploading empty files
+- **🔄 Download retry** — retry failed/empty downloads once before skipping
+
 ## [3.1.75] - 2026-06-22
 
 ### Changed
