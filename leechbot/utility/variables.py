@@ -20,15 +20,13 @@ For multi-user: Use UserContext from user_state.py for per-user isolation.
 
 import config
 import contextvars
-from time import time
 from datetime import datetime
 from pathlib import Path
 from collections import deque
-from pyrogram.types import Message
 
 # Import per-user state system
 from leechbot.utility.user_state import (
-    UserContext, UserRegistry, TaskQueue, UserPaths
+    UserContext, UserRegistry
 )
 
 
@@ -95,12 +93,6 @@ class BOT:
     For multi-user: Use get_ctx() to get per-user state.
     This class provides backward compatibility via proxy objects.
     """
-
-    # Download sources list (legacy — use ctx.task.source)
-    SOURCE: list = []
-
-    # Active asyncio task reference (legacy — use ctx.task.task)
-    TASK = None
 
     # Class-level shutdown flag (global, not per-user)
     _shutting_down: bool = False
@@ -320,9 +312,6 @@ MSG = _MSGProxy()
 # =============================================================================
 # Shared (not per-user)
 # =============================================================================
-class Aria2c:
-    link_info: bool = False
-
 class Gdrive:
     service = None
 

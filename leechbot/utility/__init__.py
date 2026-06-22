@@ -12,7 +12,7 @@ LeechBot utility package initialization.
 Exports all core modules and functions.
 """
 
-from .variables import BOT, YTDL, Transfer, TaskError, BotTimes, Paths, Messages, MSG, Aria2c, Gdrive, MAX_FILE_SIZE, VERSION, get_ctx, current_user_id
+from .variables import BOT, YTDL, Transfer, TaskError, BotTimes, Paths, Messages, MSG, Gdrive, MAX_FILE_SIZE, VERSION, get_ctx, current_user_id
 from .user_state import UserContext, UserRegistry, TaskQueue, UserPaths
 from .moderation import ModerationDB, Moderation
 from .helper import isLink, getTime, sizeUnit, fileType, getSize, sysINFO, speedETA, status_bar, keyboard, message_deleter, send_settings, status_keyboard
@@ -29,7 +29,6 @@ __all__ = [
     "Paths",
     "Messages",
     "MSG",
-    "Aria2c",
     "Gdrive",
     "MAX_FILE_SIZE",
     "VERSION",

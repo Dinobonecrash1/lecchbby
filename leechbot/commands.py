@@ -22,7 +22,7 @@ from time import time
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, LOG_FILE, DUMP_ID
-from leechbot.utility.variables import BOT, MSG, YTDL, BotStats, BotTimes, Transfer, Messages, Queue, Paths, current_user_id, UserRegistry
+from leechbot.utility.variables import BOT, MSG, YTDL, BotStats, BotTimes, Transfer, Messages, Queue, Paths, current_user_id, UserRegistry, Admin
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.helper import (
     send_settings, message_deleter, format_stats, sysINFO, getTime, sizeUnit,
@@ -183,6 +183,10 @@ async def settings_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("format") & filters.private)
 async def format_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if message.chat.id != OWNER:
         return
 
@@ -273,7 +277,7 @@ https://example.com/file2.mp4
 • Use { } For Zip Password
 • Use ( ) For Extract Password"""
     src_request_msg = await task_starter(message, text)
-    BOT._src_request_msg = src_request_msg
+    MSG.src_request_msg = src_request_msg
 
 # =============================================================================
 # /gdupload
@@ -303,7 +307,7 @@ https://example.com/file2.mp4
 • Files Will Be Mirrored To Your GDrive
 • Make Sure GDrive Is Mounted"""
     src_request_msg = await task_starter(message, text)
-    BOT._src_request_msg = src_request_msg
+    MSG.src_request_msg = src_request_msg
 
 # =============================================================================
 # /drupload
@@ -328,7 +332,7 @@ async def directory_upload_command(client, message):
 • Provide Absolute Path To The Folder
 • Ensure The Bot Has Read Permissions"""
     src_request_msg = await task_starter(message, text)
-    BOT._src_request_msg = src_request_msg
+    MSG.src_request_msg = src_request_msg
 
 # =============================================================================
 # /ytupload
@@ -357,7 +361,7 @@ https://youtu.be/xxxxx
 • Twitter, TikTok, Vimeo, Dailymotion
 • And 2000+ more sites"""
     src_request_msg = await task_starter(message, text)
-    BOT._src_request_msg = src_request_msg
+    MSG.src_request_msg = src_request_msg
 
 # =============================================================================
 # /glupload
@@ -394,13 +398,17 @@ https://pixiv.net/users/123456
 • Use [ ] For Custom Folder Name
 • Use { } For Zip Password"""
     src_request_msg = await task_starter(message, text)
-    BOT._src_request_msg = src_request_msg
+    MSG.src_request_msg = src_request_msg
 
 # =============================================================================
 # /setname
 # =============================================================================
 @app.on_message(filters.command("setname") & filters.private)
 async def setname_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if len(message.command) < 2:
         msg = await message.reply_text(
             "<b>⚠️ Usage:</b> <code>/setname &lt;filename&gt;</code>\n\n"
@@ -417,6 +425,10 @@ async def setname_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("autorename") & filters.private)
 async def autorename_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if len(message.command) < 2:
         current_template = BOT.Setting.autorename_template
         status = f"<b>📝 Current Template:</b> <code>{current_template}</code>" if current_template else "<b>📝 No template set</b>"
@@ -511,6 +523,10 @@ async def preview_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("zipaswd") & filters.private)
 async def zipaswd_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if len(message.command) != 2:
         msg = await message.reply_text(
             "<b>⚠️ Usage</b>\n\n"
@@ -528,6 +544,10 @@ async def zipaswd_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("unzipaswd") & filters.private)
 async def unzipaswd_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if len(message.command) != 2:
         msg = await message.reply_text(
             "<b>⚠️ Usage</b>\n\n"
@@ -605,6 +625,10 @@ async def ping_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("status") & filters.private)
 async def status_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
         return
 
@@ -674,6 +698,10 @@ async def stats_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("queue") & filters.private)
 async def queue_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
         return
 
@@ -708,6 +736,10 @@ async def queue_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("cancel") & filters.private)
 async def cancel_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if BOT.State.task_going:
         await cancelTask("User cancelled the task")
         msg = await message.reply_text("<b>🚫 Task Cancelled</b> ✓", quote=True)
@@ -720,6 +752,10 @@ async def cancel_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("cancel_all") & filters.private)
 async def cancel_all_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if message.chat.id != OWNER:
         return
 
@@ -792,6 +828,10 @@ async def admin_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("broadcast") & filters.private)
 async def broadcast_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     from asyncio import sleep
 
     if message.chat.id != OWNER:
@@ -861,6 +901,10 @@ async def broadcast_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("cookies") & filters.private)
 async def cookies_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     import subprocess
 
     cookies_file = getattr(config, "YTDL_COOKIES_FILE", "")
@@ -918,6 +962,10 @@ Upload a <code>cookies.txt</code> file here as a backup:
 # =============================================================================
 @app.on_message(filters.command("setcookies") & filters.private)
 async def setcookies_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if message.chat.id != OWNER:
         return
 
@@ -946,6 +994,10 @@ Send me your <code>cookies.txt</code> file <b>as a document</b> (not as text).
 # =============================================================================
 @app.on_message(filters.command("clearcookies") & filters.private)
 async def clearcookies_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if message.chat.id != OWNER:
         return
 
@@ -966,6 +1018,10 @@ async def clearcookies_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("restart") & filters.private)
 async def restart_command(client, message):
+    ctx, err = set_user_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     if message.chat.id != OWNER:
         return
 
@@ -1431,7 +1487,7 @@ async def anime_command(client, message):
                     pass
 
                 # Create temp folder for this episode
-                ep_dir = ospath.join(str(config.DOWNLOADS_PATH), f"ep_{ep_num}")
+                ep_dir = ospath.join(str(Paths.temp), f"ep_{ep_num}")
                 if ospath.exists(ep_dir):
                     shutil.rmtree(ep_dir)
                 makedirs(ep_dir, exist_ok=True)

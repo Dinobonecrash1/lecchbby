@@ -77,7 +77,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
         is_ytdl: whether to use YT-DLP for all sources
     """
     from leechbot.utility.handler import cancelTask
-    from leechbot.downloader.aria2 import aria2_Download, Aria2c
+    from leechbot.downloader.aria2 import aria2_Download
     from leechbot.downloader.ytdl import YTDL_Status
     from leechbot.downloader.gdrive import build_service, g_DownLoad, getIDFromURL, getFileMetadata, get_Gfolder_size
     from leechbot.downloader.mega import megadl
@@ -195,7 +195,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
                         # libtorrent not installed — fall back to aria2c
                         logger.warning("libtorrent not available, falling back to aria2c for torrent/magnet")
                         logger.warning("⚠️ libtorrent not installed — using aria2c fallback")
-                        Aria2c.link_info = False
+                        BOT.State.link_info = False
                         await _with_retry(lambda l=link, n=i+1: aria2_Download(l, n), link)
 
                 else:
@@ -209,7 +209,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
                     except Exception:
                         pass
 
-                    Aria2c.link_info = False
+                    BOT.State.link_info = False
                     await _with_retry(lambda l=link, n=i+1: aria2_Download(l, n), link)
 
             except Exception as error:

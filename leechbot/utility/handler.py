@@ -17,7 +17,7 @@ import logging
 import pathlib
 from asyncio import sleep
 from time import time
-from leechbot import OWNER, app
+from leechbot import app
 from natsort import natsorted
 from datetime import datetime
 from os import makedirs, path as ospath
@@ -424,7 +424,9 @@ async def cancelTask(reason: str):
     Args:
         reason: cancellation reason
     """
-    from leechbot.utility.variables import BOT, BotTimes, Messages, Paths, MSG
+    from leechbot.utility.variables import BOT, BotTimes, Messages, Paths, MSG, get_ctx
+
+    ctx = get_ctx()
 
     elapsed = getTime(int((datetime.now() - BotTimes.start_time).total_seconds()))
     mode_label = BOT.Mode.mode.capitalize() if BOT.Mode.mode else "Unknown"
@@ -441,8 +443,8 @@ async def cancelTask(reason: str):
 
     if BOT.State.task_going:
         try:
-            if BOT.TASK:
-                BOT.TASK.cancel()
+            if ctx.task.task:
+                ctx.task.task.cancel()
         except Exception as e:
             logger.error("Task cancel error: %s", e)
 
@@ -451,7 +453,7 @@ async def cancelTask(reason: str):
         except Exception as e:
             logger.warning("Cleanup error: %s", e)
 
-        BOT.State.task_going = False
+        ctx.task.task_going = False
         logger.info("Task cancelled: %s", reason)
 
         # Clean up status message

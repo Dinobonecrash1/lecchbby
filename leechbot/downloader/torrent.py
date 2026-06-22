@@ -31,7 +31,7 @@ except ImportError:
     lt = None
 
 from leechbot.utility.variables import (
-    BOT, Transfer, MSG, Messages, BotTimes,
+    BOT, Transfer, MSG, Messages, BotTimes, Paths,
 )
 from leechbot.utility.helper import sizeUnit, status_bar
 import config
@@ -188,7 +188,7 @@ async def torrent_download(link: str, num: int):
 
     # ─── Add torrent ─────────────────────────────────────────
     params = {
-        "save_path": str(config.DOWNLOADS_PATH),
+        "save_path": str(Paths.down_path),
         "storage_mode": lt.storage_mode_t.storage_mode_sparse,
     }
 
@@ -323,7 +323,7 @@ async def torrent_download(link: str, num: int):
         await asyncio.sleep(1)
 
     # ─── Copy to download path ───────────────────────────────
-    download_path = config.DOWNLOADS_PATH
+    download_path = Paths.down_path
     torrent_files = []
     torrent_info = handle.torrent_file()
 

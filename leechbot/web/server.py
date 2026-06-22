@@ -34,6 +34,10 @@ _auth_token: str = ""
 
 def _get_bot_state() -> dict:
     """Collect current bot state for API responses."""
+    import config
+    from leechbot.utility.variables import current_user_id
+    current_user_id.set(config.OWNER_ID)
+
     try:
         from leechbot.utility.variables import (
             BOT, Queue, BotTimes, Messages, Transfer, BotStats, Paths
@@ -201,9 +205,11 @@ async def handle_cancel(request):
         return web.json_response({"error": "Unauthorized"}, status=401)
 
     try:
+        import config
         from leechbot.utility.handler import cancelTask
-        from leechbot.utility.variables import BOT
+        from leechbot.utility.variables import BOT, current_user_id
 
+        current_user_id.set(config.OWNER_ID)
         if BOT.State.task_going:
             await cancelTask("Cancelled via web dashboard")
             return web.json_response({"ok": True, "message": "Task cancelled"})
@@ -278,6 +284,7 @@ async def handle_ws(request):
 
 async def broadcast_update(data: dict = None):
     """Send update to all connected WebSocket clients."""
+    global _ws_clients
     if not _ws_clients:
         return
 

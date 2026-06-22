@@ -18,10 +18,9 @@ import logging
 from time import time
 from datetime import datetime
 
-import config
 from asyncio import sleep
 from os import makedirs, path as ospath
-from leechbot import OWNER, app, DUMP_ID
+from leechbot import app, DUMP_ID
 from leechbot.downloader.manager import calDownSize, get_d_name, downloadManager
 from leechbot.utility.helper import getSize, applyCustomName, keyboard, sysINFO, is_google_drive, is_ytdl_link, is_mega, is_terabox, is_torrent
 from leechbot.utility.handler import Leech, Unzip_Handler, Zip_Handler, SendLogs, cancelTask
@@ -53,17 +52,17 @@ async def task_starter(message, text: str):
     current_user_id.set(uid)
     ctx = UserRegistry.get(uid)
 
-    ctx.task.task_going = False  # Reset for new task
-    BOT.State.started = True
-
-    if not ctx.task.task_going:
-        src_request_msg = await message.reply_text(text)
-        return src_request_msg
-    else:
+    if ctx.task.task_going:
         msg = await message.reply_text("<b>⏳ I'm Already Working! Please Wait...</b>")
         await sleep(15)
         await msg.delete()
         return None
+
+    await message.delete()
+    BOT.State.started = True
+
+    src_request_msg = await message.reply_text(text)
+    return src_request_msg
 
 
 # =============================================================================
@@ -110,7 +109,7 @@ async def taskScheduler():
 
     # Handle directory leech
     if is_dir:
-        if not ospath.exists(BOT.SOURCE[0]):
+        if not ospath.exists(get_ctx().task.source[0]):
             TaskError.state = True
             TaskError.text = "Directory path does not exist"
             logger.error(TaskError.text)
@@ -119,12 +118,12 @@ async def taskScheduler():
         if not ospath.exists(Paths.temp_dirleech_path):
             makedirs(Paths.temp_dirleech_path, exist_ok=True)
 
-        Messages.dump_task += f"\n\n📁 `{BOT.SOURCE[0]}`"
-        Transfer.total_down_size = getSize(BOT.SOURCE[0])
-        Messages.download_name = ospath.basename(BOT.SOURCE[0])
+        Messages.dump_task += f"\n\n📁 `{get_ctx().task.source[0]}`"
+        Transfer.total_down_size = getSize(get_ctx().task.source[0])
+        Messages.download_name = ospath.basename(get_ctx().task.source[0])
 
     else:  # URL list
-        for link in BOT.SOURCE:
+        for link in get_ctx().task.source:
             if is_google_drive(link):
                 icon = "♻️"
             elif is_torrent(link):
@@ -220,13 +219,13 @@ async def taskScheduler():
         )
 
     # Calculate download size
-    await calDownSize(BOT.SOURCE)
+    await calDownSize(get_ctx().task.source)
 
     # Get download name
     if not is_dir:
-        await get_d_name(BOT.SOURCE[0])
+        await get_d_name(get_ctx().task.source[0])
     else:
-        Messages.download_name = ospath.basename(BOT.SOURCE[0])
+        Messages.download_name = ospath.basename(get_ctx().task.source[0])
 
     # Prepare zip path if needed
     if is_zip:
@@ -238,9 +237,9 @@ async def taskScheduler():
 
     # Execute task
     if BOT.Mode.mode != "mirror":
-        await Do_Leech(BOT.SOURCE, is_dir, BOT.Mode.ytdl, is_zip, is_unzip, is_dualzip)
+        await Do_Leech(get_ctx().task.source, is_dir, BOT.Mode.ytdl, is_zip, is_unzip, is_dualzip)
     else:
-        await Do_Mirror(BOT.SOURCE, BOT.Mode.ytdl, is_zip, is_unzip, is_dualzip)
+        await Do_Mirror(get_ctx().task.source, BOT.Mode.ytdl, is_zip, is_unzip, is_dualzip)
 
 
 # =============================================================================

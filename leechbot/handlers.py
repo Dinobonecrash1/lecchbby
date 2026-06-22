@@ -17,7 +17,7 @@ import logging
 from pyrogram import filters
 
 from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, Paths, MSG, BotTimes, BotStats, current_user_id, UserRegistry
+from leechbot.utility.variables import BOT, Paths, MSG, BotTimes, BotStats, current_user_id, UserRegistry, get_ctx
 from leechbot.utility.helper import (
     isLink, setThumbnail, message_deleter, send_settings, extract_links,
 )
@@ -49,6 +49,9 @@ def set_handler_context(message):
 async def handle_reply(client, message):
     """Handle reply messages for setting prefix/suffix/autorename."""
     ctx, err = set_handler_context(message)
+    if err:
+        await message.reply_text(err)
+        return
     text = message.text or message.caption
     if not text:
         return  # Ignore non-text replies (photos, stickers, etc.)
@@ -98,9 +101,9 @@ async def handle_url(client, message):
     BOT.Options.unzip_pswd = ""
     BOT.Options.http_headers = None
 
-    if hasattr(BOT, '_src_request_msg') and BOT._src_request_msg:
+    if MSG.src_request_msg:
         try:
-            await BOT._src_request_msg.delete()
+            await MSG.src_request_msg.delete()
         except Exception:
             pass
 
@@ -126,7 +129,7 @@ async def handle_url(client, message):
         # Extract all URLs (and magnets) from the remaining text. Handles
         # forwarded messages where multiple links may share a line, and
         # deduplicates while preserving first-seen order.
-        BOT.SOURCE = extract_links("\n".join(temp_source))
+        get_ctx().task.source = extract_links("\n".join(temp_source))
 
         # Gallery mode: skip type selection, go straight to download
         if BOT.Mode.gallery:
@@ -190,6 +193,11 @@ async def handle_url(client, message):
 @app.on_message(filters.photo & filters.private)
 async def handle_photo(client, message):
     """Handle photo messages to set thumbnail."""
+    ctx, err = set_handler_context(message)
+    if err:
+        await message.reply_text(err)
+        return
+
     msg = await message.reply_text("<b>🖼️ Processing Thumbnail...</b>")
     success = await setThumbnail(message)
     if success:
@@ -206,6 +214,11 @@ async def handle_photo(client, message):
 @app.on_message(filters.document & filters.private)
 async def handle_document(client, message):
     """Handle document uploads — auto-detect cookies.txt for yt-dlp."""
+    ctx, err = set_handler_context(message)
+    if err:
+        await message.reply_text(err)
+        return
+
     if message.chat.id != OWNER:
         return
 
@@ -238,6 +251,10 @@ async def handle_document(client, message):
 ]))
 async def handle_text_input(client, message):
     """Handle text inputs for settings flow."""
+    ctx, err = set_handler_context(message)
+    if err:
+        await message.reply_text(err)
+        return
 
     # Auto-delete delay
     if getattr(BOT.State, "setting_autodelete_delay", False):

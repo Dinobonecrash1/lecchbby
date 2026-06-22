@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+---
+
+## [3.2.5] - 2026-06-22
+
+### Fixed
+- **Undefined `Admin` class** — commands now import `Admin` from `variables.py`
+- **Missing per-user attributes** — added `started`, `is_leech`, `stream`, `link_info` to `UserTaskState`; added `ytdl_format` to `UserSettings`
+- **Global source list leak** — `BOT.SOURCE` removed; handlers/task manager now use `get_ctx().task.source`
+- **Global request message leak** — `BOT._src_request_msg` replaced with per-user `MSG.src_request_msg`
+- **Task guard fixed** — `task_starter` no longer resets `task_going`, preventing overlapping per-user tasks
+- **Cancel task fixed** — `cancelTask` now cancels `ctx.task.task` instead of unused global `BOT.TASK`
+- **Global download paths** — torrent and anime flows now use per-user `Paths.down_path` / `Paths.temp`
+- **Per-user base path** — `UserPaths.create` now uses `config.BASE_DIR` instead of hardcoded `/tmp/leechbot`
+- **Context propagation** — `/setname`, `/autorename`, `/zipaswd`, `/unzipaswd`, `/cookies`, `/status`, `/queue`, `/cancel`, `/cancel_all`, `/format`, `/broadcast`, photo/text/document handlers now set per-user context
+- **Web dashboard context** — `_get_bot_state` and `handle_cancel` explicitly set owner context
+- **Removed unused `Aria2c.link_info` global class** — moved to per-user `BOT.State.link_info`
+- **Removed unused global `BOT.SOURCE` and `BOT.TASK`**
+
 ## [3.2.4] - 2026-06-22
 
 ### Fixed

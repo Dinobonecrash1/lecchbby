@@ -1263,7 +1263,7 @@ async def _handle_anime_download(client, callback_query, data: str):
                 pass
 
             # Create temp folder for this episode
-            ep_dir = ospath.join(str(config.DOWNLOADS_PATH), f"ep_{ep_num}")
+            ep_dir = ospath.join(str(Paths.temp), f"ep_{ep_num}")
             if ospath.exists(ep_dir):
                 shutil.rmtree(ep_dir)
             makedirs(ep_dir, exist_ok=True)

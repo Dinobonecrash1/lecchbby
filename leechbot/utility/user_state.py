@@ -48,6 +48,7 @@ class UserSettings:
     auto_delete: bool = False
     auto_delete_delay: int = 30
     autorename_template: str = ""
+    ytdl_format: str = "bestvideo+bestaudio/best"
 
 
 # =============================================================================
@@ -84,7 +85,7 @@ class UserPaths:
     @classmethod
     def create(cls, user_id: int) -> "UserPaths":
         """Create isolated directories for a user."""
-        base = Path(f"/tmp/leechbot/users/{user_id}")
+        base = config.BASE_DIR / "users" / str(user_id)
         work = base / "work"
         downloads = work / "downloads"
         temp = base / "temp"
@@ -171,6 +172,7 @@ class UserMessages:
     # Pyrogram message objects
     sent_msg = None  # Message object for uploads
     status_msg = None  # Message object for status updates
+    src_request_msg = None  # "Please send links" request message
 
 
 # =============================================================================
@@ -201,6 +203,10 @@ class UserTaskState:
     type: str = "normal"
     ytdl: bool = False
     gallery: bool = False
+    started: bool = False
+    is_leech: bool = False
+    stream: bool = False
+    link_info: bool = False
 
     # Anime state
     anime_search_results: list = field(default_factory=list)
@@ -245,6 +251,21 @@ class UserTaskState:
         self.type = "normal"
         self.ytdl = False
         self.gallery = False
+        self.started = False
+        self.is_leech = False
+        self.stream = False
+        self.link_info = False
+
+        # Anime state
+        self.anime_search_results = []
+        self.anime_search_query = ""
+        self.anime_search_provider = "animex"
+        self.anime_selected = {}
+        self.anime_episodes = []
+        self.anime_episode_meta = []
+        self.anime_poster_path = ""
+
+        # Options (per-task)
         self.stream_upload = True
         self.convert_video = True
         self.convert_quality = False
@@ -296,6 +317,8 @@ class UserContext:
         self.current_time = time()
         self.start_time = datetime.now()
         self.task_start = datetime.now()
+        # Persist ytdl format from user settings
+        self.task.ytdl_format = self.settings.ytdl_format
 
 
 # =============================================================================
