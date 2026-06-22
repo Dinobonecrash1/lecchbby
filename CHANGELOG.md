@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.63] - 2026-06-22
+
+### Fixed
+- **🔴 NoneType upload error** — `MSG.sent_msg` now set to `dump_msg` before upload loop
+- **⏳ 429 rate limit** — delay between episodes increased from 2s to 5s
+
 ## [3.1.62] - 2026-06-22
 
 ### Fixed

@@ -1283,6 +1283,9 @@ async def anime_command(client, message):
             Transfer.total_down_size = 0
             BotStats.total_tasks += 1
 
+            # Set MSG.sent_msg for upload_file to reply to
+            MSG.sent_msg = dump_msg
+
             uploaded = 0
             failed = 0
 
@@ -1386,7 +1389,7 @@ async def anime_command(client, message):
                     shutil.rmtree(ep_dir)
 
                 if ep_num < ep_end:
-                    await async_sleep(2)
+                    await async_sleep(5)
 
             # ── Add date and final update to dump message ──
             cdt = datetime.now()

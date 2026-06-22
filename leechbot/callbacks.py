@@ -1158,6 +1158,9 @@ async def _handle_anime_download(client, callback_query, data: str):
         Transfer.total_down_size = 0
         BotStats.total_tasks += 1
 
+        # Set MSG.sent_msg for upload_file to reply to
+        MSG.sent_msg = dump_msg
+
         uploaded = 0
         failed = 0
 
@@ -1261,9 +1264,9 @@ async def _handle_anime_download(client, callback_query, data: str):
             if ospath.exists(ep_dir):
                 shutil.rmtree(ep_dir)
 
-            # Small delay between episodes
+            # Small delay between episodes (avoid 429 rate limit)
             if ep_num < end_ep:
-                await sleep(2)
+                await sleep(5)
 
         # ── Add date and final update to dump message ──
         cdt = datetime.now()
