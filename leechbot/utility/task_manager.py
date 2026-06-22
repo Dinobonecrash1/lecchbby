@@ -176,14 +176,17 @@ async def taskScheduler():
 
     # Update status message
     await MSG.status_msg.delete()
-    # Prefer anime poster for status, fallback to hero image
-    anime_poster = getattr(BOT.State, "anime_poster_path", None)
-    if anime_poster and ospath.exists(anime_poster):
-        img = anime_poster
-    elif ospath.exists(Paths.THMB_PATH):
+    # Thumbnail priority: user-set > anime poster > hero image
+    if BOT.Setting.thumbnail and ospath.exists(Paths.THMB_PATH):
         img = Paths.THMB_PATH
     else:
-        img = Paths.HERO_IMAGE
+        anime_poster = getattr(BOT.State, "anime_poster_path", None)
+        if anime_poster and ospath.exists(anime_poster):
+            img = anime_poster
+        elif ospath.exists(Paths.THMB_PATH):
+            img = Paths.THMB_PATH
+        else:
+            img = Paths.HERO_IMAGE
     logger.info("Status image: %s (exists: %s)", img, ospath.exists(img) if img else False)
     caption = Messages.task_msg + Messages.status_head + "\n📝 Initializing..." + sysINFO()
 

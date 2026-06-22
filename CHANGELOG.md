@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.53] - 2026-06-22
+
+### Added
+- **⚡ Quick Anime Download** — `/anime Solo Leveling ep 1-5 sub 1080p` bypasses interactive UI and downloads directly with all parameters in one command
+  - Syntax: `/anime <query> [ep/start-end] [sub/dub] [quality] [provider]`
+  - Falls back to interactive mode if no episodes specified
+
+### Fixed
+- **🖼️ User-Set Thumbnail Priority** — if user has set a custom thumbnail via `/setthumbnail`, it's used for all uploads (status message + video); anime poster and video frame extraction are skipped
+
+---
+
 ## [3.1.52] - 2026-06-22
 
 ### Fixed

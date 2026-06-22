@@ -348,6 +348,21 @@ def thumbMaintainer(file_path: str, original_name: str = None):
     if ospath.exists(Paths.VIDEO_FRAME):
         os.remove(Paths.VIDEO_FRAME)
 
+    # If user has set a custom thumbnail, always use it — skip everything else
+    if BOT.Setting.thumbnail and ospath.exists(Paths.THMB_PATH):
+        duration = 0
+        try:
+            result = subprocess.run(
+                ["ffprobe", "-v", "quiet", "-show_entries", "format=duration",
+                 "-of", "default=noprint_wrappers=1:nokey=1", file_path],
+                capture_output=True, text=True, timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                duration = float(result.stdout.strip())
+        except Exception:
+            pass
+        return Paths.THMB_PATH, duration
+
     try:
         lookup_name = original_name if original_name else ospath.basename(file_path)
         fname, _ = ospath.splitext(lookup_name)

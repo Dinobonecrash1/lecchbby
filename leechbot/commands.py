@@ -21,7 +21,7 @@ from datetime import datetime
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, LOG_FILE
-from leechbot.utility.variables import BOT, BotStats, BotTimes, Transfer, Messages, Queue, Paths
+from leechbot.utility.variables import BOT, MSG, BotStats, BotTimes, Transfer, Messages, Queue, Paths
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.helper import (
     send_settings, message_deleter, format_stats, sysINFO, getTime, sizeUnit,
@@ -1061,50 +1061,245 @@ async def update_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("anime") & filters.private)
 async def anime_command(client, message):
-    """Search and download anime episodes."""
+    """Search and download anime episodes.
+
+    Quick mode: /anime <query> [ep/start-end] [sub/dub] [quality] [provider]
+    Interactive: /anime <query>  (shows search results with buttons)
+    """
     from leechbot.downloader.anime import anime_client
-    
+
     if len(message.command) < 2:
         msg = await message.reply_text(
             "<b>🎬 Anime Episode Downloader</b>\n\n"
-            "<b>⚠️ Usage:</b> <code>/anime &lt;anime_name&gt;</code>\n\n"
-            "<b>📝 Examples:</b>\n"
-            "• <code>/anime One Piece</code>\n"
-            "• <code>/anime Naruto Shippuden</code>\n"
-            "• <code>/anime Attack on Titan</code>\n\n"
-            "<b>💡 Features:</b>\n"
-            "• Search anime from MiruroAPI & AnimexAPI\n"
-            "• Download episodes with subtitles\n"
-            "• Auto-rename with <code>/autorename</code> template",
+            "<b>⚠️ Usage:</b>\n"
+            "• <code>/anime &lt;name&gt;</code> — interactive search\n"
+            "• <code>/anime &lt;name&gt; ep 1-5 sub</code> — quick download\n\n"
+            "<b>📝 Quick Examples:</b>\n"
+            "• <code>/anime Solo Leveling ep 1-5 sub</code>\n"
+            "• <code>/anime One Piece ep 1-10 dub 1080p</code>\n"
+            "• <code>/anime Naruto ep 5 sub animex</code>\n\n"
+            "<b>📋 Parameters (optional):</b>\n"
+            "• <code>ep &lt;range&gt;</code> — episode(s): <code>5</code> or <code>1-13</code>\n"
+            "• <code>sub</code> / <code>dub</code> — audio type\n"
+            "• <code>480p</code> / <code>720p</code> / <code>1080p</code> — quality\n"
+            "• <code>animex</code> / <code>miruro</code> — provider\n",
             quote=True,
         )
         await message_deleter(message, msg)
         return
-    
-    query = " ".join(message.command[1:])
+
+    # Parse arguments
+    raw_args = " ".join(message.command[1:])
+    ep_start = ep_end = None
+    category = "sub"
+    quality = None
+    provider = None
+    query_parts = []
+
+    tokens = raw_args.split()
+    i = 0
+    while i < len(tokens):
+        tok = tokens[i].lower()
+        if tok == "ep" and i + 1 < len(tokens):
+            # Parse episode range: "5" or "1-5" or "1~5"
+            ep_str = tokens[i + 1].replace("~", "-")
+            if "-" in ep_str:
+                parts = ep_str.split("-", 1)
+                ep_start = int(parts[0])
+                ep_end = int(parts[1])
+            else:
+                ep_start = ep_end = int(ep_str)
+            i += 2
+        elif tok in ("sub", "dub"):
+            category = tok
+            i += 1
+        elif tok.endswith("p") and tok[:-1].isdigit():
+            quality = tok
+            i += 1
+        elif tok in ("animex", "miruro"):
+            provider = tok
+            i += 1
+        else:
+            query_parts.append(tokens[i])
+            i += 1
+
+    query = " ".join(query_parts)
+
+    if not query:
+        await message.reply_text("<b>❌ Please provide an anime name.</b>", quote=True)
+        return
+
+    # ── Quick mode: episodes specified ──
+    if ep_start is not None:
+        from asyncio import get_running_loop
+
+        status = await message.reply_text(
+            f"<b>🔍 Searching:</b> <code>{query}</code>...\n"
+            f"<b>📺 Episodes:</b> <code>{ep_start}-{ep_end}</code>\n"
+            f"<b>🔊 Audio:</b> <code>{category}</code>",
+            quote=True,
+        )
+
+        try:
+            result = await anime_client.search(query)
+            if not result.get("success"):
+                await status.edit_text(f"<b>❌ Search failed:</b> <code>{result.get('message', 'Unknown error')}</code>")
+                return
+
+            results = result.get("results", [])
+            if not results:
+                await status.edit_text("<b>❌ No results found.</b>")
+                return
+
+            search_provider = result.get("provider", "animex")
+            selected = results[0]
+            formatted = anime_client.format_search_results(results[:1], provider=search_provider)
+            display_title = formatted[0]["display_title"] if formatted else query
+
+            # Extract anime ID
+            if search_provider == "animex":
+                anime_id = selected.get("anilistId") or selected.get("id", "")
+            else:
+                anime_id = selected.get("id")
+
+            cover = selected.get("cover", "") or selected.get("coverImage", {}).get("extraLarge", "")
+
+            await status.edit_text(
+                f"<b>🎬 {display_title}</b>\n\n"
+                f"<b>📺 Episodes:</b> <code>{ep_start}-{ep_end}</code>\n"
+                f"<b>🔊 Audio:</b> <code>{category}</code>\n"
+                f"<b>🎯 Quality:</b> <code>{quality or 'best'}</code>\n\n"
+                f"<b>⏳ Loading episodes...</b>",
+            )
+
+            # Get episodes
+            episodes_result = await anime_client.get_episodes(anime_id, search_provider)
+            if not episodes_result.get("success"):
+                await status.edit_text(f"<b>❌ Failed to load episodes:</b> <code>{episodes_result.get('message', 'Unknown error')}</code>")
+                return
+
+            episodes_list = episodes_result.get("results", [])
+            BOT.State.anime_episodes = episodes_list
+            BOT.State.anime_selected = {
+                "title": display_title,
+                "anime_id": anime_id,
+                "provider": search_provider,
+                "category": category,
+                "cover": cover,
+                "total_episodes": ep_end,
+            }
+
+            # Get streaming URLs
+            from leechbot.utility.task_manager import taskScheduler
+            streaming_urls = []
+
+            for ep_num in range(ep_start, ep_end + 1):
+                await status.edit_text(
+                    f"<b>🔍 Fetching stream for Episode {ep_num}...</b>\n\n"
+                    f"<b>🎬 Anime:</b> <code>{display_title}</code>"
+                )
+
+                ep_info = anime_client.miruro.get_episode_stream_info(episodes_list, ep_num, category)
+                if ep_info:
+                    ep_info["anilist_id"] = anime_id
+                    stream_result = await anime_client.get_stream_from_miruro(
+                        ep_info["provider"], anime_id, category, ep_info["slug"]
+                    )
+                    if stream_result.get("success"):
+                        streaming_urls.append({
+                            "episode": ep_num,
+                            "url": stream_result["results"]["url"],
+                            "quality": stream_result["results"].get("quality", "unknown"),
+                            "codec": stream_result["results"].get("codec", ""),
+                            "fansub": stream_result["results"].get("fansub", ""),
+                            "audio": stream_result["results"].get("audio", category),
+                            "referer": stream_result["results"].get("referer", "https://kwik.cx/"),
+                        })
+
+            if not streaming_urls:
+                await status.edit_text("<b>❌ Failed to get streaming URLs.</b>")
+                return
+
+            # Start download
+            BOT.SOURCE = [s["url"] for s in streaming_urls]
+            BOT.Mode.mode = "leech"
+            BOT.Mode.type = "normal"
+            BOT.Mode.ytdl = True
+            BOT.Mode.gallery = False
+
+            BOT.State.anime_episode_meta = [
+                {"title": display_title, "episode": s["episode"], "quality": s.get("quality", "")}
+                for s in streaming_urls
+            ]
+            Messages.download_name = f"{display_title} - Ep {ep_start}" if ep_start == ep_end else f"{display_title} - Ep {ep_start}-{ep_end}"
+            BOT.Options.custom_name = ""
+
+            referer = streaming_urls[0].get("referer", "https://kwik.cx/")
+            BOT.Options.http_headers = {"Referer": referer, "Origin": referer}
+
+            BOT.State.anime_selected["episode_range"] = (ep_start, ep_end)
+            BOT.State.anime_selected["audio_type"] = category
+            BOT.State.anime_selected["title"] = display_title
+
+            # Download poster
+            if cover:
+                await _download_anime_poster(cover)
+
+            # Build status
+            stream_info = "".join(
+                f"  • Ep {s['episode']}: {s['quality']} ({s['codec']}) [{s['audio']}]\n"
+                for s in streaming_urls
+            )
+
+            MSG.status_msg = await status.edit_text(
+                f"<b>🚀 Starting download...</b>\n\n"
+                f"<b>🎬 Anime:</b> <code>{display_title}</code>\n"
+                f"<b>📺 Episodes:</b> <code>{ep_start}-{ep_end}</code>\n"
+                f"<b>🎵 Audio:</b> <code>{category}</code>\n"
+                f"<b>🔗 URLs:</b> <code>{len(streaming_urls)}</code>\n\n"
+                f"<b>📊 Stream Info:</b>\n{stream_info}",
+                reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]])
+            )
+
+            BOT.State.task_going = True
+            BOT.State.started = False
+            BotTimes.start_time = datetime.now()
+
+            event_loop = get_running_loop()
+            BotStats.total_tasks += 1
+            BOT.TASK = event_loop.create_task(taskScheduler())
+
+        except ValueError:
+            await status.edit_text("<b>❌ Invalid episode format.</b> Use: <code>ep 5</code> or <code>ep 1-13</code>")
+        except Exception as e:
+            logger.error(f"Anime quick download error: {e}")
+            await status.edit_text(f"<b>❌ Error:</b> <code>{e}</code>")
+        return
+
+    # ── Interactive mode: no episodes specified ──
     status = await message.reply_text(f"<b>🔍 Searching:</b> <code>{query}</code>...", quote=True)
-    
+
     try:
         result = await anime_client.search(query)
-        
+
         if not result.get("success"):
             await status.edit_text(f"<b>❌ Search failed:</b> <code>{result.get('message', 'Unknown error')}</code>")
             return
-        
+
         results = result.get("results", [])
         if not results:
             await status.edit_text("<b>❌ No results found.</b> Try a different search term.")
             return
-        
+
         # Store results for callback handling
         BOT.State.anime_search_results = results
         BOT.State.anime_search_query = query
         BOT.State.anime_search_provider = result.get("provider", "animex")
-        
+
         # Format results and create inline keyboard
         search_provider = result.get("provider", "animex")
         formatted = anime_client.format_search_results(results[:8], provider=search_provider)
-        
+
         buttons = []
         for i, item in enumerate(formatted):
             title = item["title"][:40] + ("..." if len(item["title"]) > 40 else "")
@@ -1112,13 +1307,13 @@ async def anime_command(client, message):
                 f"{'🎬' if i == 0 else '📺'} {title}",
                 callback_data=f"anime_select_{i}"
             )])
-        
+
         buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
-        
+
         result_text = f"<b>🔍 Search Results for:</b> <code>{query}</code>\n\n"
         for i, item in enumerate(formatted):
             result_text += f"<b>{i+1}.</b> {item['display']}\n\n"
-        
+
         await status.edit_text(
             result_text,
             reply_markup=InlineKeyboardMarkup(buttons),
