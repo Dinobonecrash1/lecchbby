@@ -398,7 +398,7 @@ async def gDownloadFolder(folder_id: str, path: str, num: int = 0, depth: int = 
     folder_path = ospath.join(path, folder_name)
 
     if not ospath.exists(folder_path):
-        makedirs(folder_path)
+        makedirs(folder_path, exist_ok=True)
 
     result = await _run_sync(_getFilesByFolderID, folder_id)
 

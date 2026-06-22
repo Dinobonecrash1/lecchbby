@@ -91,7 +91,7 @@ async def gallery_download(url: str, num: int):
     # Create output directory
     gallery_dir = ospath.join(Paths.down_path, f"gallery_{str(num).zfill(2)}")
     if not ospath.exists(gallery_dir):
-        makedirs(gallery_dir)
+        makedirs(gallery_dir, exist_ok=True)
 
     Messages.status_head = (
         f"<b>📸 Downloading Gallery</b> <code>Link {str(num).zfill(2)}</code>\n\n"

@@ -117,7 +117,7 @@ async def taskScheduler():
             return
 
         if not ospath.exists(Paths.temp_dirleech_path):
-            makedirs(Paths.temp_dirleech_path)
+            makedirs(Paths.temp_dirleech_path, exist_ok=True)
 
         Messages.dump_task += f"\n\n📁 `{BOT.SOURCE[0]}`"
         Transfer.total_down_size = getSize(BOT.SOURCE[0])
@@ -232,7 +232,7 @@ async def taskScheduler():
     if is_zip:
         Paths.down_path = ospath.join(Paths.down_path, Messages.download_name)
         if not ospath.exists(Paths.down_path):
-            makedirs(Paths.down_path)
+            makedirs(Paths.down_path, exist_ok=True)
 
     BotTimes.current_time = time()
 
@@ -283,7 +283,7 @@ async def Do_Leech(source, is_dir: bool, is_ytdl: bool, is_zip: bool, is_unzip: 
                     await Leech(Paths.down_path, False)
                 else:
                     Transfer.total_down_size = ospath.getsize(s)
-                    makedirs(Paths.temp_dirleech_path)
+                    makedirs(Paths.temp_dirleech_path, exist_ok=True)
                     shutil.copy(s, Paths.temp_dirleech_path)
                     Messages.download_name = ospath.basename(s)
                     await Leech(Paths.temp_dirleech_path, True)
@@ -330,7 +330,7 @@ async def Do_Mirror(source, is_ytdl: bool, is_zip: bool, is_unzip: bool, is_dual
         return
 
     if not ospath.exists(Paths.mirror_dir):
-        makedirs(Paths.mirror_dir)
+        makedirs(Paths.mirror_dir, exist_ok=True)
 
     await downloadManager(source, is_ytdl)
     Transfer.total_down_size = getSize(Paths.down_path)

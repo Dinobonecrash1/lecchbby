@@ -189,7 +189,7 @@ async def sizeChecker(file_path: str, remove: bool) -> bool:
 
     if file_size > max_size:
         if not ospath.exists(Paths.temp_zpath):
-            makedirs(Paths.temp_zpath)
+            makedirs(Paths.temp_zpath, exist_ok=True)
 
         filename = ospath.basename(file_path).lower()
 

@@ -302,7 +302,7 @@ def YouTubeDL(url: str, loop=None):
         }]
 
     if not ospath.exists(Paths.thumbnail_ytdl):
-        makedirs(Paths.thumbnail_ytdl)
+        makedirs(Paths.thumbnail_ytdl, exist_ok=True)
 
     # Reset completion flag for batch mode
     YTDL.complete = False
@@ -318,7 +318,7 @@ def YouTubeDL(url: str, loop=None):
                 playlist_path = ospath.join(Paths.down_path, playlist_name)
 
                 if not ospath.exists(playlist_path):
-                    makedirs(playlist_path)
+                    makedirs(playlist_path, exist_ok=True)
 
                 ydl_opts["outtmpl"]["default"] = f"{playlist_path}/%(title)s.%(ext)s"
                 # Re-bind the hook to the same loop for the inner YoutubeDL.

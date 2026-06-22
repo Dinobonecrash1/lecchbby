@@ -262,7 +262,7 @@ async def Leech(folder_path: str, remove: bool):
 
         else:  # Regular file upload
             if not ospath.exists(Paths.temp_files_dir):
-                makedirs(Paths.temp_files_dir)
+                makedirs(Paths.temp_files_dir, exist_ok=True)
 
             if not remove:
                 try:
@@ -362,7 +362,7 @@ async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
     BotTimes.current_time = time()
 
     if not ospath.exists(Paths.temp_zpath):
-        makedirs(Paths.temp_zpath)
+        makedirs(Paths.temp_zpath, exist_ok=True)
 
     await archive(down_path, is_split, remove)
     await sleep(2)
@@ -397,7 +397,7 @@ async def Unzip_Handler(down_path: str, remove: bool):
     for f in natsorted(filenames):
         short_path = ospath.join(down_path, f)
         if not ospath.exists(Paths.temp_unzip_path):
-            makedirs(Paths.temp_unzip_path)
+            makedirs(Paths.temp_unzip_path, exist_ok=True)
 
         filename = ospath.basename(f).lower()
         _, ext = ospath.splitext(filename)
