@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.0] - 2026-06-22
+
+### Changed
+- **🗂️ Modularized command and callback handlers** — split monolithic `leechbot/commands.py` (1021 lines) and `leechbot/callbacks.py` (724 lines) into focused packages:
+  - `leechbot/commands/` — `admin.py`, `downloads.py`, `options.py`, `settings.py`, `start_help.py`, `status.py` + `__init__.py`
+  - `leechbot/callbacks/` — `common.py`, `dispatcher.py`, `navigation.py`, `settings.py`, `system.py`, `update.py`, `upload.py` + `__init__.py`
+  - Central callback dispatcher in `callbacks/dispatcher.py` routes queries to the new submodules; Pyrogram handlers still auto-register via package imports in `leechbot/__main__.py`.
+
+---
+
 ## [3.1.48] - 2026-06-22
 
 ### Reverted

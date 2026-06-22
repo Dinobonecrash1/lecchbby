@@ -1,0 +1,79 @@
+# =============================================================================
+# Telegram Leech Bot - Callback Query Handlers
+# =============================================================================
+# Project   : LeechBot
+# Developer : Shinei Nouzen
+# GitHub    : https://github.com/Shineii86
+# Telegram  : https://telegram.me/Shineii86
+# =============================================================================
+# License   : MIT License
+# =============================================================================
+
+"""
+All inline keyboard callback query handlers.
+
+Each callback category is handled by a dedicated async function
+for clarity, testability, and maintainability.
+"""
+
+import os
+import sys
+import logging
+from datetime import datetime
+from asyncio import get_running_loop
+
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from leechbot import app, OWNER
+from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
+from leechbot.utility.handler import cancelTask
+from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
+import config
+
+logger = logging.getLogger(__name__)
+
+
+
+from .common import safe_answer
+
+# =============================================================================
+# System Info Refresh
+# =============================================================================
+def _strip_sysinfo(text: str) -> str:
+    """Strip existing system info block from message text."""
+    for separator in ("<b>─── System ───</b>", "┏━━━━ **System Info", "⌬─────"):
+        parts = text.split(separator)
+        if len(parts) >= 2:
+            return parts[0].rstrip()
+    return text
+
+async def _handle_sys_refresh(client, callback_query):
+    """Refresh system info display."""
+    original_text = callback_query.message.text or callback_query.message.caption or ""
+    new_text = _strip_sysinfo(original_text) + sysINFO()
+    try:
+        await callback_query.message.edit_text(
+            text=new_text,
+            disable_web_page_preview=True,
+            reply_markup=status_keyboard(),
+        )
+        await safe_answer(callback_query, "Refreshed ✓")
+    except Exception as e:
+        logger.debug("Sys refresh error: %s", e)
+        await safe_answer(callback_query, "No changes", show_alert=False)
+
+async def _handle_sys_stats(client, callback_query):
+    """Show detailed system stats."""
+    original_text = callback_query.message.text or callback_query.message.caption or ""
+    new_text = _strip_sysinfo(original_text) + sysINFO_full()
+    try:
+        await callback_query.message.edit_text(
+            text=new_text,
+            disable_web_page_preview=True,
+            reply_markup=status_keyboard(),
+        )
+        await safe_answer(callback_query, "Detailed stats ✓")
+    except Exception as e:
+        logger.debug("Sys stats error: %s", e)
+        await safe_answer(callback_query, "No changes", show_alert=False)
+
+
