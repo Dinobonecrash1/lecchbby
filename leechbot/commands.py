@@ -1222,12 +1222,7 @@ async def anime_command(client, message):
                 from leechbot.callbacks import _download_anime_poster
                 await _download_anime_poster(cover)
 
-            # ── Add date (matches original) ──
-            cdt = datetime.now()
-            dt = cdt.strftime(" %d-%m-%Y")
-            Messages.dump_task += f"\n\n<b>📅 Date:</b> <code>{dt}</code>"
-
-            # ── Send task log to dump channel ──
+            # ── Send task log to dump channel (no date yet — sources come first) ──
             MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
             Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
             Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
@@ -1331,19 +1326,11 @@ async def anime_command(client, message):
                 BOT.Options.http_headers = {"Referer": ep_referer, "Origin": ep_referer}
                 BOT.Options.custom_name = file_name
 
-                # Add source link to dump task and update dump message
+                # Add source link to dump task
                 try:
                     code_link = f"\n\n🏮 `{stream_url[:100]}...`"
-                    if len(Messages.dump_task + code_link) < 4096:
+                    if len(Messages.dump_task + code_link) < 4000:
                         Messages.dump_task += code_link
-                        # Update the dump message with new source link
-                        try:
-                            await MSG.sent_msg.edit_text(
-                                text=Messages.dump_task,
-                                disable_web_page_preview=True
-                            )
-                        except Exception:
-                            pass
                 except Exception:
                     pass
 
@@ -1400,6 +1387,18 @@ async def anime_command(client, message):
 
                 if ep_num < ep_end:
                     await async_sleep(2)
+
+            # ── Add date and final update to dump message ──
+            cdt = datetime.now()
+            dt = cdt.strftime(" %d-%m-%Y")
+            Messages.dump_task += f"\n\n<b>📅 Date:</b> <code>{dt}</code>"
+            try:
+                await MSG.sent_msg.edit_text(
+                    text=Messages.dump_task,
+                    disable_web_page_preview=True
+                )
+            except Exception:
+                pass
 
             # ── SendLogs (completion summary with source link) ──
             BOT.Options.custom_name = ""

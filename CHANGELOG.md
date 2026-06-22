@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.61] - 2026-06-22
+
+### Fixed
+- **🔗 Source links order** — sources now appear between "🔗 Sources:" and "📅 Date:" (not below date)
+- **📝 Single dump message** — dump message is edited once at end with all sources + date (no more duplicate messages)
+- **📅 Date moved** — date added after all episodes complete, not before
+
 ## [3.1.60] - 2026-06-22
 
 ### Fixed
