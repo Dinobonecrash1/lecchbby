@@ -1302,9 +1302,9 @@ async def _handle_anime_download(client, callback_query, data: str):
             if ospath.exists(ep_dir):
                 shutil.rmtree(ep_dir)
 
-            # Small delay between episodes (avoid 429 rate limit)
+            # Small delay between episodes
             if ep_num < end_ep:
-                await sleep(5)
+                await sleep(3)
 
         # ── Add date and final update to dump message ──
         cdt = datetime.now()

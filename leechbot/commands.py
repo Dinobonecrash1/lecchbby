@@ -1446,7 +1446,7 @@ async def anime_command(client, message):
                     shutil.rmtree(ep_dir)
 
                 if ep_num < ep_end:
-                    await async_sleep(5)
+                    await async_sleep(3)
 
             # ── Add date and final update to dump message ──
             cdt = datetime.now()

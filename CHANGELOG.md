@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.75] - 2026-06-22
+
+### Changed
+- **⚡ Speed optimizations** — dynamic concurrent fragment downloads (1 for HLS, 4 for direct links), inter-episode delay reduced from 5s to 3s
+
 ## [3.1.74] - 2026-06-22
 
 ### Fixed

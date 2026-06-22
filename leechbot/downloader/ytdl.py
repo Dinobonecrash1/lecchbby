@@ -244,11 +244,18 @@ def YouTubeDL(url: str, loop=None):
     format_str = get_format_string()
     is_audio_only = format_str == FORMAT_PRESETS.get("audio")
 
+    # Dynamic concurrent fragment downloads: 1 for HLS (avoid 429), 4 for direct links
+    from leechbot.utility.variables import BOT
+    is_hls = BOT.Options.http_headers and any(
+        "kwik" in str(BOT.Options.http_headers.get("Referer", "")).lower(),
+        "kwik" in str(BOT.Options.http_headers.get("Origin", "")).lower(),
+    )
+
     ydl_opts = {
         "format": format_str,
         "merge_output_format": "mp4" if not is_audio_only else None,
         "writethumbnail": True,
-        "concurrent_fragment_downloads": 1,
+        "concurrent_fragment_downloads": 1 if is_hls else 4,
         "overwrites": True,
         "progress_hooks": [_make_progress_hook(loop)],
         "writesubtitles": True,
