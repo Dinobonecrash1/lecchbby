@@ -135,9 +135,17 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 with Image.open(file_path) as img:
                     w, h = img.size
                     if w < 100 or h < 100 or w > 10000 or h > 10000 or w / h > 63 / 20 or h / w > 63 / 20:
-                        img.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+                        # Use resize (not thumbnail) to ensure minimum dimensions
+                        ratio = min(1024 / w, 1024 / h)
+                        if ratio > 1:
+                            new_w = max(int(w * ratio), 100)
+                            new_h = max(int(h * ratio), 100)
+                        else:
+                            new_w = min(int(w * ratio), 1024)
+                            new_h = min(int(h * ratio), 1024)
+                        resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
                         resized_path = file_path.rsplit('.', 1)[0] + '_resized.jpg'
-                        img.convert('RGB').save(resized_path, 'JPEG', quality=90)
+                        resized.convert('RGB').save(resized_path, 'JPEG', quality=90)
                         upload_photo = resized_path
             except Exception as e:
                 logger.warning(f"Failed to resize photo: {e}")
@@ -257,10 +265,20 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
             elif w / h > 63 / 20 or h / w > 63 / 20:
                 needs_resize = True
             if needs_resize:
-                # Resize to 1024x1024 maintaining aspect ratio
-                img.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+                # Use resize (not thumbnail) to ensure minimum dimensions
+                # Calculate new size maintaining aspect ratio
+                ratio = min(1024 / w, 1024 / h)
+                if ratio > 1:
+                    # Image is too small, scale UP
+                    new_w = max(int(w * ratio), 100)
+                    new_h = max(int(h * ratio), 100)
+                else:
+                    # Image is too large, scale DOWN
+                    new_w = min(int(w * ratio), 1024)
+                    new_h = min(int(h * ratio), 1024)
+                resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
                 resized_path = upload_path.rsplit('.', 1)[0] + '_resized.jpg'
-                img.convert('RGB').save(resized_path, 'JPEG', quality=90)
+                resized.convert('RGB').save(resized_path, 'JPEG', quality=90)
                 if upload_path != file_path and ospath.exists(upload_path):
                     os.remove(upload_path)
                 upload_path = resized_path

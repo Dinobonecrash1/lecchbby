@@ -567,5 +567,16 @@ async def SendLogs(is_leech: bool):
 
     # Clear thumbnail so next task starts fresh
     BOT.Setting.thumbnail = False
-    Paths.THMB_PATH = ""
     BOT.State.anime_poster_path = None
+    # Delete thumbnail files
+    try:
+        if ospath.exists(Paths.THMB_PATH):
+            os.remove(Paths.THMB_PATH)
+    except Exception:
+        pass
+    anime_poster = str(Paths.THMB_PATH).replace("Thumbnail.jpg", "anime_poster.jpg")
+    try:
+        if ospath.exists(anime_poster):
+            os.remove(anime_poster)
+    except Exception:
+        pass

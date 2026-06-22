@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.68] - 2026-06-22
+
+### Fixed
+- **🖼️ Thumbnail auto-clear** — thumbnail now clears after each task (user-set thumbnail removed)
+- **📐 Photo resize fix** — use `img.resize()` instead of `img.thumbnail()` to scale UP small images (thumbnail only scales down)
+
 ## [3.1.67] - 2026-06-22
 
 ### Fixed
