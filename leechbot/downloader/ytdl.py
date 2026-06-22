@@ -18,6 +18,7 @@ Supports format selection (best, 720p, 480p, audio-only).
 
 import logging
 import yt_dlp
+import urllib.request
 from asyncio import sleep
 from threading import Thread
 from os import makedirs, path as ospath
@@ -27,6 +28,17 @@ from leechbot.utility.variables import YTDL, MSG, Messages, Paths, BOT
 from leechbot.utility.helper import getTime, keyboard, sizeUnit, status_bar, sysINFO
 
 logger = logging.getLogger(__name__)
+
+
+def _check_pot_provider():
+    """Check if bgutil PO token provider server is reachable."""
+    try:
+        urllib.request.urlopen("http://127.0.0.1:4416", timeout=2)
+        logger.info("YouTube PO token provider is reachable on port 4416")
+        return True
+    except Exception as e:
+        logger.warning("YouTube PO token provider not reachable: %s", e)
+        return False
 
 
 def _schedule_state_update(loop, func, *args):
@@ -243,6 +255,9 @@ def YouTubeDL(url: str, loop=None):
     """
     format_str = get_format_string()
     is_audio_only = format_str == FORMAT_PRESETS.get("audio")
+
+    # Check PO token provider status (logs only)
+    _check_pot_provider()
 
     # Dynamic concurrent fragment downloads: 1 for HLS (avoid 429), 4 for direct links
     from leechbot.utility.variables import BOT

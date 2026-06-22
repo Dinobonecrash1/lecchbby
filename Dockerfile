@@ -24,5 +24,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # App
 COPY . .
 
+# Make startup script executable
+RUN chmod +x /app/start.sh
+
 # Start provider server in background, then bot
-CMD ["/bin/bash", "-c", "node /opt/bgutil-ytdlp-pot-provider/server/build/main.js & python3 -m leechbot"]
+CMD ["/app/start.sh"]

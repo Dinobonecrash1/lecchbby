@@ -14,6 +14,13 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.3.5] - 2026-06-22
+
+### Fixed
+- **YouTube PO token provider startup** — added `start.sh` that waits for provider server on port 4416 before starting bot
+- **Pinned `bgutil-ytdlp-pot-provider==1.3.1`** in `requirements.txt` to match server version
+- **Provider health check** — `ytdl.py` now logs whether PO token provider is reachable
+
 ## [3.3.4] - 2026-06-22
 
 ### Fixed
