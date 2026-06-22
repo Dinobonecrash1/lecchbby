@@ -70,7 +70,7 @@ async def handle_callback(client, callback_query):
 
         # --- Upload type selection ---
         elif data in ("normal", "zip", "unzip", "undzip"):
-            await _handle_upload_type(client, callback_query, data)
+            await _handle_upload_type(client, callback_query, data, ctx)
 
         # --- Settings navigation ---
         elif data == "settings_menu":
@@ -271,10 +271,17 @@ async def handle_callback(client, callback_query):
 # =============================================================================
 # Upload Type Selection
 # =============================================================================
-async def _handle_upload_type(client, callback_query, data: str):
+async def _handle_upload_type(client, callback_query, data: str, ctx=None):
     """Handle upload type selection (normal/zip/unzip/undzip)."""
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
     from leechbot.utility.task_manager import taskScheduler
+    from leechbot.utility.variables import current_user_id, UserRegistry
+
+    # Ensure context is set
+    if ctx is None:
+        uid = callback_query.from_user.id
+        current_user_id.set(uid)
+        ctx = UserRegistry.get(uid)
 
     # Bail if bot is shutting down — the dispatcher drains pending callbacks
     # before app.stop() completes, and starting a long task here will be
@@ -305,7 +312,7 @@ async def _handle_upload_type(client, callback_query, data: str):
     }
 
     MSG.status_msg = await app.send_message(
-        chat_id=OWNER,
+        chat_id=callback_query.from_user.id,
         text=f"<b>🚀 Starting {type_labels.get(data, data)} Upload...</b>\n\nPlease wait while I prepare your download",
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
@@ -313,16 +320,16 @@ async def _handle_upload_type(client, callback_query, data: str):
         disable_web_page_preview=True
     )
 
-    BOT.State.task_going = True
+    ctx.task.task_going = True
     BOT.State.started = False
-    BotTimes.start_time = datetime.now()
+    ctx.start_time = datetime.now()
 
     event_loop = get_running_loop()
-    BOT.TASK = event_loop.create_task(taskScheduler())
+    ctx.task.task = event_loop.create_task(taskScheduler())
     try:
-        await BOT.TASK
+        await ctx.task.task
     finally:
-        BOT.State.task_going = False
+        ctx.task.task_going = False
 
 # =============================================================================
 # Video Settings
@@ -486,6 +493,11 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
     """Handle YT-DLP mode confirmation."""
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
     from leechbot.utility.task_manager import taskScheduler
+    from leechbot.utility.variables import current_user_id, UserRegistry
+
+    uid = callback_query.from_user.id
+    current_user_id.set(uid)
+    ctx = UserRegistry.get(uid)
 
     BOT.Mode.ytdl = data == "ytdl-true"
     await callback_query.message.delete()
@@ -495,7 +507,7 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
     )
 
     MSG.status_msg = await app.send_message(
-        chat_id=OWNER,
+        chat_id=uid,
         text="<b>🚀 Initializing YT-DLP Download...</b>\n\nPlease wait while I prepare your download",
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
@@ -503,16 +515,16 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
         disable_web_page_preview=True
     )
 
-    BOT.State.task_going = True
+    ctx.task.task_going = True
     BOT.State.started = False
-    BotTimes.start_time = datetime.now()
+    ctx.start_time = datetime.now()
 
     event_loop = get_running_loop()
-    BOT.TASK = event_loop.create_task(taskScheduler())
+    ctx.task.task = event_loop.create_task(taskScheduler())
     try:
-        await BOT.TASK
+        await ctx.task.task
     finally:
-        BOT.State.task_going = False
+        ctx.task.task_going = False
 
 # =============================================================================
 # Do Update
@@ -1045,17 +1057,23 @@ async def _handle_anime_download(client, callback_query, data: str):
     from leechbot.uploader.telegram import upload_file
     from leechbot.utility.handler import SendLogs
     from leechbot.utility.helper import sysINFO, keyboard, sizeUnit
+    from leechbot.utility.variables import current_user_id, UserRegistry
     from os import makedirs, listdir
     from os import path as ospath
     import shutil
     import random
+
+    # Set per-user context
+    uid = callback_query.from_user.id
+    current_user_id.set(uid)
+    ctx = UserRegistry.get(uid)
 
     try:
         if BOT.State.shutting_down:
             await safe_answer(callback_query, "⏳ Bot is shutting down, try again later.", show_alert=True)
             return
 
-        BOT.State.task_going = True
+        ctx.task.task_going = True
 
         # Parse episode range
         parts = data.replace("anime_dl_", "").split("_")

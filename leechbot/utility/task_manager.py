@@ -44,12 +44,19 @@ async def task_starter(message, text: str):
     Returns:
         message: request message object
     """
-    from leechbot.utility.variables import BOT
+    from leechbot.utility.variables import BOT, current_user_id, UserRegistry
 
     await message.delete()
+
+    # Ensure per-user context is set
+    uid = message.from_user.id
+    current_user_id.set(uid)
+    ctx = UserRegistry.get(uid)
+
+    ctx.task.task_going = False  # Reset for new task
     BOT.State.started = True
 
-    if not BOT.State.task_going:
+    if not ctx.task.task_going:
         src_request_msg = await message.reply_text(text)
         return src_request_msg
     else:

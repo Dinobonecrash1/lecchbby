@@ -146,17 +146,17 @@ async def handle_url(client, message):
             )
 
             await message.delete()
-            BOT.State.task_going = True
+            ctx.task.task_going = True
             BOT.State.started = False
-            BotTimes.start_time = datetime.now()
+            ctx.start_time = datetime.now()
 
             event_loop = get_running_loop()
             BotStats.total_tasks += 1
-            BOT.TASK = event_loop.create_task(taskScheduler())
+            ctx.task.task = event_loop.create_task(taskScheduler())
             try:
-                await BOT.TASK
+                await ctx.task.task
             finally:
-                BOT.State.task_going = False
+                ctx.task.task_going = False
             return
 
         keyboard = InlineKeyboardMarkup([
