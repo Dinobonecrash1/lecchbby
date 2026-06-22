@@ -24,7 +24,7 @@ from asyncio import get_running_loop
 
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, MSG, BotTimes, BotStats, Paths
+from leechbot.utility.variables import BOT, MSG, Messages, BotTimes, BotStats, Paths
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
 import config
