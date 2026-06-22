@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.0] - 2026-06-22
+
+### Added
+- **👥 Multi-User Support** — per-user state isolation (settings, tasks, transfers, paths)
+- **👑 Multi-Admin System** — `ALLOWED_ADMINS` env var, admins get queue priority
+- **⚡ Priority Queue** — admin tasks skip the queue, user tasks wait
+- **📂 Per-User Paths** — each user gets isolated `/tmp/leechbot/users/{id}/`
+- **🔄 Context Variables** — async-safe per-user state via `contextvars`
+- **📊 UserContext dataclass** — complete per-user state bundle (settings, task, transfer, messages, paths, ytdl)
+- **📋 TaskQueue** — priority-based queue with admin > user ordering
+
+### Changed
+- **v3.2.0** — major version bump for multi-user architecture
+
 ## [3.1.89] - 2026-06-22
 
 ### Fixed

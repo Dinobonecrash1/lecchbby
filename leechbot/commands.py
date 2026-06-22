@@ -22,12 +22,19 @@ from time import time
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, LOG_FILE, DUMP_ID
-from leechbot.utility.variables import BOT, MSG, YTDL, BotStats, BotTimes, Transfer, Messages, Queue, Paths
+from leechbot.utility.variables import BOT, MSG, YTDL, BotStats, BotTimes, Transfer, Messages, Queue, Paths, current_user_id, UserRegistry
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.helper import (
     send_settings, message_deleter, format_stats, sysINFO, getTime, sizeUnit,
 )
 from leechbot.utility.handler import cancelTask
+
+
+def set_user_context(message):
+    """Set per-user context from a message. Call at start of every handler."""
+    uid = message.from_user.id
+    current_user_id.set(uid)
+    return UserRegistry.get(uid)
 import config
 
 logger = logging.getLogger(__name__)
@@ -234,6 +241,7 @@ async def speed_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("tupload") & filters.private)
 async def telegram_upload_command(client, message):
+    ctx = set_user_context(message)
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
@@ -261,6 +269,7 @@ https://example.com/file2.mp4
 # =============================================================================
 @app.on_message(filters.command("gdupload") & filters.private)
 async def gdrive_upload_command(client, message):
+    ctx = set_user_context(message)
     BOT.Mode.mode = "mirror"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
@@ -287,6 +296,7 @@ https://example.com/file2.mp4
 # =============================================================================
 @app.on_message(filters.command("drupload") & filters.private)
 async def directory_upload_command(client, message):
+    ctx = set_user_context(message)
     BOT.Mode.mode = "dir-leech"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
@@ -308,6 +318,7 @@ async def directory_upload_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("ytupload") & filters.private)
 async def ytdl_upload_command(client, message):
+    ctx = set_user_context(message)
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = True
     BOT.Mode.gallery = False
@@ -333,6 +344,7 @@ https://youtu.be/xxxxx
 # =============================================================================
 @app.on_message(filters.command("glupload") & filters.private)
 async def gallery_upload_command(client, message):
+    ctx = set_user_context(message)
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = True
@@ -1087,6 +1099,12 @@ async def anime_command(client, message):
     Interactive: /anime <query>  (shows search results with buttons)
     """
     from leechbot.downloader.anime import anime_client
+    from leechbot.utility.variables import current_user_id, UserRegistry
+
+    # Set per-user context
+    uid = message.from_user.id
+    current_user_id.set(uid)
+    ctx = UserRegistry.get(uid)
 
     if len(message.command) < 2:
         msg = await message.reply_text(

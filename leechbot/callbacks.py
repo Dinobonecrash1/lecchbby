@@ -47,8 +47,15 @@ async def safe_answer(callback_query, *args, **kwargs):
 @app.on_callback_query()
 async def handle_callback(client, callback_query):
     """Route callback queries to the appropriate handler."""
+    from leechbot.utility.variables import current_user_id, UserRegistry
+
     data = callback_query.data
     logger.debug("Callback: %s", data)
+
+    # Set per-user context for this callback
+    uid = callback_query.from_user.id
+    current_user_id.set(uid)
+    ctx = UserRegistry.get(uid)
 
     try:
         # --- Help system (3.1.34) ---

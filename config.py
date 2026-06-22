@@ -125,10 +125,20 @@ ALLOWED_USERS = [
     if x.strip()
 ]
 
+# Admins get priority in queue (skip waiting)
+ALLOWED_ADMINS = [
+    int(x.strip())
+    for x in os.getenv("ALLOWED_ADMINS", "").split(",")
+    if x.strip()
+]
+
+# Max concurrent tasks (0 = unlimited)
+MAX_CONCURRENT_TASKS = int(os.getenv("MAX_CONCURRENT_TASKS", "3"))
+
 # =============================================================================
 # Version Info
 # =============================================================================
-VERSION = "3.1.89"
+VERSION = "3.2.0"
 
 # Cloudflare bypass proxy — NOT compatible with yt-dlp (reverse proxy, not CONNECT proxy)
 # Use http_headers with Referer/Origin for Cloudflare bypass instead

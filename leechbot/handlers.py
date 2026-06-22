@@ -17,12 +17,21 @@ import logging
 from pyrogram import filters
 
 from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, Paths, MSG, BotTimes, BotStats
+from leechbot.utility.variables import BOT, Paths, MSG, BotTimes, BotStats, current_user_id, UserRegistry
 from leechbot.utility.helper import (
     isLink, setThumbnail, message_deleter, send_settings, extract_links,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def set_handler_context(message):
+    """Set per-user context for message handlers."""
+    if message.from_user:
+        uid = message.from_user.id
+        current_user_id.set(uid)
+        return UserRegistry.get(uid)
+    return None
 
 
 # =============================================================================
@@ -31,6 +40,7 @@ logger = logging.getLogger(__name__)
 @app.on_message(filters.reply)
 async def handle_reply(client, message):
     """Handle reply messages for setting prefix/suffix/autorename."""
+    ctx = set_handler_context(message)
     text = message.text or message.caption
     if not text:
         return  # Ignore non-text replies (photos, stickers, etc.)
@@ -67,6 +77,9 @@ async def handle_url(client, message):
     Parses options like custom name, zip password, and unzip password.
     """
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+    # Set per-user context
+    ctx = set_handler_context(message)
 
     # Reset options
     BOT.Options.custom_name = ""
