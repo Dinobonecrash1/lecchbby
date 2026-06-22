@@ -188,14 +188,8 @@ async def startup():
     except Exception as e:
         logger.warning("⚠️ Web dashboard failed to start: %s", e)
 
-    # Start CF bypass proxy (auto-enables if CF_BYPASS_PROXY not set)
-    try:
-        from leechbot.utility.cf_bypass import start_cf_proxy
-        if await start_cf_proxy():
-            config.CF_BYPASS_PROXY = "http://127.0.0.1:3000"
-            logger.info("🔒 CF bypass proxy auto-enabled")
-    except Exception as e:
-        logger.warning("⚠️ CF bypass proxy failed to start: %s", e)
+    # CF bypass proxy disabled — aiohttp proxy doesn't support CONNECT tunnels
+    # Use http_headers (Referer/Origin) instead for Cloudflare bypass
 
     logger.info("=" * 60)
 

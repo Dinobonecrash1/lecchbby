@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.82] - 2026-06-22
+
+### Fixed
+- **🔴 Proxy tunnel error** — disabled CF bypass proxy (aiohttp proxy doesn't support CONNECT tunnels used by yt-dlp)
+
 ## [3.1.81] - 2026-06-22
 
 ### Fixed

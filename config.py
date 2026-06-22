@@ -128,7 +128,7 @@ ALLOWED_USERS = [
 # =============================================================================
 # Version Info
 # =============================================================================
-VERSION = "3.1.81"
+VERSION = "3.1.82"
 
 # Cloudflare bypass proxy (set to local cf-bypass-server URL if running)
 CF_BYPASS_PROXY = os.environ.get("CF_BYPASS_PROXY", "")
