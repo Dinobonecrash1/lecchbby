@@ -225,6 +225,29 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
             logger.warning(f"Failed to convert webp to png: {e}, sending as document")
             upload_path = file_path
 
+    # Resize image if dimensions are invalid for Telegram
+    # Telegram requires: 100-10000px, aspect ratio between 20:63 and 63:20
+    try:
+        with Image.open(upload_path) as img:
+            w, h = img.size
+            needs_resize = False
+            if w < 100 or h < 100:
+                needs_resize = True
+            elif w > 10000 or h > 10000:
+                needs_resize = True
+            elif w / h > 63 / 20 or h / w > 63 / 20:
+                needs_resize = True
+            if needs_resize:
+                # Resize to 1024x1024 maintaining aspect ratio
+                img.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+                resized_path = upload_path.rsplit('.', 1)[0] + '_resized.jpg'
+                img.convert('RGB').save(resized_path, 'JPEG', quality=90)
+                if upload_path != file_path and ospath.exists(upload_path):
+                    os.remove(upload_path)
+                upload_path = resized_path
+    except Exception as e:
+        logger.warning(f"Failed to resize image: {e}")
+
     try:
         # If conversion failed or file is still .webp, send as document
         if upload_path.lower().endswith('.webp'):

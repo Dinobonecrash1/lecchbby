@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.58] - 2026-06-22
+
+### Fixed
+- **🖼️ Thumbnail persistence** — thumbnail now clears after each task completes (no more anime poster on MediaFire zips)
+- **📐 PHOTO_INVALID_DIMENSIONS** — images with invalid Telegram dimensions are now auto-resized before upload
+
 ## [3.1.57] - 2026-06-22
 
 ### Fixed

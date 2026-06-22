@@ -564,3 +564,8 @@ async def SendLogs(is_leech: bool):
 
     BOT.State.started = False
     BOT.State.task_going = False
+
+    # Clear thumbnail so next task starts fresh
+    BOT.Setting.thumbnail = False
+    Paths.THMB_PATH = ""
+    BOT.State.anime_poster_path = None
