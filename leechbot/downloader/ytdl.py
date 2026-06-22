@@ -18,7 +18,6 @@ Supports format selection (best, 720p, 480p, audio-only).
 
 import logging
 import yt_dlp
-import urllib.request
 from asyncio import sleep
 from threading import Thread
 from os import makedirs, path as ospath
@@ -28,17 +27,6 @@ from leechbot.utility.variables import YTDL, MSG, Messages, Paths, BOT
 from leechbot.utility.helper import getTime, keyboard, sizeUnit, status_bar, sysINFO
 
 logger = logging.getLogger(__name__)
-
-
-def _check_pot_provider():
-    """Check if bgutil PO token provider server is reachable."""
-    try:
-        urllib.request.urlopen("http://127.0.0.1:4416", timeout=2)
-        logger.info("YouTube PO token provider is reachable on port 4416")
-        return True
-    except Exception as e:
-        logger.warning("YouTube PO token provider not reachable: %s", e)
-        return False
 
 
 def _schedule_state_update(loop, func, *args):
@@ -78,7 +66,7 @@ FORMAT_PRESETS = {
 def get_format_string(preset: str = None) -> str:
     """Resolve a format preset name to a yt-dlp format string."""
     if preset is None:
-        preset = BOT.Options.ytdl_format or "bestvideo+bestaudio/best"
+        preset = BOT.Options.ytdl_format
 
     # If it's a known preset name, use it; otherwise treat as raw format string
     return FORMAT_PRESETS.get(preset.lower(), preset)
@@ -124,8 +112,7 @@ async def YTDL_Status(link: str, num: int):
     """
     from asyncio import get_running_loop
 
-    # Use pre-set download name (e.g. anime title) to avoid 429 on M3U8 URLs
-    name = Messages.download_name if Messages.download_name else await get_YT_Name(link)
+    name = await get_YT_Name(link)
     Messages.status_head = (
         f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n<code>{name}</code>\n"
     )
@@ -232,10 +219,6 @@ def _make_progress_hook(loop):
             _schedule_state_update(
                 loop, _set_header, "\n⏳ <code>Download finished, processing...</code>"
             )
-            # Signal completion for batch mode
-            def _set_complete():
-                YTDL.complete = True
-            _schedule_state_update(loop, _set_complete)
 
     return _progress_hook
 
@@ -256,57 +239,28 @@ def YouTubeDL(url: str, loop=None):
     format_str = get_format_string()
     is_audio_only = format_str == FORMAT_PRESETS.get("audio")
 
-    # Check PO token provider status (logs only)
-    _check_pot_provider()
-
-    # Dynamic concurrent fragment downloads: 1 for HLS (avoid 429), 4 for direct links
-    from leechbot.utility.variables import BOT
-    _hdrs = BOT.Options.http_headers or {}
-    is_hls = any([
-        "kwik" in str(_hdrs.get("Referer", "")).lower(),
-        "kwik" in str(_hdrs.get("Origin", "")).lower(),
-    ])
-
     ydl_opts = {
-        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/bestvideo+bestaudio/best",
-        "merge_output_format": "mp4",
+        "format": format_str,
+        "merge_output_format": "mp4" if not is_audio_only else None,
         "writethumbnail": True,
-        "concurrent_fragment_downloads": 1 if is_hls else 4,
+        "concurrent_fragment_downloads": 5,
         "overwrites": True,
         "progress_hooks": [_make_progress_hook(loop)],
         "writesubtitles": True,
         "subtitleslangs": ["en", "en-US", "en-GB"],
         "extractor_args": {
             "subtitlesformat": "srt",
-            "youtubepot-bgutilhttp": {
-                "base_url": "http://127.0.0.1:4416",
-            },
         },
         "logger": MyLogger(loop),
         "user_agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+            "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         ),
         "outtmpl": {
             "default": f"{Paths.down_path}/%(title)s.%(ext)s",
             "thumbnail": f"{Paths.thumbnail_ytdl}/%(title)s.%(ext)s",
         },
     }
-
-    # Use custom name as filename if set (e.g. anime title)
-    custom_name = getattr(BOT.Options, "custom_name", "")
-    if custom_name:
-        ydl_opts["outtmpl"]["default"] = f"{Paths.down_path}/{custom_name}.%(ext)s"
-
-    # Add custom HTTP headers (e.g. Referer for Cloudflare-protected streams)
-    custom_headers = getattr(BOT.Options, "http_headers", None)
-    if custom_headers:
-        ydl_opts["http_headers"] = custom_headers
-
-    # Use CF bypass proxy if configured
-    import config
-    # CF bypass proxy incompatible with yt-dlp (reverse proxy, not CONNECT proxy)
-    # Cloudflare bypass uses http_headers (Referer/Origin) instead
 
     # Merge cookie authentication options (fixes YouTube bot detection)
     ydl_opts.update(_get_cookie_opts())
@@ -320,10 +274,7 @@ def YouTubeDL(url: str, loop=None):
         }]
 
     if not ospath.exists(Paths.thumbnail_ytdl):
-        makedirs(Paths.thumbnail_ytdl, exist_ok=True)
-
-    # Reset completion flag for batch mode
-    YTDL.complete = False
+        makedirs(Paths.thumbnail_ytdl)
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
@@ -336,7 +287,7 @@ def YouTubeDL(url: str, loop=None):
                 playlist_path = ospath.join(Paths.down_path, playlist_name)
 
                 if not ospath.exists(playlist_path):
-                    makedirs(playlist_path, exist_ok=True)
+                    makedirs(playlist_path)
 
                 ydl_opts["outtmpl"]["default"] = f"{playlist_path}/%(title)s.%(ext)s"
                 # Re-bind the hook to the same loop for the inner YoutubeDL.
@@ -366,10 +317,6 @@ async def get_YT_Name(link: str) -> str:
     try:
         opts = {"logger": MyLogger(), "quiet": True}
         opts.update(_get_cookie_opts())
-        # Add custom HTTP headers (e.g. Referer for Cloudflare-protected streams)
-        custom_headers = getattr(BOT.Options, "http_headers", None)
-        if custom_headers:
-            opts["http_headers"] = custom_headers
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(link, download=False)
             return info.get("title", "Unknown")
@@ -391,10 +338,6 @@ async def list_formats(link: str) -> str:
     try:
         opts = {"quiet": True, "no_warnings": True}
         opts.update(_get_cookie_opts())
-        # Add custom HTTP headers (e.g. Referer for Cloudflare-protected streams)
-        custom_headers = getattr(BOT.Options, "http_headers", None)
-        if custom_headers:
-            opts["http_headers"] = custom_headers
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(link, download=False)
             formats = info.get("formats", [])

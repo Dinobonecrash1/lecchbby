@@ -14,11 +14,10 @@ Message handlers for replies, URLs, photos, and text input.
 """
 
 import logging
-import config
 from pyrogram import filters
 
 from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, Paths, MSG, BotTimes, BotStats, current_user_id, UserRegistry, get_ctx
+from leechbot.utility.variables import BOT, Paths, MSG, BotTimes, BotStats
 from leechbot.utility.helper import (
     isLink, setThumbnail, message_deleter, send_settings, extract_links,
 )
@@ -26,39 +25,12 @@ from leechbot.utility.helper import (
 logger = logging.getLogger(__name__)
 
 
-def set_handler_context(message):
-    """Set per-user context for message handlers."""
-    if message.from_user:
-        uid = message.from_user.id
-
-        # Rate limit check (normal users only — admins/owners bypass)
-        is_admin = uid == config.OWNER_ID or uid in config.ALLOWED_ADMINS
-        if not is_admin and not UserRegistry.check_rate_limit(uid):
-            return None, "<b>⏳ Please slow down.</b> Wait a few seconds before sending another message."
-
-        current_user_id.set(uid)
-        ctx = UserRegistry.get(uid)
-
-        # Check moderation access
-        from leechbot.utility.moderation import Moderation
-        allowed, reason = Moderation.check_access(uid)
-        if not allowed:
-            return None, reason
-
-        return ctx, ""
-    return None, ""
-
-
 # =============================================================================
 # Reply Handlers (prefix/suffix)
 # =============================================================================
 @app.on_message(filters.reply)
 async def handle_reply(client, message):
-    """Handle reply messages for setting prefix/suffix/autorename."""
-    ctx, err = set_handler_context(message)
-    if err:
-        await message.reply_text(err)
-        return
+    """Handle reply messages for setting prefix/suffix."""
     text = message.text or message.caption
     if not text:
         return  # Ignore non-text replies (photos, stickers, etc.)
@@ -73,16 +45,6 @@ async def handle_reply(client, message):
         BOT.State.suffix = False
         await send_settings(client, message, message.reply_to_message_id, False)
         await message.delete()
-    elif BOT.State.setting_autorename:
-        BOT.Setting.autorename_template = text
-        BOT.State.setting_autorename = False
-        await message.reply_text(
-            f"<b>🏷️ Auto-Rename Template Set</b>\n\n"
-            f"<b>📝 Template:</b> <code>{BOT.Setting.autorename_template}</code>\n\n"
-            f"<b>💡 The bot will use this pattern to rename files.</b>",
-            quote=True,
-        )
-        await message.delete()
 
 
 # =============================================================================
@@ -96,21 +58,14 @@ async def handle_url(client, message):
     """
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-    # Set per-user context
-    ctx, err = set_handler_context(message)
-    if err:
-        await message.reply_text(err)
-        return
-
     # Reset options
     BOT.Options.custom_name = ""
     BOT.Options.zip_pswd = ""
     BOT.Options.unzip_pswd = ""
-    BOT.Options.http_headers = None
 
-    if MSG.src_request_msg:
+    if hasattr(BOT, '_src_request_msg') and BOT._src_request_msg:
         try:
-            await MSG.src_request_msg.delete()
+            await BOT._src_request_msg.delete()
         except Exception:
             pass
 
@@ -136,7 +91,7 @@ async def handle_url(client, message):
         # Extract all URLs (and magnets) from the remaining text. Handles
         # forwarded messages where multiple links may share a line, and
         # deduplicates while preserving first-seen order.
-        get_ctx().task.source = extract_links("\n".join(temp_source))
+        BOT.SOURCE = extract_links("\n".join(temp_source))
 
         # Gallery mode: skip type selection, go straight to download
         if BOT.Mode.gallery:
@@ -147,7 +102,7 @@ async def handle_url(client, message):
             BOT.Mode.type = "normal"
 
             MSG.status_msg = await app.send_message(
-                chat_id=message.from_user.id,
+                chat_id=OWNER,
                 text="<b>🚀 Initializing Gallery Download...</b>\n\nPlease wait while I prepare your download",
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
@@ -156,49 +111,17 @@ async def handle_url(client, message):
             )
 
             await message.delete()
+            BOT.State.task_going = True
             BOT.State.started = False
-            ctx.start_time = datetime.now()
+            BotTimes.start_time = datetime.now()
 
-            import contextvars
-            from leechbot.utility.user_state import TaskQueue
-
+            event_loop = get_running_loop()
             BotStats.total_tasks += 1
-            info = {
-                "mode": BOT.Mode.mode,
-                "type": BOT.Mode.type,
-                "links": list(get_ctx().task.source),
-            }
-            started, position = TaskQueue.add(
-                user_id=message.from_user.id,
-                factory=taskScheduler,
-                context=contextvars.copy_context(),
-                info=info,
-            )
-
-            if not started:
-                if position == -1:
-                    try:
-                        await MSG.status_msg.edit_text(
-                            "<b>⚠️ Queue Limit Reached</b>\n\n"
-                            "You have too many queued tasks. Please wait for one to finish.",
-                            reply_markup=InlineKeyboardMarkup(
-                                [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
-                            ),
-                        )
-                    except Exception:
-                        pass
-                    return
-                try:
-                    await MSG.status_msg.edit_text(
-                        f"<b>⏳ Task Queued</b>\n\n"
-                        f"Position: <code>{position}</code>\n"
-                        f"Max concurrent tasks reached. Your task will start automatically.",
-                        reply_markup=InlineKeyboardMarkup(
-                            [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
-                        ),
-                    )
-                except Exception:
-                    pass
+            BOT.TASK = event_loop.create_task(taskScheduler())
+            try:
+                await BOT.TASK
+            finally:
+                BOT.State.task_going = False
             return
 
         keyboard = InlineKeyboardMarkup([
@@ -232,11 +155,6 @@ async def handle_url(client, message):
 @app.on_message(filters.photo & filters.private)
 async def handle_photo(client, message):
     """Handle photo messages to set thumbnail."""
-    ctx, err = set_handler_context(message)
-    if err:
-        await message.reply_text(err)
-        return
-
     msg = await message.reply_text("<b>🖼️ Processing Thumbnail...</b>")
     success = await setThumbnail(message)
     if success:
@@ -254,11 +172,6 @@ async def handle_photo(client, message):
 async def handle_document(client, message):
     """Handle document uploads — auto-detect cookies.txt for yt-dlp."""
     if message.chat.id != OWNER:
-        return
-
-    ctx, err = set_handler_context(message)
-    if err:
-        await message.reply_text(err)
         return
 
     file_name = message.document.file_name or ""
@@ -283,17 +196,13 @@ async def handle_document(client, message):
 # =============================================================================
 @app.on_message(filters.text & filters.private & ~filters.command([
     "start", "tupload", "gdupload", "drupload", "ytupload", "glupload",
-    "settings", "help", "setname", "autorename", "anime", "zipaswd", "unzipaswd",
+    "settings", "help", "setname", "zipaswd", "unzipaswd",
     "stats", "cancel", "cancel_all", "queue", "format", "formats", "preview",
     "speed", "broadcast", "admin", "cookies", "setcookies",
     "clearcookies", "update",
 ]))
 async def handle_text_input(client, message):
     """Handle text inputs for settings flow."""
-    ctx, err = set_handler_context(message)
-    if err:
-        await message.reply_text(err)
-        return
 
     # Auto-delete delay
     if getattr(BOT.State, "setting_autodelete_delay", False):

@@ -17,41 +17,19 @@ import logging
 import os
 import signal
 import sys
-import config
 from datetime import datetime
-from time import time
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from leechbot import app, OWNER, LOG_FILE, DUMP_ID
-from leechbot.utility.variables import BOT, MSG, YTDL, BotStats, BotTimes, Transfer, Messages, Paths, current_user_id, UserRegistry, Admin
+from leechbot import app, OWNER, LOG_FILE
+from leechbot.utility.variables import BOT, BotStats, BotTimes, Transfer, Messages, Queue, Paths
 from leechbot.utility.task_manager import task_starter
 from leechbot.utility.helper import (
     send_settings, message_deleter, format_stats, sysINFO, getTime, sizeUnit,
 )
 from leechbot.utility.handler import cancelTask
+import config
 
 logger = logging.getLogger(__name__)
-
-
-def set_user_context(message):
-    """Set per-user context from a message. Call at start of every handler."""
-    uid = message.from_user.id
-
-    # Rate limit check (normal users only — admins/owners bypass)
-    is_admin = uid == config.OWNER_ID or uid in config.ALLOWED_ADMINS
-    if not is_admin and not UserRegistry.check_rate_limit(uid):
-        return None, "<b>⏳ Please slow down.</b> Wait a few seconds before sending another command."
-
-    current_user_id.set(uid)
-    ctx = UserRegistry.get(uid)
-
-    # Check moderation access
-    from leechbot.utility.moderation import Moderation
-    allowed, reason = Moderation.check_access(uid)
-    if not allowed:
-        return None, reason
-
-    return ctx, ""
 
 # =============================================================================
 # /start
@@ -122,7 +100,6 @@ async def help_command(client, message):
 • /drupload — Upload local directory
 • /ytupload — Download with YT-DLP
 • /glupload — Download image galleries
-• /anime — Search &amp; download anime episodes
 • /preview — Dry-run a gallery URL to see what would be downloaded
 
 <b>─── Queue &amp; Control ───</b>
@@ -133,23 +110,16 @@ async def help_command(client, message):
 <b>─── Settings ───</b>
 • /settings — Bot settings menu
 • /setname — Set custom filename
-• /autorename — Set auto-rename template
 • /zipaswd — Set zip password
 • /unzipaswd — Set unzip password
 • /format — Set YT-DLP quality
 • /formats — List available formats for a video URL
 • /speed — Set bandwidth limit
 
-<b>─── Admin / Bot Control ───</b>
+<b>─── Admin ───</b>
 • /admin — Manage allowed users
 • /broadcast — Send file to multiple chats
 • /stats — Bot &amp; system statistics
-• /status — Current task &amp; queue status
-• /queue — View download queue
-• /cancel — Cancel your current task
-• /cancel_all — Cancel all tasks &amp; clear queue
-• /restart — Restart the bot
-• /logs — View recent logs
 • /update — Check for updates
 • /help — Show this help message
 
@@ -186,21 +156,16 @@ Terabox, Mega, Pixeldrain, Mediafire"""
 # =============================================================================
 @app.on_message(filters.command("settings") & filters.private)
 async def settings_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
-    await message.delete()
-    await send_settings(client, message, message.id, True)
+    if message.chat.id == OWNER:
+        await message.delete()
+        await send_settings(client, message, message.id, True)
 
 # =============================================================================
 # /format
 # =============================================================================
 @app.on_message(filters.command("format") & filters.private)
 async def format_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     keyboard = InlineKeyboardMarkup([
@@ -232,9 +197,7 @@ async def format_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("speed") & filters.private)
 async def speed_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     keyboard = InlineKeyboardMarkup([
@@ -268,10 +231,6 @@ async def speed_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("tupload") & filters.private)
 async def telegram_upload_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
@@ -292,17 +251,13 @@ https://example.com/file2.mp4
 • Use { } For Zip Password
 • Use ( ) For Extract Password"""
     src_request_msg = await task_starter(message, text)
-    MSG.src_request_msg = src_request_msg
+    BOT._src_request_msg = src_request_msg
 
 # =============================================================================
 # /gdupload
 # =============================================================================
 @app.on_message(filters.command("gdupload") & filters.private)
 async def gdrive_upload_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     BOT.Mode.mode = "mirror"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
@@ -322,17 +277,13 @@ https://example.com/file2.mp4
 • Files Will Be Mirrored To Your GDrive
 • Make Sure GDrive Is Mounted"""
     src_request_msg = await task_starter(message, text)
-    MSG.src_request_msg = src_request_msg
+    BOT._src_request_msg = src_request_msg
 
 # =============================================================================
 # /drupload
 # =============================================================================
 @app.on_message(filters.command("drupload") & filters.private)
 async def directory_upload_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     BOT.Mode.mode = "dir-leech"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = False
@@ -347,17 +298,13 @@ async def directory_upload_command(client, message):
 • Provide Absolute Path To The Folder
 • Ensure The Bot Has Read Permissions"""
     src_request_msg = await task_starter(message, text)
-    MSG.src_request_msg = src_request_msg
+    BOT._src_request_msg = src_request_msg
 
 # =============================================================================
 # /ytupload
 # =============================================================================
 @app.on_message(filters.command("ytupload") & filters.private)
 async def ytdl_upload_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = True
     BOT.Mode.gallery = False
@@ -376,17 +323,13 @@ https://youtu.be/xxxxx
 • Twitter, TikTok, Vimeo, Dailymotion
 • And 2000+ more sites"""
     src_request_msg = await task_starter(message, text)
-    MSG.src_request_msg = src_request_msg
+    BOT._src_request_msg = src_request_msg
 
 # =============================================================================
 # /glupload
 # =============================================================================
 @app.on_message(filters.command("glupload") & filters.private)
 async def gallery_upload_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     BOT.Mode.mode = "leech"
     BOT.Mode.ytdl = False
     BOT.Mode.gallery = True
@@ -413,17 +356,13 @@ https://pixiv.net/users/123456
 • Use [ ] For Custom Folder Name
 • Use { } For Zip Password"""
     src_request_msg = await task_starter(message, text)
-    MSG.src_request_msg = src_request_msg
+    BOT._src_request_msg = src_request_msg
 
 # =============================================================================
 # /setname
 # =============================================================================
 @app.on_message(filters.command("setname") & filters.private)
 async def setname_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     if len(message.command) < 2:
         msg = await message.reply_text(
             "<b>⚠️ Usage:</b> <code>/setname &lt;filename&gt;</code>\n\n"
@@ -436,53 +375,13 @@ async def setname_command(client, message):
     await message_deleter(message, msg)
 
 # =============================================================================
-# /autorename
-# =============================================================================
-@app.on_message(filters.command("autorename") & filters.private)
-async def autorename_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
-    if len(message.command) < 2:
-        current_template = BOT.Setting.autorename_template
-        status = f"<b>📝 Current Template:</b> <code>{current_template}</code>" if current_template else "<b>📝 No template set</b>"
-        
-        msg = await message.reply_text(
-            f"<b>🏷️ Auto-Rename Template</b>\n\n"
-            f"{status}\n\n"
-            f"<b>⚠️ Usage:</b> <code>/autorename &lt;template&gt;</code>\n\n"
-            f"<b>📝 Examples:</b>\n"
-            f"• Manga: <code>/autorename [WF] [C{{chapter}}] One Piece @Webtoon_Flix</code>\n"
-            f"• Anime: <code>/autorename [S{{season}} E{{episode}}] One Piece [{{quality}}] [{{audio}}]</code>\n\n"
-            f"<b>💡 Note:</b> Don't put .mkv or .mp4 at the end.\n"
-            f"The bot will use this template to rename your files automatically.\n\n"
-            f"<b>🗑️ To clear:</b> <code>/autorename clear</code>",
-            quote=True,
-        )
-    elif message.command[1].lower() == "clear":
-        BOT.Setting.autorename_template = ""
-        msg = await message.reply_text("<b>✅ Auto-rename template cleared.</b>", quote=True)
-    else:
-        BOT.Setting.autorename_template = " ".join(message.command[1:])
-        msg = await message.reply_text(
-            f"<b>🏷️ Auto-Rename Template Set</b>\n\n"
-            f"<b>📝 Template:</b> <code>{BOT.Setting.autorename_template}</code>\n\n"
-            f"<b>💡 The bot will use this pattern to rename files.</b>",
-            quote=True,
-        )
-    await message_deleter(message, msg)
-
-# =============================================================================
 # /formats <url>
 # =============================================================================
 @app.on_message(filters.command("formats") & filters.private)
 async def formats_command(client, message):
     from leechbot.downloader.ytdl import list_formats
 
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     parts = (message.text or "").split(maxsplit=1)
@@ -512,9 +411,7 @@ async def formats_command(client, message):
 async def preview_command(client, message):
     from leechbot.downloader.gallery import list_gallery_content
 
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER:
         return
 
     parts = (message.text or "").split(maxsplit=1)
@@ -542,10 +439,6 @@ async def preview_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("zipaswd") & filters.private)
 async def zipaswd_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     if len(message.command) != 2:
         msg = await message.reply_text(
             "<b>⚠️ Usage</b>\n\n"
@@ -563,10 +456,6 @@ async def zipaswd_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("unzipaswd") & filters.private)
 async def unzipaswd_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     if len(message.command) != 2:
         msg = await message.reply_text(
             "<b>⚠️ Usage</b>\n\n"
@@ -584,58 +473,39 @@ async def unzipaswd_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("ping") & filters.private)
 async def ping_command(client, message):
-    from asyncio import sleep as async_sleep
-    import aiohttp
-
     start = datetime.now()
-    msg = await message.reply_text("<b>⚡ Checking...</b>", quote=True)
+    msg = await message.reply_text("<b>🏓 Pinging...</b>", quote=True)
     latency_ms = (datetime.now() - start).total_seconds() * 1000
     uptime = getTime(int((datetime.now() - BotStats.start_time).total_seconds()))
 
     if latency_ms < 200:
         quality = "Excellent"
-        quality_icon = "🟢"
     elif latency_ms < 500:
         quality = "Good"
-        quality_icon = "🟡"
     elif latency_ms < 1000:
         quality = "Average"
-        quality_icon = "🟠"
     else:
         quality = "Poor"
-        quality_icon = "🔴"
+
+    pct = max(5, min(100, int((1 - latency_ms / 2000) * 100)))
+    filled = pct // 5
+    empty = 20 - filled
+    bar = f"{'█' * filled}{'░' * empty}"
 
     server_status = "Online" if latency_ms < 5000 else "Slow"
 
-    # Check API health
-    api_results = []
-    apis = [
-        ("Miruro API", "https://mirurotvapi.vercel.app/api/health"),
-        ("Animex API", "https://animexoneapi.vercel.app/api/health"),
-    ]
-    async with aiohttp.ClientSession() as session:
-        for name, url in apis:
-            try:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=5)) as resp:
-                    if resp.status == 200:
-                        api_results.append(f"  🟢 <code>{name}</code> » Online")
-                    else:
-                        api_results.append(f"  🔴 <code>{name}</code> » Error {resp.status}")
-            except Exception:
-                api_results.append(f"  🔴 <code>{name}</code> » Offline")
-
-    api_text = "\n".join(api_results)
-
-    ping_text = f"""<b>⚡ PONG</b>
-
-<b>🏓 Latency:</b> <code>{latency_ms:.1f} ms</code>
-<b>{quality_icon} Quality:</b> <code>{quality}</code>
-<b>⏱️ Uptime:</b> <code>{uptime}</code>
-<b>🤖 Version:</b> <code>v{config.VERSION}</code>
-<b>📡 Server:</b> <code>{server_status}</code>
-
-<b>🌐 APIs:</b>
-{api_text}"""
+    ping_text = f"""<code>
+┌───────────────────────────────┐
+        🏓  PONG
+├───────────────────────────────┤
+  ⚡  Latency   »  {latency_ms:.1f} ms
+  📊  Quality   »  {quality}
+  {bar}  {pct}%
+  ⏱️  Uptime    »  {uptime}
+  🤖  Version   »  v{config.VERSION}
+  📡  Server    »  {server_status}
+└───────────────────────────────┘
+</code>"""
     await msg.edit(ping_text, disable_web_page_preview=True)
     await message_deleter(message, msg)
 
@@ -644,9 +514,7 @@ async def ping_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("status") & filters.private)
 async def status_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
         return
 
     if BOT.State.task_going:
@@ -682,13 +550,14 @@ async def status_command(client, message):
     else:
         active_section = "<b>🎯 Active Task</b>\n\n• <code>No task running</code>"
 
-    from leechbot.utility.user_state import TaskQueue
-    pending = TaskQueue.pending
-    active_count = TaskQueue.active_count
-    max_c = TaskQueue.max_concurrent
-    if pending or active_count:
-        queue_lines = [f"<b>📋 Queue</b> <code>({active_count}/{max_c} active, {pending} pending)</code>"]
-        for line in TaskQueue.list_items()[:5]:
+    pending = Queue.pending
+    current = Queue.current
+    if pending or current:
+        queue_lines = [f"<b>📋 Queue</b> (<code>{pending} pending</code>)"]
+        if current:
+            link = current["links"][0][:60] + ("..." if len(current["links"][0]) > 60 else "")
+            queue_lines.append(f"• 🔄 <b>Current:</b> <code>{link}</code> ({len(current['links'])} link(s))")
+        for line in Queue.list_items()[:5]:
             queue_lines.append(line)
         if pending > 5:
             queue_lines.append(f"• _... and {pending - 5} more_")
@@ -714,28 +583,23 @@ async def stats_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("queue") & filters.private)
 async def queue_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
+    if message.chat.id != OWNER and message.chat.id not in config.ALLOWED_USERS:
         return
 
-    from leechbot.utility.user_state import TaskQueue
+    items = Queue.list_items()
+    current = Queue.current
 
-    items = TaskQueue.list_items()
-    active = TaskQueue.active_count
-    pending = TaskQueue.pending
-    max_c = TaskQueue.max_concurrent
-
-    text = f"<b>📋 Download Queue</b> <code>({active}/{max_c} active)</code>\n\n"
-    if active:
-        text += f"• 🔄 <b>Active tasks:</b> <code>{active}</code>\n\n"
+    text = "<b>📋 Download Queue</b>\n\n"
+    if current:
+        text += f"• 🔄 <b>Active:</b> <code>{current.get('name', 'Unknown')}</code>\n"
+        text += f"• 📦 <b>Links:</b> <code>{len(current.get('links', []))}</code>\n\n"
     else:
-        text += f"• 🔄 <b>Active:</b> <code>None</code>\n\n"
+        text += "<b>🔄 Active:</b> <code>None</code>\n\n"
 
     if items:
         for item in items:
             text += f"{item}\n"
-        text += f"\n<b>📊 Total Queued:</b> <code>{pending}</code>"
+        text += f"\n<b>📊 Total Queued:</b> <code>{Queue.size()}</code>"
     else:
         text += "<b>📭 Queue is empty</b>"
 
@@ -753,10 +617,6 @@ async def queue_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("cancel") & filters.private)
 async def cancel_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     if BOT.State.task_going:
         await cancelTask("User cancelled the task")
         msg = await message.reply_text("<b>🚫 Task Cancelled</b> ✓", quote=True)
@@ -769,15 +629,10 @@ async def cancel_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("cancel_all") & filters.private)
 async def cancel_all_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     if message.chat.id != OWNER:
         return
 
-    from leechbot.utility.user_state import TaskQueue
-    TaskQueue.clear()
+    Queue.clear()
 
     if BOT.State.task_going:
         await cancelTask("User cancelled all tasks")
@@ -846,10 +701,6 @@ async def admin_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("broadcast") & filters.private)
 async def broadcast_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     from asyncio import sleep
 
     if message.chat.id != OWNER:
@@ -919,10 +770,6 @@ async def broadcast_command(client, message):
 # =============================================================================
 @app.on_message(filters.command("cookies") & filters.private)
 async def cookies_command(client, message):
-    ctx, err = set_user_context(message)
-    if err:
-        await message.reply_text(err)
-        return
     import subprocess
 
     cookies_file = getattr(config, "YTDL_COOKIES_FILE", "")
@@ -1172,750 +1019,3 @@ async def update_command(client, message):
         f"{changelog_text}",
         reply_markup=keyboard,
     )
-
-# =============================================================================
-# /anime - Anime Episode Downloader
-# =============================================================================
-@app.on_message(filters.command("anime") & filters.private)
-async def anime_command(client, message):
-    """Search and download anime episodes.
-
-    Quick mode: /anime <query> [ep/start-end] [sub/dub] [quality] [provider]
-    Interactive: /anime <query>  (shows search results with buttons)
-    """
-    from leechbot.downloader.anime import anime_client
-    from leechbot.utility.variables import current_user_id, UserRegistry
-
-    # Set per-user context
-    uid = message.from_user.id
-    current_user_id.set(uid)
-    ctx = UserRegistry.get(uid)
-
-    # Check moderation access
-    from leechbot.utility.moderation import Moderation
-    allowed, reason = Moderation.check_access(uid)
-    if not allowed:
-        await message.reply_text(reason)
-        return
-
-    if len(message.command) < 2:
-        msg = await message.reply_text(
-            "<b>🎬 Anime Episode Downloader</b>\n\n"
-            "<b>⚠️ Usage:</b>\n"
-            "• <code>/anime &lt;name&gt;</code> — interactive search\n"
-            "• <code>/anime &lt;name&gt; ep 1-5 sub</code> — quick download\n\n"
-            "<b>📝 Quick Examples:</b>\n"
-            "• <code>/anime Solo Leveling ep 1-5 sub</code>\n"
-            "• <code>/anime One Piece ep 1-10 dub 1080p</code>\n"
-            "• <code>/anime Naruto ep 5 sub animex</code>\n\n"
-            "<b>📋 Parameters (optional):</b>\n"
-            "• <code>ep &lt;range&gt;</code> — episode(s): <code>5</code> or <code>1-13</code>\n"
-            "• <code>sub</code> / <code>dub</code> — audio type\n"
-            "• <code>480p</code> / <code>720p</code> / <code>1080p</code> — quality\n"
-            "• <code>animex</code> / <code>miruro</code> — provider\n",
-            quote=True,
-        )
-        await message_deleter(message, msg)
-        return
-
-    # Parse arguments
-    raw_args = " ".join(message.command[1:])
-    ep_start = ep_end = None
-    category = "sub"
-    quality = None
-    provider = None
-    query_parts = []
-
-    tokens = raw_args.split()
-    i = 0
-    while i < len(tokens):
-        tok = tokens[i].lower()
-        if tok == "ep" and i + 1 < len(tokens):
-            # Parse episode range: "5" or "1-5" or "1~5"
-            ep_str = tokens[i + 1].replace("~", "-")
-            if "-" in ep_str:
-                parts = ep_str.split("-", 1)
-                ep_start = int(parts[0])
-                ep_end = int(parts[1])
-            else:
-                ep_start = ep_end = int(ep_str)
-            i += 2
-        elif tok in ("sub", "dub"):
-            category = tok
-            i += 1
-        elif tok.endswith("p") and tok[:-1].isdigit():
-            quality = tok
-            i += 1
-        elif tok in ("animex", "miruro"):
-            provider = tok
-            i += 1
-        else:
-            query_parts.append(tokens[i])
-            i += 1
-
-    query = " ".join(query_parts)
-
-    if not query:
-        await message.reply_text("<b>❌ Please provide an anime name.</b>", quote=True)
-        return
-
-    # ── Quick mode: episodes specified (batch: download 1, upload 1) ──
-    if ep_start is not None:
-        from asyncio import sleep as async_sleep
-        from leechbot.uploader.telegram import upload_file
-        from leechbot.utility.handler import SendLogs
-        from leechbot.utility.helper import sysINFO, keyboard
-        from os import makedirs, listdir, path as ospath
-        import shutil
-        import random
-
-        status = await message.reply_text(
-            f"<b>🔍 Searching:</b> <code>{query}</code>...\n"
-            f"<b>📺 Episodes:</b> <code>{ep_start}-{ep_end}</code>\n"
-            f"<b>🔊 Audio:</b> <code>{category}</code>",
-            quote=True,
-        )
-
-        try:
-            result = await anime_client.search(query)
-            if not result.get("success"):
-                await status.edit_text(f"<b>❌ Search failed:</b> <code>{result.get('message', 'Unknown error')}</code>")
-                return
-
-            results = result.get("results", [])
-            if not results:
-                await status.edit_text("<b>❌ No results found.</b>")
-                return
-
-            search_provider = result.get("provider", "animex")
-            selected = results[0]
-            formatted = anime_client.format_search_results(results[:1], provider=search_provider)
-            display_title = formatted[0]["display_title"] if formatted else query
-
-            if search_provider == "animex":
-                anime_id = selected.get("anilistId") or selected.get("id", "")
-            else:
-                anime_id = selected.get("id")
-
-            cover = selected.get("cover", "") or selected.get("coverImage", {}).get("extraLarge", "")
-
-            await status.edit_text(
-                f"<b>🎬 {display_title}</b>\n\n"
-                f"<b>📺 Episodes:</b> <code>{ep_start}-{ep_end}</code>\n"
-                f"<b>🔊 Audio:</b> <code>{category}</code>\n\n"
-                f"<b>⏳ Loading episodes...</b>",
-            )
-
-            episodes_result = await anime_client.get_episodes(anime_id, search_provider)
-            if not episodes_result.get("success"):
-                await status.edit_text(f"<b>❌ Failed to load episodes:</b> <code>{episodes_result.get('message', 'Unknown error')}</code>")
-                return
-
-            episodes_list = episodes_result.get("results", [])
-            BOT.State.anime_episodes = episodes_list
-
-            # ── Set mode (matches normal task_starter) ──
-            BOT.State.task_going = True
-            BOT.State.shutting_down = False
-            BOT.Mode.type = "normal"
-            BOT.Mode.stream = True
-            BOT.Mode.ytdl = True
-            BOT.Mode.mode = "leech"
-            BOT.Mode.is_leech = True
-            BOT.Options.http_headers = {"Referer": "https://kwik.cx/", "Origin": "https://kwik.cx/"}
-
-            ep_label_range = f"Ep {ep_start}" if ep_start == ep_end else f"Ep {ep_start}-{ep_end}"
-            total = ep_end - ep_start + 1
-
-            # ── Build Messages.dump_task (exact match to original task_starter) ──
-            Messages.download_name = display_title
-            Messages.task_msg = "<b>🎯 Task Mode:</b> "
-            mode_label = "Leech"
-            Messages.dump_task = Messages.task_msg + f"<code>{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}</code>\n\n<b>🔗 Sources:</b>"
-            Messages.link_p = str(DUMP_ID)[4:]
-
-            # ── Pick hero image ──
-            try:
-                import glob as _glob
-                images = _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.jpg")) + \
-                         _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.png")) + \
-                         _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.webp"))
-                if images:
-                    Paths.HERO_IMAGE = random.choice(images)
-                    Paths.DEFAULT_HERO = images[0]
-            except Exception:
-                pass
-
-            # ── Download poster as thumbnail ──
-            if cover:
-                from leechbot.callbacks import _download_anime_poster
-                await _download_anime_poster(cover)
-
-            # ── Send task log to dump channel (no date yet — sources come first) ──
-            dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
-            Messages.src_link = f"https://t.me/c/{Messages.link_p}/{dump_msg.id}"
-            Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
-
-            # ── Create status message with thumbnail ──
-            if BOT.Setting.thumbnail and ospath.exists(Paths.THMB_PATH):
-                img = Paths.THMB_PATH
-            else:
-                anime_poster = getattr(BOT.State, "anime_poster_path", None)
-                if anime_poster and ospath.exists(anime_poster):
-                    img = anime_poster
-                elif ospath.exists(Paths.THMB_PATH):
-                    img = Paths.THMB_PATH
-                else:
-                    img = Paths.HERO_IMAGE
-
-            caption = (
-                Messages.task_msg
-                + Messages.status_head
-                + "\n📝 Initializing..." + sysINFO()
-            )
-
-            # Delete old status message
-            try:
-                await status.delete()
-            except Exception:
-                pass
-
-            if img and ospath.exists(img):
-                try:
-                    MSG.status_msg = await app.send_photo(
-                        chat_id=message.from_user.id,
-                        photo=img,
-                        caption=caption,
-                        reply_markup=keyboard()
-                    )
-                except Exception:
-                    MSG.status_msg = await app.send_message(
-                        chat_id=message.from_user.id,
-                        text=caption,
-                        reply_markup=keyboard(),
-                        disable_web_page_preview=True
-                    )
-            else:
-                MSG.status_msg = await app.send_message(
-                    chat_id=message.from_user.id,
-                    text=caption,
-                    reply_markup=keyboard(),
-                    disable_web_page_preview=True
-                )
-
-            # Reassign status to new message (old one was deleted)
-            status = MSG.status_msg
-
-            # ── Initialize transfer tracking (matches original) ──
-            BotTimes.current_time = time()
-            Transfer.up_bytes = [0, 0]
-            Transfer.sent_file = []
-            Transfer.sent_file_names = []
-            Transfer.down_bytes = [0, 0]
-            Transfer.total_down_size = 0
-            BotStats.total_tasks += 1
-
-            # Set MSG.sent_msg for upload_file to reply to (user's chat, not dump)
-            MSG.sent_msg = MSG.status_msg
-
-            uploaded = 0
-            failed = 0
-
-            for ep_num in range(ep_start, ep_end + 1):
-                if BOT.State.shutting_down:
-                    break
-
-                ep_label = f"Ep {ep_num:02d}"
-                file_name = f"{display_title} - {ep_label}"
-
-                Messages.status_head = (
-                    f"<b>📥 Downloading</b> <code>{ep_label}</code>\n\n"
-                    f"<code>{display_title}</code>\n"
-                )
-
-                # Update status
-                try:
-                    await MSG.status_msg.edit_text(
-                        text=Messages.task_msg + Messages.status_head + sysINFO(),
-                        reply_markup=keyboard()
-                    )
-                except Exception:
-                    pass
-
-                # Fetch stream URL — try multiple providers if one fails
-                ep_info = anime_client.miruro.get_episode_stream_info(episodes_list, ep_num, category)
-                if not ep_info:
-                    logger.warning("Ep %d: no episode info found, skipping", ep_num)
-                    failed += 1
-                    continue
-
-                ep_info["anilist_id"] = anime_id
-
-                # Try primary provider first, then fallback providers
-                providers_to_try = [ep_info["provider"]]
-                for p in ["miruro", "animex", "kiwi", "pewe", "bee"]:
-                    if p not in providers_to_try:
-                        providers_to_try.append(p)
-
-                stream_result = None
-                stream_url = None
-                for prov in providers_to_try:
-                    try:
-                        result = await anime_client.get_stream_from_miruro(
-                            prov, anime_id, category, ep_info["slug"]
-                        )
-                        if result.get("success") and result.get("results", {}).get("url"):
-                            stream_result = result
-                            stream_url = result["results"]["url"]
-                            logger.info("Ep %d: stream found via %s", ep_num, prov)
-                            break
-                        else:
-                            logger.warning("Ep %d: provider %s failed — %s", ep_num, prov, result.get("message", "no stream"))
-                    except Exception as e:
-                        logger.warning("Ep %d: provider %s error — %s", ep_num, prov, e)
-                        continue
-
-                if not stream_result or not stream_url:
-                    logger.error("Ep %d: all providers failed, skipping", ep_num)
-                    failed += 1
-                    continue
-
-                ep_referer = stream_result["results"].get("referer", "https://kwik.cx/")
-                BOT.Options.http_headers = {"Referer": ep_referer, "Origin": ep_referer}
-                BOT.Options.custom_name = file_name
-
-                # Add source link to dump task
-                try:
-                    code_link = f"\n\n🏮 `{stream_url[:100]}...`"
-                    if len(Messages.dump_task + code_link) < 4000:
-                        Messages.dump_task += code_link
-                except Exception:
-                    pass
-
-                # Create temp folder for this episode
-                ep_dir = ospath.join(str(Paths.temp), f"ep_{ep_num}")
-                if ospath.exists(ep_dir):
-                    shutil.rmtree(ep_dir)
-                makedirs(ep_dir, exist_ok=True)
-                Paths.down_path = ep_dir
-
-                # Download with progress bar
-                try:
-                    Messages.download_name = file_name
-                    from leechbot.downloader.ytdl import YTDL_Status, YTDL
-                    YTDL.complete = False
-                    await YTDL_Status(stream_url, ep_num - ep_start + 1)
-                    # Wait for yt-dlp to fully finish (HLS fragments may still be merging)
-                    for _ in range(60):
-                        if YTDL.complete:
-                            break
-                        await async_sleep(1)
-                except Exception as e:
-                    logger.error("Episode %d download failed: %s", ep_num, e)
-                    failed += 1
-                    if ospath.exists(ep_dir):
-                        shutil.rmtree(ep_dir)
-                    continue
-
-                # Find downloaded file
-                if not ospath.exists(ep_dir):
-                    logger.warning("Episode %d: download dir missing, skipping", ep_num)
-                    failed += 1
-                    continue
-
-                files = [f for f in listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
-                if not files:
-                    failed += 1
-                    shutil.rmtree(ep_dir)
-                    continue
-
-                # Set transfer total for progress tracking
-                file_size = ospath.getsize(ep_dir + "/" + files[0])
-                if file_size == 0:
-                    logger.warning("Episode %d: downloaded file is 0 bytes, skipping", ep_num)
-                    failed += 1
-                    shutil.rmtree(ep_dir)
-                    continue
-                Transfer.total_down_size = file_size
-
-                # Upload
-                file_path = ep_dir + "/" + files[0]
-                real_name = file_name + ospath.splitext(files[0])[1]
-
-                # Apply autorename template if set
-                if BOT.Setting.autorename_template:
-                    from leechbot.utility.handler import _apply_autorename_template
-                    quality = stream_result["results"].get("quality", "")
-                    if not quality:
-                        import re
-                        q_match = re.search(r'(\d{3,4}p)', stream_url, re.IGNORECASE)
-                        if q_match:
-                            quality = q_match.group(1).upper()
-                    file_metadata = {
-                        'title': display_title,
-                        'audio': category.upper(),
-                        'episode': str(ep_num),
-                        'season': '1',
-                        'quality': quality,
-                    }
-                    new_name = _apply_autorename_template(real_name, BOT.Setting.autorename_template, file_metadata)
-                    new_file_path = ospath.join(ep_dir, new_name)
-                    try:
-                        os.rename(file_path, new_file_path)
-                        file_path = new_file_path
-                        real_name = new_name
-                    except OSError:
-                        pass
-
-                # Update status to show uploading
-                Messages.status_head = (
-                    f"<b>📤 Uploading</b> <code>{ep_label}</code>\n\n"
-                    f"<code>{display_title}</code>\n"
-                )
-                try:
-                    await MSG.status_msg.edit_text(
-                        text=Messages.task_msg + Messages.status_head + sysINFO(),
-                        reply_markup=keyboard()
-                    )
-                except Exception:
-                    pass
-
-                try:
-                    await upload_file(file_path, real_name)
-                    Transfer.up_bytes.append(file_size)
-                    uploaded += 1
-                except Exception as e:
-                    logger.error("Episode %d upload failed: %s", ep_num, e)
-                    failed += 1
-
-                # Cleanup
-                if ospath.exists(ep_dir):
-                    shutil.rmtree(ep_dir)
-
-                if ep_num < ep_end:
-                    await async_sleep(3)
-
-            # ── Add date and final update to dump message ──
-            cdt = datetime.now()
-            dt = cdt.strftime(" %d-%m-%Y")
-            Messages.dump_task += f"\n\n<b>📅 Date:</b> <code>{dt}</code>"
-            try:
-                await dump_msg.edit_text(
-                    text=Messages.dump_task,
-                    disable_web_page_preview=True
-                )
-            except Exception:
-                pass
-
-            # ── SendLogs (completion summary with source link) ──
-            BOT.Options.custom_name = ""
-            BOT.Options.http_headers = None
-            Messages.download_name = display_title
-            await SendLogs(is_leech=True)
-
-        except ValueError:
-            try:
-                await status.edit_text("<b>❌ Invalid episode format.</b> Use: <code>ep 5</code> or <code>ep 1-13</code>")
-            except Exception:
-                pass
-        except Exception as e:
-            logger.error(f"Anime quick download error: {e}")
-            try:
-                await status.edit_text(f"<b>❌ Error:</b> <code>{e}</code>")
-            except Exception:
-                pass
-        return
-
-    # ── Interactive mode: no episodes specified ──
-    status = await message.reply_text(f"<b>🔍 Searching:</b> <code>{query}</code>...", quote=True)
-
-    try:
-        result = await anime_client.search(query)
-
-        if not result.get("success"):
-            await status.edit_text(f"<b>❌ Search failed:</b> <code>{result.get('message', 'Unknown error')}</code>")
-            return
-
-        results = result.get("results", [])
-        if not results:
-            await status.edit_text("<b>❌ No results found.</b> Try a different search term.")
-            return
-
-        # Store results for callback handling
-        BOT.State.anime_search_results = results
-        BOT.State.anime_search_query = query
-        BOT.State.anime_search_provider = result.get("provider", "animex")
-
-        # Format results and create inline keyboard
-        search_provider = result.get("provider", "animex")
-        formatted = anime_client.format_search_results(results[:8], provider=search_provider)
-
-        buttons = []
-        for i, item in enumerate(formatted):
-            title = item["title"][:40] + ("..." if len(item["title"]) > 40 else "")
-            buttons.append([InlineKeyboardButton(
-                f"{'🎬' if i == 0 else '📺'} {title}",
-                callback_data=f"anime_select_{i}"
-            )])
-
-        buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
-
-        result_text = f"<b>🔍 Search Results for:</b> <code>{query}</code>\n\n"
-        for i, item in enumerate(formatted):
-            result_text += f"<b>{i+1}.</b> {item['display']}\n\n"
-
-        await status.edit_text(
-            result_text,
-            reply_markup=InlineKeyboardMarkup(buttons),
-            disable_web_page_preview=True,
-        )
-    except Exception as e:
-        logger.error(f"Anime search error: {e}")
-        await status.edit_text(f"<b>❌ Search error:</b> <code>{e}</code>")
-
-
-# =============================================================================
-# Moderation Commands (Admin Only)
-# =============================================================================
-@app.on_message(filters.command("warn") & filters.private)
-async def warn_command(client, message):
-    """Warn a user. Usage: /warn <user_id> [reason]"""
-    from leechbot.utility.moderation import ModerationDB, Moderation
-
-    uid = message.from_user.id
-    if not Admin.is_admin(uid):
-        await message.reply_text("❌ Admin only command.")
-        return
-
-    args = message.command[1:]
-    if not args:
-        await message.reply_text(
-            "<b>⚠️ Warn User</b>\n\n"
-            "<b>Usage:</b> <code>/warn &lt;user_id&gt; [reason]</code>\n"
-            "<b>Example:</b> <code>/warn 123456789 Downloading copyrighted content</code>"
-        )
-        return
-
-    try:
-        target_id = int(args[0])
-    except ValueError:
-        await message.reply_text("❌ Invalid user ID.")
-        return
-
-    reason = " ".join(args[1:]) if len(args) > 1 else "No reason specified"
-    warns = ModerationDB.warn(target_id, reason)
-    max_w = config.MAX_WARNS
-
-    if warns >= max_w:
-        await message.reply_text(
-            f"🚫 <b>User <code>{target_id}</code> auto-banned!</b>\n"
-            f"<b>Reason:</b> {warns} warns reached\n"
-            f"<b>Last warn:</b> {reason}"
-        )
-        # Notify the user if in private group
-        if config.BOT_PRIVATE and config.PRIVATE_GROUP_ID:
-            try:
-                await app.send_message(
-                    target_id,
-                    f"🚫 <b>You have been banned!</b>\n\n"
-                    f"<b>Reason:</b> {warns} warnings reached\n"
-                    f"<b>Last warn:</b> {reason}"
-                )
-            except Exception:
-                pass
-    else:
-        await message.reply_text(
-            f"⚠️ <b>User <code>{target_id}</code> warned!</b>\n"
-            f"<b>Warns:</b> {warns}/{max_w}\n"
-            f"<b>Reason:</b> {reason}"
-        )
-
-
-@app.on_message(filters.command("unwarn") & filters.private)
-async def unwarn_command(client, message):
-    """Remove a warn from a user. Usage: /unwarn <user_id>"""
-    from leechbot.utility.moderation import ModerationDB
-
-    uid = message.from_user.id
-    if not Admin.is_admin(uid):
-        await message.reply_text("❌ Admin only command.")
-        return
-
-    args = message.command[1:]
-    if not args:
-        await message.reply_text(
-            "<b>✅ Unwarn User</b>\n\n"
-            "<b>Usage:</b> <code>/unwarn &lt;user_id&gt;</code>"
-        )
-        return
-
-    try:
-        target_id = int(args[0])
-    except ValueError:
-        await message.reply_text("❌ Invalid user ID.")
-        return
-
-    warns = ModerationDB.unwarn(target_id)
-    await message.reply_text(
-        f"✅ <b>User <code>{target_id}</code> unwarned!</b>\n"
-        f"<b>Remaining warns:</b> {warns}/{config.MAX_WARNS}"
-    )
-
-
-@app.on_message(filters.command("ban") & filters.private)
-async def ban_command(client, message):
-    """Ban a user. Usage: /ban <user_id> [reason]"""
-    from leechbot.utility.moderation import ModerationDB
-
-    uid = message.from_user.id
-    if not Admin.is_admin(uid):
-        await message.reply_text("❌ Admin only command.")
-        return
-
-    args = message.command[1:]
-    if not args:
-        await message.reply_text(
-            "<b>🚫 Ban User</b>\n\n"
-            "<b>Usage:</b> <code>/ban &lt;user_id&gt; [reason]</code>\n"
-            "<b>Example:</b> <code>/ban 123456789 Abusing bot</code>"
-        )
-        return
-
-    try:
-        target_id = int(args[0])
-    except ValueError:
-        await message.reply_text("❌ Invalid user ID.")
-        return
-
-    # Can't ban admins
-    if Admin.is_admin(target_id):
-        await message.reply_text("❌ Cannot ban an admin.")
-        return
-
-    reason = " ".join(args[1:]) if len(args) > 1 else "Banned by admin"
-    ModerationDB.ban(target_id, reason)
-
-    await message.reply_text(
-        f"🚫 <b>User <code>{target_id}</code> banned!</b>\n"
-        f"<b>Reason:</b> {reason}"
-    )
-
-    # Notify the user
-    if config.BOT_PRIVATE and config.PRIVATE_GROUP_ID:
-        try:
-            await app.send_message(
-                target_id,
-                f"🚫 <b>You have been banned!</b>\n\n"
-                f"<b>Reason:</b> {reason}"
-            )
-        except Exception:
-            pass
-
-
-@app.on_message(filters.command("unban") & filters.private)
-async def unban_command(client, message):
-    """Unban a user. Usage: /unban <user_id>"""
-    from leechbot.utility.moderation import ModerationDB
-
-    uid = message.from_user.id
-    if not Admin.is_admin(uid):
-        await message.reply_text("❌ Admin only command.")
-        return
-
-    args = message.command[1:]
-    if not args:
-        await message.reply_text(
-            "<b>✅ Unban User</b>\n\n"
-            "<b>Usage:</b> <code>/unban &lt;user_id&gt;</code>"
-        )
-        return
-
-    try:
-        target_id = int(args[0])
-    except ValueError:
-        await message.reply_text("❌ Invalid user ID.")
-        return
-
-    ModerationDB.unban(target_id)
-    await message.reply_text(f"✅ <b>User <code>{target_id}</code> unbanned!</b>")
-
-
-@app.on_message(filters.command("warns") & filters.private)
-async def warns_command(client, message):
-    """Check warnings for a user. Usage: /warns <user_id>"""
-    from leechbot.utility.moderation import ModerationDB, Moderation
-
-    uid = message.from_user.id
-    if not Admin.is_admin(uid):
-        await message.reply_text("❌ Admin only command.")
-        return
-
-    args = message.command[1:]
-    if not args:
-        # Show own warns
-        info = Moderation.format_user_info(uid)
-        await message.reply_text(f"<b>📊 Your Stats:</b>\n\n{info}")
-        return
-
-    try:
-        target_id = int(args[0])
-    except ValueError:
-        await message.reply_text("❌ Invalid user ID.")
-        return
-
-    info = Moderation.format_user_info(target_id)
-    await message.reply_text(info)
-
-
-@app.on_message(filters.command("banned") & filters.private)
-async def banned_list_command(client, message):
-    """List all banned users."""
-    from leechbot.utility.moderation import ModerationDB
-
-    uid = message.from_user.id
-    if not Admin.is_admin(uid):
-        await message.reply_text("❌ Admin only command.")
-        return
-
-    banned = ModerationDB.list_banned()
-    if not banned:
-        await message.reply_text("✅ No banned users.")
-        return
-
-    text = "<b>🚫 Banned Users:</b>\n\n"
-    for b in banned:
-        text += f"• <code>{b['user_id']}</code> — {b['reason']}\n"
-
-    await message.reply_text(text)
-
-
-@app.on_message(filters.command("activity") & filters.private)
-async def activity_command(client, message):
-    """Show user activity summary for admin."""
-    from leechbot.utility.moderation import ModerationDB
-
-    uid = message.from_user.id
-    if not Admin.is_admin(uid):
-        await message.reply_text("❌ Admin only command.")
-        return
-
-    db = ModerationDB
-    db._load()
-
-    total_users = len(db._data)
-    banned = sum(1 for u in db._data.values() if u.get("banned"))
-    warned = sum(1 for u in db._data.values() if u.get("warns", 0) > 0 and not u.get("banned"))
-    total_downloads = sum(u.get("total_downloads", 0) for u in db._data.values())
-    total_uploads = sum(u.get("total_uploads", 0) for u in db._data.values())
-
-    text = (
-        f"<b>📊 Bot Activity Summary</b>\n\n"
-        f"<b>👥 Total Users:</b> {total_users}\n"
-        f"<b>✅ Active:</b> {total_users - banned - warned}\n"
-        f"<b>⚠️ Warned:</b> {warned}\n"
-        f"<b>🚫 Banned:</b> {banned}\n"
-        f"<b>📥 Total Downloads:</b> {total_downloads}\n"
-        f"<b>📤 Total Uploads:</b> {total_uploads}\n"
-    )
-
-    await message.reply_text(text)

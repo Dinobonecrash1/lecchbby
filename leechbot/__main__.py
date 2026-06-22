@@ -113,12 +113,10 @@ async def _register_commands():
         BotCommand("drupload", "📁 Upload local directory"),
         BotCommand("ytupload", "🏮 Download with YT-DLP"),
         BotCommand("glupload", "📸 Download image galleries"),
-        BotCommand("anime", "🎬 Search & download anime"),
         BotCommand("formats", "🎞️ List available formats for a URL"),
         BotCommand("preview", "👁️ Preview a gallery URL (dry run)"),
         BotCommand("settings", "⚙️ Bot settings menu"),
         BotCommand("setname", "✏️ Set custom filename"),
-        BotCommand("autorename", "🏷️ Set auto-rename template"),
         BotCommand("zipaswd", "🔐 Set zip password"),
         BotCommand("unzipaswd", "🔓 Set unzip password"),
         BotCommand("format", "🎬 Set YT-DLP quality"),
@@ -187,9 +185,6 @@ async def startup():
         logger.info("🔑 Dashboard token: %s", web_token)
     except Exception as e:
         logger.warning("⚠️ Web dashboard failed to start: %s", e)
-
-    # CF bypass proxy disabled — aiohttp proxy doesn't support CONNECT tunnels
-    # Use http_headers (Referer/Origin) instead for Cloudflare bypass
 
     logger.info("=" * 60)
 

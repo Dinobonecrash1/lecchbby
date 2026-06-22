@@ -17,105 +17,17 @@ import logging
 import pathlib
 from asyncio import sleep
 from time import time
-from leechbot import app
+from leechbot import OWNER, app
 from natsort import natsorted
 from datetime import datetime
 from os import makedirs, path as ospath
 from leechbot.uploader.telegram import upload_file, upload_photos_batch  # Added import
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, current_user_id
+from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer
 from leechbot.utility.converters import archive, extract, videoConverter, sizeChecker
 from leechbot.utility.helper import fileType, getSize, getTime, keyboard, shortFileName, sizeUnit, sysINFO
 
 logger = logging.getLogger(__name__)
-
-# =============================================================================
-# Auto-Rename Template Processing
-# =============================================================================
-def _apply_autorename_template(original_name: str, template: str, metadata: dict = None) -> str:
-    """
-    Apply auto-rename template to a file name.
-    
-    Args:
-        original_name: Original file name (with extension)
-        template: Rename template with placeholders
-        metadata: Optional metadata dict with keys like 'episode', 'season', 'quality', 'audio', 'title'
-        
-    Returns:
-        New file name based on template
-        
-    Supported placeholders:
-        {chapter} - Chapter number (auto-detected or from metadata)
-        {season} - Season number (auto-detected or from metadata)
-        {episode} - Episode number (auto-detected or from metadata)
-        {quality} - Video quality (auto-detected or from metadata)
-        {audio} - Audio info (auto-detected or from metadata)
-        {title} - Anime title (from metadata only)
-    """
-    import re
-    
-    # Get file extension from original name
-    _, ext = ospath.splitext(original_name)
-    
-    # If template already has an extension at the end, strip it
-    if template.endswith(('.mkv', '.mp4', '.avi', '.webm', '.mov', '.flv')):
-        template = template[:len(template) - len(ext)]
-    
-    # Start with metadata if provided, otherwise empty dict
-    detected = {}
-    if metadata:
-        detected.update(metadata)
-    
-    # Auto-detect from filename (only if not already in metadata)
-    # Detect chapter number (e.g., Ch.001, Chapter 1, c001, c12)
-    if 'chapter' not in detected:
-        chapter_match = re.search(r'(?:ch(?:apter)?[\s.]?|c)(\d+)', original_name, re.IGNORECASE)
-        if chapter_match:
-            detected['chapter'] = chapter_match.group(1).lstrip('0') or '0'
-    
-    # Detect season number (e.g., S01, Season 1, s01)
-    if 'season' not in detected:
-        season_match = re.search(r'(?:s(?:eason)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
-        if season_match:
-            detected['season'] = season_match.group(1).lstrip('0') or '0'
-    
-    # Detect episode number (e.g., E01, Episode 1, ep01)
-    if 'episode' not in detected:
-        episode_match = re.search(r'(?:e(?:p(?:isode)?)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
-        if episode_match:
-            detected['episode'] = episode_match.group(1).lstrip('0') or '0'
-    
-    # Detect quality (e.g., 1080p, 720p, 4K, 2160p)
-    if 'quality' not in detected:
-        quality_match = re.search(r'(\d{3,4}p|4k|2160p|1080p|720p|480p|360p)', original_name, re.IGNORECASE)
-        if quality_match:
-            detected['quality'] = quality_match.group(1).upper()
-    
-    # Detect audio info (e.g., AAC, FLAC, DTS, AC3, Dual Audio)
-    if 'audio' not in detected:
-        audio_match = re.search(r'(dual[\s-]?audio|aac|flac|dts|ac3|eac3|pcm|mp3|opus|7\.1|5\.1|2\.0|atmos)', original_name, re.IGNORECASE)
-        if audio_match:
-            detected['audio'] = audio_match.group(1).upper()
-    
-    # Replace placeholders in template with detected values
-    result = template
-    for key, value in detected.items():
-        placeholder = '{' + key + '}'
-        if placeholder in result:
-            result = result.replace(placeholder, str(value))
-    
-    # Remove any remaining unreplaced placeholders
-    result = re.sub(r'\{[^}]+\}', '', result)
-    
-    # Clean up multiple spaces and trailing/leading spaces
-    result = re.sub(r'\s+', ' ', result).strip()
-    
-    # Add extension back
-    if ext:
-        result += ext
-    
-    return result
-
 
 # =============================================================================
 # Main Leech Function
@@ -189,15 +101,6 @@ async def Leech(folder_path: str, remove: bool):
                 if remove and ospath.exists(photo_path):
                     os.remove(photo_path)
 
-    # Get anime metadata for autorename if available
-    anime_metadata = None
-    if hasattr(BOT.State, 'anime_selected') and BOT.State.anime_selected:
-        anime_metadata = {
-            'title': BOT.State.anime_selected.get('title', ''),
-            'episode_range': BOT.State.anime_selected.get('episode_range', (0, 0)),
-            'audio': BOT.State.anime_selected.get('category', 'sub'),
-        }
-    
     # Process remaining files normally
     for file_path in other_files:
         leech_result = await sizeChecker(file_path, remove)
@@ -212,31 +115,6 @@ async def Leech(folder_path: str, remove: bool):
             for dir_path in dir_list:
                 short_path = ospath.join(Paths.temp_zpath, dir_path)
                 file_name = ospath.basename(short_path)
-                
-                # Apply auto-rename template if set
-                if BOT.Setting.autorename_template:
-                    # Build metadata for this file
-                    file_metadata = {}
-                    if anime_metadata:
-                        file_metadata['title'] = anime_metadata['title']
-                        file_metadata['audio'] = anime_metadata['audio']
-                        # Try to detect episode number from filename
-                        import re
-                        ep_match = re.search(r'(?:e(?:p(?:isode)?)?[\s._-]?)(\d+)', file_name, re.IGNORECASE)
-                        if ep_match:
-                            file_metadata['episode'] = ep_match.group(1)
-                        elif count:
-                            file_metadata['episode'] = str(count)
-                    
-                    file_name = _apply_autorename_template(file_name, BOT.Setting.autorename_template, file_metadata)
-                    # Rename the file to the new name
-                    new_full_path = ospath.join(Paths.temp_zpath, file_name)
-                    try:
-                        os.rename(short_path, new_full_path)
-                        short_path = new_full_path
-                    except OSError as e:
-                        logger.warning(f"Auto-rename failed: {e}")
-                
                 new_path = shortFileName(short_path)
                 try:
                     os.rename(short_path, new_path)
@@ -262,7 +140,7 @@ async def Leech(folder_path: str, remove: bool):
 
         else:  # Regular file upload
             if not ospath.exists(Paths.temp_files_dir):
-                makedirs(Paths.temp_files_dir, exist_ok=True)
+                makedirs(Paths.temp_files_dir)
 
             if not remove:
                 try:
@@ -271,29 +149,6 @@ async def Leech(folder_path: str, remove: bool):
                     logger.warning(f"Copy failed, using original: {e}")
 
             file_name = ospath.basename(file_path)
-            
-            # Apply auto-rename template if set
-            if BOT.Setting.autorename_template:
-                # Build metadata for this file
-                file_metadata = {}
-                if anime_metadata:
-                    file_metadata['title'] = anime_metadata['title']
-                    file_metadata['audio'] = anime_metadata['audio']
-                    # Try to detect episode number from filename
-                    import re
-                    ep_match = re.search(r'(?:e(?:p(?:isode)?)?[\s._-]?)(\d+)', file_name, re.IGNORECASE)
-                    if ep_match:
-                        file_metadata['episode'] = ep_match.group(1)
-                
-                new_name = _apply_autorename_template(file_name, BOT.Setting.autorename_template, file_metadata)
-                new_file_path = ospath.join(ospath.dirname(file_path), new_name)
-                try:
-                    os.rename(file_path, new_file_path)
-                    file_path = new_file_path
-                    file_name = new_name
-                except OSError as e:
-                    logger.warning(f"Auto-rename failed: {e}")
-            
             new_path = shortFileName(file_path)
             try:
                 os.rename(file_path, new_path)
@@ -362,7 +217,7 @@ async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
     BotTimes.current_time = time()
 
     if not ospath.exists(Paths.temp_zpath):
-        makedirs(Paths.temp_zpath, exist_ok=True)
+        makedirs(Paths.temp_zpath)
 
     await archive(down_path, is_split, remove)
     await sleep(2)
@@ -397,7 +252,7 @@ async def Unzip_Handler(down_path: str, remove: bool):
     for f in natsorted(filenames):
         short_path = ospath.join(down_path, f)
         if not ospath.exists(Paths.temp_unzip_path):
-            makedirs(Paths.temp_unzip_path, exist_ok=True)
+            makedirs(Paths.temp_unzip_path)
 
         filename = ospath.basename(f).lower()
         _, ext = ospath.splitext(filename)
@@ -424,9 +279,7 @@ async def cancelTask(reason: str):
     Args:
         reason: cancellation reason
     """
-    from leechbot.utility.variables import BOT, BotTimes, Messages, Paths, MSG, get_ctx
-
-    ctx = get_ctx()
+    from leechbot.utility.variables import BOT, BotTimes, Messages, Paths, MSG
 
     elapsed = getTime(int((datetime.now() - BotTimes.start_time).total_seconds()))
     mode_label = BOT.Mode.mode.capitalize() if BOT.Mode.mode else "Unknown"
@@ -443,8 +296,7 @@ async def cancelTask(reason: str):
 
     if BOT.State.task_going:
         try:
-            if ctx.task.task:
-                ctx.task.task.cancel()
+            BOT.TASK.cancel()
         except Exception as e:
             logger.error("Task cancel error: %s", e)
 
@@ -453,7 +305,7 @@ async def cancelTask(reason: str):
         except Exception as e:
             logger.warning("Cleanup error: %s", e)
 
-        ctx.task.task_going = False
+        BOT.State.task_going = False
         logger.info("Task cancelled: %s", reason)
 
         # Clean up status message
@@ -465,7 +317,7 @@ async def cancelTask(reason: str):
         # Notify user
         try:
             await app.send_message(
-                chat_id=current_user_id.get(),
+                chat_id=OWNER,
                 text=text,
                 disable_web_page_preview=True,
                 reply_markup=InlineKeyboardMarkup([
@@ -567,19 +419,3 @@ async def SendLogs(is_leech: bool):
 
     BOT.State.started = False
     BOT.State.task_going = False
-
-    # Clear thumbnail so next task starts fresh
-    BOT.Setting.thumbnail = False
-    BOT.State.anime_poster_path = None
-    # Delete thumbnail files
-    try:
-        if ospath.exists(Paths.THMB_PATH):
-            os.remove(Paths.THMB_PATH)
-    except Exception:
-        pass
-    anime_poster = str(Paths.THMB_PATH).replace("Thumbnail.jpg", "anime_poster.jpg")
-    try:
-        if ospath.exists(anime_poster):
-            os.remove(anime_poster)
-    except Exception:
-        pass

@@ -77,7 +77,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
         is_ytdl: whether to use YT-DLP for all sources
     """
     from leechbot.utility.handler import cancelTask
-    from leechbot.downloader.aria2 import aria2_Download
+    from leechbot.downloader.aria2 import aria2_Download, Aria2c
     from leechbot.downloader.ytdl import YTDL_Status
     from leechbot.downloader.gdrive import build_service, g_DownLoad, getIDFromURL, getFileMetadata, get_Gfolder_size
     from leechbot.downloader.mega import megadl
@@ -88,12 +88,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
 
     if is_ytdl:
         # YT-DLP mode — all links go through yt-dlp
-        episode_meta = getattr(BOT.State, "anime_episode_meta", None)
         for i, link in enumerate(sources):
-            # Set per-episode custom name for anime downloads
-            if episode_meta and i < len(episode_meta):
-                meta = episode_meta[i]
-                BOT.Options.custom_name = f"{meta['title']} - Ep {meta['episode']:02d}"
             try:
                 await _with_retry(
                     lambda l=link, n=i+1: YTDL_Status(l, n),
@@ -103,14 +98,6 @@ async def downloadManager(sources: list, is_ytdl: bool):
                 await cancelTask(f"YT-DLP Error: {error}")
                 BotStats.failed_tasks += 1
                 return
-
-            # Small delay between episodes to avoid 429 rate limit
-            if i < len(sources) - 1:
-                await sleep(2)
-
-        # Reset custom_name after downloads — files already have correct names from outtmpl
-        # If we don't reset, applyCustomName() would rename ALL files to the last episode's name
-        BOT.Options.custom_name = ""
 
         try:
             await MSG.status_msg.edit_text(
@@ -195,7 +182,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
                         # libtorrent not installed — fall back to aria2c
                         logger.warning("libtorrent not available, falling back to aria2c for torrent/magnet")
                         logger.warning("⚠️ libtorrent not installed — using aria2c fallback")
-                        BOT.State.link_info = False
+                        Aria2c.link_info = False
                         await _with_retry(lambda l=link, n=i+1: aria2_Download(l, n), link)
 
                 else:
@@ -209,7 +196,7 @@ async def downloadManager(sources: list, is_ytdl: bool):
                     except Exception:
                         pass
 
-                    BOT.State.link_info = False
+                    Aria2c.link_info = False
                     await _with_retry(lambda l=link, n=i+1: aria2_Download(l, n), link)
 
             except Exception as error:

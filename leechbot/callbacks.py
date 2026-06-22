@@ -20,12 +20,11 @@ import os
 import sys
 import logging
 from datetime import datetime
-from time import time
 from asyncio import get_running_loop
 
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from leechbot import app, OWNER, DUMP_ID
-from leechbot.utility.variables import BOT, MSG, Messages, YTDL, BotTimes, BotStats, Paths, Transfer, current_user_id, get_ctx
+from leechbot import app, OWNER
+from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
 import config
@@ -36,7 +35,7 @@ logger = logging.getLogger(__name__)
 async def safe_answer(callback_query, *args, **kwargs):
     """Safe wrapper for callback_query.answer() to suppress QueryIdInvalid."""
     try:
-        await callback_query.answer(*args, **kwargs)
+        await safe_answer(callback_query, *args, **kwargs)
     except Exception:
         pass
 
@@ -47,25 +46,8 @@ async def safe_answer(callback_query, *args, **kwargs):
 @app.on_callback_query()
 async def handle_callback(client, callback_query):
     """Route callback queries to the appropriate handler."""
-    from leechbot.utility.variables import current_user_id, UserRegistry
-
     data = callback_query.data
     logger.debug("Callback: %s", data)
-
-    # Set per-user context for this callback
-    uid = callback_query.from_user.id
-
-    # Rate limit check (normal users only — admins/owners bypass)
-    is_admin = uid == config.OWNER_ID or uid in config.ALLOWED_ADMINS
-    if not is_admin and not UserRegistry.check_rate_limit(uid):
-        try:
-            await safe_answer(callback_query, "⏳ Please slow down. Wait a few seconds before clicking again.", show_alert=True)
-        except Exception:
-            pass
-        return
-
-    current_user_id.set(uid)
-    ctx = UserRegistry.get(uid)
 
     try:
         # --- Help system (3.1.34) ---
@@ -80,7 +62,7 @@ async def handle_callback(client, callback_query):
 
         # --- Upload type selection ---
         elif data in ("normal", "zip", "unzip", "undzip"):
-            await _handle_upload_type(client, callback_query, data, ctx)
+            await _handle_upload_type(client, callback_query, data)
 
         # --- Settings navigation ---
         elif data == "settings_menu":
@@ -240,6 +222,7 @@ async def handle_callback(client, callback_query):
                 f"<b>Limit:</b> <code>{display_val}</code>"
             )
             await safe_answer(callback_query, "Speed limit saved ✓")
+            await safe_answer(callback_query, "Speed limit saved ✓")
 
         # --- System info ---
         elif data == "sys_refresh":
@@ -251,22 +234,6 @@ async def handle_callback(client, callback_query):
         elif data == "sys_close":
             await callback_query.message.delete()
             await safe_answer(callback_query, "Closed")
-
-        # --- Anime search selection ---
-        elif data.startswith("anime_select_"):
-            await _handle_anime_select(client, callback_query, data)
-
-        # --- Anime episode selection ---
-        elif data.startswith("anime_ep_"):
-            await _handle_anime_episode(client, callback_query, data)
-
-        # --- Anime category (sub/dub) ---
-        elif data.startswith("anime_cat_"):
-            await _handle_anime_category(client, callback_query, data)
-
-        # --- Anime download ---
-        elif data.startswith("anime_dl_"):
-            await _handle_anime_download(client, callback_query, data)
 
         else:
             await safe_answer(callback_query, "⚠️ Unknown action", show_alert=True)
@@ -281,17 +248,10 @@ async def handle_callback(client, callback_query):
 # =============================================================================
 # Upload Type Selection
 # =============================================================================
-async def _handle_upload_type(client, callback_query, data: str, ctx=None):
+async def _handle_upload_type(client, callback_query, data: str):
     """Handle upload type selection (normal/zip/unzip/undzip)."""
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
     from leechbot.utility.task_manager import taskScheduler
-    from leechbot.utility.variables import current_user_id, UserRegistry
-
-    # Ensure context is set
-    if ctx is None:
-        uid = callback_query.from_user.id
-        current_user_id.set(uid)
-        ctx = UserRegistry.get(uid)
 
     # Bail if bot is shutting down — the dispatcher drains pending callbacks
     # before app.stop() completes, and starting a long task here will be
@@ -322,7 +282,7 @@ async def _handle_upload_type(client, callback_query, data: str, ctx=None):
     }
 
     MSG.status_msg = await app.send_message(
-        chat_id=callback_query.from_user.id,
+        chat_id=OWNER,
         text=f"<b>🚀 Starting {type_labels.get(data, data)} Upload...</b>\n\nPlease wait while I prepare your download",
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
@@ -330,49 +290,16 @@ async def _handle_upload_type(client, callback_query, data: str, ctx=None):
         disable_web_page_preview=True
     )
 
+    BOT.State.task_going = True
     BOT.State.started = False
-    ctx.start_time = datetime.now()
+    BotTimes.start_time = datetime.now()
 
-    import contextvars
-    from leechbot.utility.task_manager import taskScheduler
-    from leechbot.utility.user_state import TaskQueue
-
-    info = {
-        "mode": BOT.Mode.mode,
-        "type": BOT.Mode.type,
-        "links": list(get_ctx().task.source),
-    }
-    started, position = TaskQueue.add(
-        user_id=callback_query.from_user.id,
-        factory=taskScheduler,
-        context=contextvars.copy_context(),
-        info=info,
-    )
-
-    if not started:
-        if position == -1:
-            try:
-                await MSG.status_msg.edit_text(
-                    "<b>⚠️ Queue Limit Reached</b>\n\n"
-                    "You have too many queued tasks. Please wait for one to finish.",
-                    reply_markup=InlineKeyboardMarkup(
-                        [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
-                    ),
-                )
-            except Exception:
-                pass
-            return
-        try:
-            await MSG.status_msg.edit_text(
-                f"<b>⏳ Task Queued</b>\n\n"
-                f"Position: <code>{position}</code>\n"
-                f"Max concurrent tasks reached. Your task will start automatically.",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
-                ),
-            )
-        except Exception:
-            pass
+    event_loop = get_running_loop()
+    BOT.TASK = event_loop.create_task(taskScheduler())
+    try:
+        await BOT.TASK
+    finally:
+        BOT.State.task_going = False
 
 # =============================================================================
 # Video Settings
@@ -536,11 +463,6 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
     """Handle YT-DLP mode confirmation."""
     from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
     from leechbot.utility.task_manager import taskScheduler
-    from leechbot.utility.variables import current_user_id, UserRegistry
-
-    uid = callback_query.from_user.id
-    current_user_id.set(uid)
-    ctx = UserRegistry.get(uid)
 
     BOT.Mode.ytdl = data == "ytdl-true"
     await callback_query.message.delete()
@@ -550,7 +472,7 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
     )
 
     MSG.status_msg = await app.send_message(
-        chat_id=uid,
+        chat_id=OWNER,
         text="<b>🚀 Initializing YT-DLP Download...</b>\n\nPlease wait while I prepare your download",
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
@@ -558,49 +480,16 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
         disable_web_page_preview=True
     )
 
+    BOT.State.task_going = True
     BOT.State.started = False
-    ctx.start_time = datetime.now()
+    BotTimes.start_time = datetime.now()
 
-    import contextvars
-    from leechbot.utility.task_manager import taskScheduler
-    from leechbot.utility.user_state import TaskQueue
-
-    info = {
-        "mode": BOT.Mode.mode,
-        "type": BOT.Mode.type,
-        "links": list(get_ctx().task.source),
-    }
-    started, position = TaskQueue.add(
-        user_id=uid,
-        factory=taskScheduler,
-        context=contextvars.copy_context(),
-        info=info,
-    )
-
-    if not started:
-        if position == -1:
-            try:
-                await MSG.status_msg.edit_text(
-                    "<b>⚠️ Queue Limit Reached</b>\n\n"
-                    "You have too many queued tasks. Please wait for one to finish.",
-                    reply_markup=InlineKeyboardMarkup(
-                        [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
-                    ),
-                )
-            except Exception:
-                pass
-            return
-        try:
-            await MSG.status_msg.edit_text(
-                f"<b>⏳ Task Queued</b>\n\n"
-                f"Position: <code>{position}</code>\n"
-                f"Max concurrent tasks reached. Your task will start automatically.",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
-                ),
-            )
-        except Exception:
-            pass
+    event_loop = get_running_loop()
+    BOT.TASK = event_loop.create_task(taskScheduler())
+    try:
+        await BOT.TASK
+    finally:
+        BOT.State.task_going = False
 
 # =============================================================================
 # Do Update
@@ -691,7 +580,6 @@ HELP_TEXT = """<b>📖 LeechBot Help Menu</b>
 • /drupload — Upload local directory
 • /ytupload — Download with YT-DLP
 • /glupload — Download image galleries
-• /anime — Search &amp; download anime episodes
 • /preview — Dry-run a gallery URL
 
 <b>─── Queue &amp; Control ───</b>
@@ -702,7 +590,6 @@ HELP_TEXT = """<b>📖 LeechBot Help Menu</b>
 <b>─── Settings ───</b>
 • /settings — Bot settings menu
 • /setname — Set custom filename
-• /autorename — Set auto-rename template
 • /zipaswd — Set zip password
 • /unzipaswd — Set unzip password
 • /format — Set YT-DLP quality
@@ -835,652 +722,3 @@ async def _handle_start_back(client, callback_query):
     except Exception as e:
         logger.debug("Start back failed: %s", e)
         await safe_answer(callback_query, "Use /start", show_alert=False)
-
-
-# =============================================================================
-# Anime Episode Download Handlers
-# =============================================================================
-async def _handle_anime_select(client, callback_query, data: str):
-    """Handle anime selection from search results."""
-    from leechbot.downloader.anime import anime_client
-
-    try:
-        index = int(data.replace("anime_select_", ""))
-        results = BOT.State.anime_search_results
-        provider = BOT.State.anime_search_provider
-
-        if index >= len(results):
-            await safe_answer(callback_query, "Invalid selection", show_alert=True)
-            return
-
-        selected = results[index]
-        BOT.State.anime_selected = selected
-
-        # Extract title and ID based on provider
-        if provider == "animex":
-            anime_id = selected.get("anilistId") or selected.get("id", "")
-            title = selected.get("display_title") or selected.get("title") or selected.get("titleEnglish") or selected.get("titleRomaji") or "Unknown"
-            cover = selected.get("cover", "") or selected.get("coverImage", {}).get("extraLarge", "")
-            episodes = selected.get("episodes") or selected.get("episodeCount", "?")
-        else:
-            # MiruroAPI format
-            anime_id = selected.get("id")
-            title_data = selected.get("title", {})
-            if isinstance(title_data, dict):
-                title = selected.get("display_title") or title_data.get("english") or title_data.get("romaji") or "Unknown"
-            else:
-                title = selected.get("display_title") or title_data or "Unknown"
-            cover = selected.get("cover", "") or selected.get("coverImage", {}).get("extraLarge", "")
-            episodes = selected.get("episodes", "?")
-
-        BOT.State.anime_selected["provider"] = provider
-        BOT.State.anime_selected["anime_id"] = anime_id
-        BOT.State.anime_selected["title"] = title
-        BOT.State.anime_selected["cover"] = cover
-        BOT.State.anime_selected["total_episodes"] = episodes
-
-        await callback_query.message.edit_text(
-            f"<b>🎬 Loading episodes for:</b> <code>{title}</code>...",
-            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❌ Cancel", callback_data="close")]])
-        )
-
-        # Get episodes
-        episodes_result = await anime_client.get_episodes(anime_id, provider)
-
-        if not episodes_result.get("success"):
-            await callback_query.message.edit_text(
-                f"<b>❌ Failed to load episodes:</b> <code>{episodes_result.get('message', 'Unknown error')}</code>"
-            )
-            return
-
-        episodes_list = episodes_result.get("results", [])
-        BOT.State.anime_episodes = episodes_list
-
-        # Get episode count
-        if isinstance(episodes_list, list):
-            total_episodes = len(episodes_list)
-        else:
-            # MiruroAPI returns dict with providers
-            total_episodes = 0
-            providers = episodes_list.get("providers", {})
-            for prov_data in providers.values():
-                for cat in ["sub", "dub"]:
-                    total_episodes = max(total_episodes, len(prov_data.get("episodes", {}).get(cat, [])))
-
-        if total_episodes == 0:
-            await callback_query.message.edit_text(
-                f"<b>❌ No episodes found for:</b> <code>{title}</code>"
-            )
-            return
-
-        # Create episode selection UI
-        buttons = []
-
-        # Category selection (sub/dub) — default to sub
-        category = BOT.State.anime_selected.get("category", "sub")
-        buttons.append([
-            InlineKeyboardButton(f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub", callback_data="anime_cat_sub"),
-            InlineKeyboardButton(f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub", callback_data="anime_cat_dub"),
-        ])
-
-        # Episode buttons — individual for ≤25 eps, season ranges for large series
-        if total_episodes <= 25:
-            # Individual episode buttons (up to 25)
-            row = []
-            for ep in range(1, total_episodes + 1):
-                row.append(InlineKeyboardButton(f"{ep}", callback_data=f"anime_ep_{ep}_{ep}"))
-                if len(row) == 5:
-                    buttons.append(row)
-                    row = []
-            if row:
-                buttons.append(row)
-            # Download all button
-            buttons.append([InlineKeyboardButton(
-                f"⬇️ Download All (1-{total_episodes})",
-                callback_data=f"anime_dl_1_{total_episodes}"
-            )])
-        elif total_episodes <= 100:
-            # 12-ep season ranges for medium series
-            for start in range(1, total_episodes + 1, 12):
-                end = min(start + 11, total_episodes)
-                buttons.append([
-                    InlineKeyboardButton(
-                        f"📺 Ep {start}-{end}",
-                        callback_data=f"anime_ep_{start}_{end}"
-                    )
-                ])
-        else:
-            # 24-ep season ranges for long series (One Piece, etc.)
-            for start in range(1, min(total_episodes + 1, 600), 24):
-                end = min(start + 23, total_episodes)
-                buttons.append([
-                    InlineKeyboardButton(
-                        f"📺 Ep {start}-{end}",
-                        callback_data=f"anime_ep_{start}_{end}"
-                    )
-                ])
-            if total_episodes > 600:
-                buttons.append([InlineKeyboardButton(
-                    f"... and {total_episodes - 600} more episodes",
-                    callback_data="close"
-                )])
-
-        buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
-
-        await callback_query.message.edit_text(
-            f"<b>🎬 {title}</b>\n\n"
-            f"<b>📺 Total Episodes:</b> <code>{total_episodes}</code>\n\n"
-            f"<b>Select category and episode range:</b>",
-            reply_markup=InlineKeyboardMarkup(buttons),
-        )
-
-        await safe_answer(callback_query, f"Selected: {title}")
-
-    except Exception as e:
-        logger.error("Anime select error: %s", e)
-        await callback_query.message.edit_text(f"<b>❌ Error:</b> <code>{e}</code>")
-
-
-async def _handle_anime_episode(client, callback_query, data: str):
-    """Handle episode selection — show download confirmation with category."""
-    try:
-        parts = data.replace("anime_ep_", "").split("_")
-        start_ep = int(parts[0])
-        end_ep = int(parts[1])
-
-        BOT.State.anime_selected["episode_range"] = (start_ep, end_ep)
-
-        title = BOT.State.anime_selected.get("title", "Unknown")
-        category = BOT.State.anime_selected.get("category", "sub")
-        category_label = "🇯🇵 Sub" if category == "sub" else "🇺🇸 Dub"
-
-        ep_label = f"Ep {start_ep}" if start_ep == end_ep else f"Ep {start_ep}-{end_ep}"
-        buttons = [
-            [InlineKeyboardButton(
-                f"⬇️ Download {ep_label}",
-                callback_data=f"anime_dl_{start_ep}_{end_ep}"
-            )],
-            [
-                InlineKeyboardButton(
-                    f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub",
-                    callback_data="anime_cat_sub"
-                ),
-                InlineKeyboardButton(
-                    f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub",
-                    callback_data="anime_cat_dub"
-                ),
-            ],
-            [InlineKeyboardButton("❌ Cancel", callback_data="close")],
-        ]
-
-        await callback_query.message.edit_text(
-            f"<b>🎬 {title}</b>\n\n"
-            f"<b>🔊 Audio:</b> <code>{category_label}</code>\n"
-            f"<b>📺 Selected:</b> <code>{ep_label}</code>\n\n"
-            f"<b>Ready to download:</b>",
-            reply_markup=InlineKeyboardMarkup(buttons),
-        )
-
-        await safe_answer(callback_query, f"{ep_label} selected")
-
-    except Exception as e:
-        logger.error("Anime episode error: %s", e)
-        await callback_query.message.edit_text(f"<b>❌ Error:</b> <code>{e}</code>")
-
-
-async def _handle_anime_category(client, callback_query, data: str):
-    """Handle category (sub/dub) selection — re-renders full UI with episode buttons."""
-    try:
-        category = data.replace("anime_cat_", "")
-        BOT.State.anime_selected["category"] = category
-
-        title = BOT.State.anime_selected.get("title", "Unknown")
-        total_episodes = BOT.State.anime_selected.get("total_episodes", 0)
-        if isinstance(total_episodes, str):
-            total_episodes = int(total_episodes) if total_episodes.isdigit() else 0
-
-        # Re-render full UI with category checkmark + episode buttons
-        buttons = [
-            [
-                InlineKeyboardButton(f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub", callback_data="anime_cat_sub"),
-                InlineKeyboardButton(f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub", callback_data="anime_cat_dub"),
-            ],
-        ]
-
-        # Episode buttons — individual for ≤25 eps, season ranges for large series
-        if total_episodes <= 25:
-            row = []
-            for ep in range(1, total_episodes + 1):
-                row.append(InlineKeyboardButton(f"{ep}", callback_data=f"anime_ep_{ep}_{ep}"))
-                if len(row) == 5:
-                    buttons.append(row)
-                    row = []
-            if row:
-                buttons.append(row)
-            buttons.append([InlineKeyboardButton(
-                f"⬇️ Download All (1-{total_episodes})",
-                callback_data=f"anime_dl_1_{total_episodes}"
-            )])
-        elif total_episodes <= 100:
-            for start in range(1, total_episodes + 1, 12):
-                end = min(start + 11, total_episodes)
-                buttons.append([
-                    InlineKeyboardButton(
-                        f"📺 Ep {start}-{end}",
-                        callback_data=f"anime_ep_{start}_{end}"
-                    )
-                ])
-        else:
-            for start in range(1, min(total_episodes + 1, 600), 24):
-                end = min(start + 23, total_episodes)
-                buttons.append([
-                    InlineKeyboardButton(
-                        f"📺 Ep {start}-{end}",
-                        callback_data=f"anime_ep_{start}_{end}"
-                    )
-                ])
-            if total_episodes > 600:
-                buttons.append([InlineKeyboardButton(
-                    f"... and {total_episodes - 600} more episodes",
-                    callback_data="close"
-                )])
-
-        buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
-
-        category_label = "🇯🇵 Sub" if category == "sub" else "🇺🇸 Dub"
-        await callback_query.message.edit_text(
-            f"<b>🎬 {title}</b>\n\n"
-            f"<b>🔊 Audio:</b> <code>{category_label}</code>\n"
-            f"<b>📺 Episodes:</b> <code>{total_episodes}</code>\n\n"
-            f"<b>Select episodes to download:</b>",
-            reply_markup=InlineKeyboardMarkup(buttons),
-        )
-
-        await safe_answer(callback_query, f"Audio: {category_label}")
-
-    except Exception as e:
-        logger.error("Anime category error: %s", e)
-        await safe_answer(callback_query, "Error setting category", show_alert=True)
-
-
-async def _download_anime_poster(poster_url: str):
-    """Download anime poster and save as status thumbnail (not video thumbnail)."""
-    if not poster_url:
-        return False
-
-    try:
-        import aiohttp
-        poster_path = str(Paths.THMB_PATH).replace("Thumbnail.jpg", "anime_poster.jpg")
-        async with aiohttp.ClientSession() as session:
-            async with session.get(poster_url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
-                if resp.status == 200:
-                    data = await resp.read()
-                    if len(data) > 1024:  # At least 1KB
-                        with open(poster_path, "wb") as f:
-                            f.write(data)
-                        BOT.State.anime_poster_path = poster_path
-                        logger.info("Anime poster saved: %s", poster_path)
-                        return True
-    except Exception as e:
-        logger.warning("Failed to download anime poster: %s", e)
-    return False
-
-
-async def _handle_anime_download(client, callback_query, data: str):
-    """Handle anime episode download — batch mode: download 1, upload 1, repeat."""
-    from asyncio import sleep
-    from leechbot.downloader.anime import anime_client
-    from leechbot.uploader.telegram import upload_file
-    from leechbot.utility.handler import SendLogs
-    from leechbot.utility.helper import sysINFO, keyboard, sizeUnit
-    from leechbot.utility.variables import current_user_id, UserRegistry
-    from os import makedirs, listdir
-    from os import path as ospath
-    import shutil
-    import random
-
-    # Set per-user context
-    uid = callback_query.from_user.id
-    current_user_id.set(uid)
-    ctx = UserRegistry.get(uid)
-
-    try:
-        if BOT.State.shutting_down:
-            await safe_answer(callback_query, "⏳ Bot is shutting down, try again later.", show_alert=True)
-            return
-
-        ctx.task.task_going = True
-
-        # Parse episode range
-        parts = data.replace("anime_dl_", "").split("_")
-        start_ep = int(parts[0])
-        end_ep = int(parts[1])
-
-        selected = BOT.State.anime_selected
-        title = selected.get("title", "Unknown")
-        provider = selected.get("provider", "animex")
-        anime_id = selected.get("anime_id", "")
-        category = selected.get("category", "sub")
-        cover = selected.get("cover", "")
-
-        ep_label_range = f"Ep {start_ep}" if start_ep == end_ep else f"Ep {start_ep}-{end_ep}"
-        total = end_ep - start_ep + 1
-
-        # ── Set mode (matches normal task_starter) ──
-        BOT.Mode.type = "normal"
-        BOT.Mode.stream = True
-        BOT.Mode.ytdl = True
-        BOT.Mode.mode = "leech"
-        BOT.Mode.is_leech = True
-        BOT.Options.http_headers = {"Referer": "https://kwik.cx/", "Origin": "https://kwik.cx/"}
-
-        # ── Build Messages.dump_task (exact match to original task_starter) ──
-        Messages.download_name = title
-        Messages.task_msg = "<b>🎯 Task Mode:</b> "
-        mode_label = "Leech"
-        Messages.dump_task = Messages.task_msg + f"<code>{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}</code>\n\n<b>🔗 Sources:</b>"
-        Messages.link_p = str(DUMP_ID)[4:]
-
-        # ── Pick hero image ──
-        try:
-            import glob as _glob
-            images = _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.jpg")) + \
-                     _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.png")) + \
-                     _glob.glob(ospath.join(Paths.ASSETS_IMAGES, "*.webp"))
-            if images:
-                Paths.HERO_IMAGE = random.choice(images)
-                Paths.DEFAULT_HERO = images[0]
-        except Exception:
-            pass
-
-        # ── Download poster as thumbnail ──
-        if cover:
-            await _download_anime_poster(cover)
-
-        # ── Send task log to dump channel (no date yet — sources come first) ──
-        dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
-        Messages.src_link = f"https://t.me/c/{Messages.link_p}/{dump_msg.id}"
-        Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
-
-        # ── Create status message with thumbnail ──
-        # Thumbnail priority: user-set > anime poster > hero image
-        if BOT.Setting.thumbnail and ospath.exists(Paths.THMB_PATH):
-            img = Paths.THMB_PATH
-        else:
-            anime_poster = getattr(BOT.State, "anime_poster_path", None)
-            if anime_poster and ospath.exists(anime_poster):
-                img = anime_poster
-            elif ospath.exists(Paths.THMB_PATH):
-                img = Paths.THMB_PATH
-            else:
-                img = Paths.HERO_IMAGE
-
-        caption = (
-            Messages.task_msg
-            + Messages.status_head
-            + "\n📝 Initializing..." + sysINFO()
-        )
-
-        # Delete old status message
-        try:
-            await callback_query.message.delete()
-        except Exception:
-            pass
-
-        if img and ospath.exists(img):
-            try:
-                MSG.status_msg = await app.send_photo(
-                    chat_id=current_user_id.get(),
-                    photo=img,
-                    caption=caption,
-                    reply_markup=keyboard()
-                )
-            except Exception:
-                MSG.status_msg = await app.send_message(
-                    chat_id=current_user_id.get(),
-                    text=caption,
-                    reply_markup=keyboard(),
-                    disable_web_page_preview=True
-                )
-        else:
-            MSG.status_msg = await app.send_message(
-                chat_id=current_user_id.get(),
-                text=caption,
-                reply_markup=keyboard(),
-                disable_web_page_preview=True
-            )
-
-        # ── Initialize transfer tracking (matches original) ──
-        BotTimes.current_time = time()
-        Transfer.up_bytes = [0, 0]
-        Transfer.sent_file = []
-        Transfer.sent_file_names = []
-        Transfer.down_bytes = [0, 0]
-        Transfer.total_down_size = 0
-        BotStats.total_tasks += 1
-
-        # Set MSG.sent_msg for upload_file to reply to (user's chat, not dump)
-        MSG.sent_msg = MSG.status_msg
-
-        uploaded = 0
-        failed = 0
-
-        for ep_num in range(start_ep, end_ep + 1):
-            if BOT.State.shutting_down:
-                break
-
-            ep_label = f"Ep {ep_num:02d}"
-            file_name = f"{title} - {ep_label}"
-
-            Messages.status_head = (
-                f"<b>📥 Downloading</b> <code>{ep_label}</code>\n\n"
-                f"<code>{title}</code>\n"
-            )
-
-            # Update status
-            try:
-                await MSG.status_msg.edit_text(
-                    text=Messages.task_msg + Messages.status_head + sysINFO(),
-                    reply_markup=keyboard()
-                )
-            except Exception:
-                pass
-
-            # Fetch stream URL — try multiple providers if one fails
-            episodes_data = BOT.State.anime_episodes
-            ep_info = anime_client.miruro.get_episode_stream_info(episodes_data, ep_num, category)
-            if not ep_info:
-                logger.warning("Ep %d: no episode info found, skipping", ep_num)
-                failed += 1
-                continue
-
-            ep_info["anilist_id"] = anime_id
-
-            # Try primary provider first, then fallback providers
-            providers_to_try = [ep_info["provider"]]
-            # Add other providers as fallbacks
-            for p in ["miruro", "animex", "kiwi", "pewe", "bee"]:
-                if p not in providers_to_try:
-                    providers_to_try.append(p)
-
-            stream_result = None
-            stream_url = None
-            for prov in providers_to_try:
-                try:
-                    result = await anime_client.get_stream_from_miruro(
-                        prov, anime_id, category, ep_info["slug"]
-                    )
-                    if result.get("success") and result.get("results", {}).get("url"):
-                        stream_result = result
-                        stream_url = result["results"]["url"]
-                        logger.info("Ep %d: stream found via %s", ep_num, prov)
-                        break
-                    else:
-                        logger.warning("Ep %d: provider %s failed — %s", ep_num, prov, result.get("message", "no stream"))
-                except Exception as e:
-                    logger.warning("Ep %d: provider %s error — %s", ep_num, prov, e)
-                    continue
-
-            if not stream_result or not stream_url:
-                logger.error("Ep %d: all providers failed, skipping", ep_num)
-                failed += 1
-                continue
-
-            ep_referer = stream_result["results"].get("referer", "https://kwik.cx/")
-            BOT.Options.http_headers = {"Referer": ep_referer, "Origin": ep_referer}
-            BOT.Options.custom_name = file_name
-
-            # Add source link to dump task and update dump message
-            try:
-                code_link = f"\n\n🏮 `{stream_url[:100]}...`"
-                if len(Messages.dump_task + code_link) < 4000:
-                    Messages.dump_task += code_link
-            except Exception:
-                pass
-
-            # Create temp folder for this episode
-            ep_dir = ospath.join(str(Paths.temp), f"ep_{ep_num}")
-            if ospath.exists(ep_dir):
-                shutil.rmtree(ep_dir)
-            makedirs(ep_dir, exist_ok=True)
-            Paths.down_path = ep_dir
-
-            # Download episode with retry
-            download_ok = False
-            for attempt in range(2):
-                try:
-                    Messages.download_name = file_name
-                    from leechbot.downloader.ytdl import YTDL_Status, YTDL
-                    await YTDL_Status(stream_url, ep_num - start_ep + 1)
-                    # Wait for yt-dlp to fully finish (HLS fragments may still be merging)
-                    for _ in range(30):
-                        if YTDL.complete:
-                            break
-                        await sleep(1)
-                    # Check if file was actually downloaded
-                    temp_files = [f for f in listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
-                    if temp_files and ospath.getsize(ep_dir + "/" + temp_files[0]) > 0:
-                        download_ok = True
-                        break
-                    else:
-                        logger.warning("Episode %d attempt %d: empty file, retrying", ep_num, attempt + 1)
-                        if ospath.exists(ep_dir):
-                            shutil.rmtree(ep_dir)
-                        makedirs(ep_dir, exist_ok=True)
-                        await sleep(2)
-                except Exception as e:
-                    logger.error("Episode %d attempt %d failed: %s", ep_num, attempt + 1, e)
-                    if ospath.exists(ep_dir):
-                        shutil.rmtree(ep_dir)
-                    makedirs(ep_dir, exist_ok=True)
-                    await sleep(2)
-
-            if not download_ok:
-                failed += 1
-                if ospath.exists(ep_dir):
-                    shutil.rmtree(ep_dir)
-                continue
-
-            # Find the downloaded file
-            files = [f for f in listdir(ep_dir) if ospath.isfile(ep_dir + "/" + f)]
-            if not files:
-                failed += 1
-                shutil.rmtree(ep_dir)
-                continue
-
-            # Set transfer total for progress tracking
-            file_size = ospath.getsize(ep_dir + "/" + files[0])
-            if file_size == 0:
-                logger.warning("Episode %d: downloaded file is 0 bytes, skipping", ep_num)
-                failed += 1
-                shutil.rmtree(ep_dir)
-                continue
-            Transfer.total_down_size = file_size
-
-            # Upload the file
-            file_path = ep_dir + "/" + files[0]
-            real_name = file_name + ospath.splitext(files[0])[1]
-
-            # Apply autorename template if set
-            if BOT.Setting.autorename_template:
-                from leechbot.utility.handler import _apply_autorename_template
-                quality = stream_result["results"].get("quality", "")
-                if not quality:
-                    import re
-                    q_match = re.search(r'(\d{3,4}p)', stream_url, re.IGNORECASE)
-                    if q_match:
-                        quality = q_match.group(1).upper()
-                file_metadata = {
-                    'title': title,
-                    'audio': category.upper(),
-                    'episode': str(ep_num),
-                    'season': '1',
-                    'quality': quality,
-                }
-                new_name = _apply_autorename_template(real_name, BOT.Setting.autorename_template, file_metadata)
-                new_file_path = ospath.join(ep_dir, new_name)
-                try:
-                    os.rename(file_path, new_file_path)
-                    file_path = new_file_path
-                    real_name = new_name
-                except OSError:
-                    pass
-
-            # Update status to show uploading
-            Messages.status_head = (
-                f"<b>📤 Uploading</b> <code>{ep_label}</code>\n\n"
-                f"<code>{title}</code>\n"
-            )
-            try:
-                await MSG.status_msg.edit_text(
-                    text=Messages.task_msg + Messages.status_head + sysINFO(),
-                    reply_markup=keyboard()
-                )
-            except Exception:
-                pass
-
-            try:
-                await upload_file(file_path, real_name)
-                Transfer.up_bytes.append(file_size)
-                uploaded += 1
-            except Exception as e:
-                logger.error("Episode %d upload failed: %s", ep_num, e)
-                failed += 1
-
-            # Cleanup
-            if ospath.exists(ep_dir):
-                shutil.rmtree(ep_dir)
-
-            # Small delay between episodes
-            if ep_num < end_ep:
-                await sleep(3)
-
-        # ── Add date and final update to dump message ──
-        cdt = datetime.now()
-        dt = cdt.strftime(" %d-%m-%Y")
-        Messages.dump_task += f"\n\n<b>📅 Date:</b> <code>{dt}</code>"
-        try:
-            await dump_msg.edit_text(
-                text=Messages.dump_task,
-                disable_web_page_preview=True
-            )
-        except Exception:
-            pass
-
-        # ── SendLogs (completion summary with source link) ──
-        BOT.Options.custom_name = ""
-        BOT.Options.http_headers = None
-        Messages.download_name = title
-        await SendLogs(is_leech=True)
-
-        await safe_answer(callback_query, f"Uploaded {uploaded}/{total} episodes!")
-
-    except Exception as e:
-        logger.error("Anime download error: %s", e)
-        try:
-            await MSG.status_msg.edit_text(f"<b>❌ Download error:</b> <code>{e}</code>")
-        except Exception:
-            pass
-    finally:
-        ctx.task.task_going = False
-        ctx.task.task = None

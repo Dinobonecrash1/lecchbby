@@ -25,7 +25,7 @@ import subprocess
 from datetime import datetime
 
 from leechbot.utility.helper import sizeUnit, status_bar
-from leechbot.utility.variables import BOT, Paths, Messages, BotTimes
+from leechbot.utility.variables import BOT, Aria2c, Paths, Messages, BotTimes
 
 logger = logging.getLogger(__name__)
 
@@ -301,11 +301,11 @@ async def on_output(output: str):
     elapsed = max((datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
 
     # Dead link detection
-    if elapsed >= 270 and not BOT.State.link_info:
+    if elapsed >= 270 and not Aria2c.link_info:
         logger.warning("Failed to get download info after 270s — possible dead link")
 
     if total_size != "0B":
-        BOT.State.link_info = True
+        Aria2c.link_info = True
         current_speed = (down * (1024 ** spd)) / elapsed
         speed_string = f"{sizeUnit(current_speed)}/s"
 

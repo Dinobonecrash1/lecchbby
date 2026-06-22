@@ -9,6 +9,7 @@ build/
 *.egg
 
 # Environment & Secrets
+.env
 credentials.json
 *.pickle
 *.pem

@@ -125,34 +125,8 @@ ALLOWED_USERS = [
     if x.strip()
 ]
 
-# Admins get priority in queue (skip waiting)
-ALLOWED_ADMINS = [
-    int(x.strip())
-    for x in os.getenv("ALLOWED_ADMINS", "").split(",")
-    if x.strip()
-]
-
-# Max concurrent tasks (0 = unlimited)
-MAX_CONCURRENT_TASKS = int(os.getenv("MAX_CONCURRENT_TASKS", "3"))
-
-# Max queued tasks per user
-MAX_QUEUE_PER_USER = int(os.getenv("MAX_QUEUE_PER_USER", "5"))
-
-# =============================================================================
-# Private Group Mode
-# =============================================================================
-# When BOT_PRIVATE=true, bot works only in PRIVATE_GROUP_ID group
-# When BOT_PRIVATE=false, bot works in private chats (default)
-BOT_PRIVATE = os.getenv("BOT_PRIVATE", "false").lower() == "true"
-PRIVATE_GROUP_ID = int(os.getenv("PRIVATE_GROUP_ID", "0"))
-MAX_WARNS = int(os.getenv("MAX_WARNS", "3"))  # Auto-ban after N warns
-
 # =============================================================================
 # Version Info
 # =============================================================================
-VERSION = "3.3.5"
-
-# Cloudflare bypass proxy — NOT compatible with yt-dlp (reverse proxy, not CONNECT proxy)
-# Use http_headers with Referer/Origin for Cloudflare bypass instead
-CF_BYPASS_PROXY = os.environ.get("CF_BYPASS_PROXY", "")
+VERSION = "3.1.47"
 BUILD_DATE = "2026-06-08"

@@ -13,10 +13,7 @@ File conversion module for video, archive creation, and extraction.
 
 import os
 import json
-try:
-    import GPUtil
-except ImportError:
-    GPUtil = None
+import GPUtil
 import shutil
 import logging
 import subprocess
@@ -113,7 +110,7 @@ async def videoConverter(file: str) -> str:
         return file
 
     out_file = f"{name}.{BOT.Options.video_out}"
-    gpu_available = GPUtil and len(GPUtil.getAvailable()) > 0
+    gpu_available = len(GPUtil.getAvailable()) > 0
 
     # Quality settings
     quality = ["-preset", "slow", "-qp", "0"] if BOT.Options.convert_quality else ["-preset", "fast"]
@@ -189,7 +186,7 @@ async def sizeChecker(file_path: str, remove: bool) -> bool:
 
     if file_size > max_size:
         if not ospath.exists(Paths.temp_zpath):
-            makedirs(Paths.temp_zpath, exist_ok=True)
+            makedirs(Paths.temp_zpath)
 
         filename = ospath.basename(file_path).lower()
 
@@ -311,7 +308,7 @@ async def extract(zip_filepath: str, remove: bool):
     elif ext == ".gz":
         cmd = ["tar", "-zxvf", zip_filepath, "-C", Paths.temp_unzip_path]
     else:
-        cmd = ["7z", "x", "-aoa", "-y"] + ([f"-p{BOT.Options.unzip_pswd}"] if BOT.Options.unzip_pswd else []) + [zip_filepath, f"-o{Paths.temp_unzip_path}"]
+        cmd = ["7z", "x"] + ([f"-p{BOT.Options.unzip_pswd}"] if BOT.Options.unzip_pswd else []) + [zip_filepath, f"-o{Paths.temp_unzip_path}"]
         if ext == ".001":
             file_pattern = "7z"
         elif ext == ".z01":

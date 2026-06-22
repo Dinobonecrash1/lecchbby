@@ -129,40 +129,13 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
             )
 
         elif f_type == "photo":
-            # Photo upload — resize if dimensions invalid for Telegram
-            upload_photo = file_path
-            try:
-                with Image.open(file_path) as img:
-                    w, h = img.size
-                    if w < 100 or h < 100 or w > 10000 or h > 10000 or w / h > 63 / 20 or h / w > 63 / 20:
-                        # Use resize (not thumbnail) to ensure minimum dimensions
-                        ratio = min(1024 / w, 1024 / h)
-                        if ratio > 1:
-                            new_w = max(int(w * ratio), 100)
-                            new_h = max(int(h * ratio), 100)
-                        else:
-                            new_w = min(int(w * ratio), 1024)
-                            new_h = min(int(h * ratio), 1024)
-                        resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-                        resized_path = file_path.rsplit('.', 1)[0] + '_resized.jpg'
-                        resized.convert('RGB').save(resized_path, 'JPEG', quality=90)
-                        upload_photo = resized_path
-            except Exception as e:
-                logger.warning(f"Failed to resize photo: {e}")
-
+            # Photo upload (single, kept for backward compatibility)
             MSG.sent_msg = await MSG.sent_msg.reply_photo(
-                photo=upload_photo,
+                photo=file_path,
                 caption=caption,
                 progress=progress_bar,
                 reply_to_message_id=MSG.sent_msg.id,
             )
-
-            # Clean up resized file
-            if upload_photo != file_path and ospath.exists(upload_photo):
-                try:
-                    os.remove(upload_photo)
-                except Exception:
-                    pass
 
         else:
             # Document upload
@@ -184,12 +157,6 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
         # Track sent files
         Transfer.sent_file.append(MSG.sent_msg)
         Transfer.sent_file_names.append(real_name)
-
-        # Track uploaded bytes
-        try:
-            Transfer.up_bytes.append(os.stat(file_path).st_size)
-        except OSError:
-            pass
 
     except asyncio.CancelledError:
         # Bot is shutting down (SIGINT/SIGTERM, Colab runtime disconnect,
@@ -258,39 +225,6 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
             logger.warning(f"Failed to convert webp to png: {e}, sending as document")
             upload_path = file_path
 
-    # Resize image if dimensions are invalid for Telegram
-    # Telegram requires: 100-10000px, aspect ratio between 20:63 and 63:20
-    try:
-        with Image.open(upload_path) as img:
-            w, h = img.size
-            needs_resize = False
-            if w < 100 or h < 100:
-                needs_resize = True
-            elif w > 10000 or h > 10000:
-                needs_resize = True
-            elif w / h > 63 / 20 or h / w > 63 / 20:
-                needs_resize = True
-            if needs_resize:
-                # Use resize (not thumbnail) to ensure minimum dimensions
-                # Calculate new size maintaining aspect ratio
-                ratio = min(1024 / w, 1024 / h)
-                if ratio > 1:
-                    # Image is too small, scale UP
-                    new_w = max(int(w * ratio), 100)
-                    new_h = max(int(h * ratio), 100)
-                else:
-                    # Image is too large, scale DOWN
-                    new_w = min(int(w * ratio), 1024)
-                    new_h = min(int(h * ratio), 1024)
-                resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-                resized_path = upload_path.rsplit('.', 1)[0] + '_resized.jpg'
-                resized.convert('RGB').save(resized_path, 'JPEG', quality=90)
-                if upload_path != file_path and ospath.exists(upload_path):
-                    os.remove(upload_path)
-                upload_path = resized_path
-    except Exception as e:
-        logger.warning(f"Failed to resize image: {e}")
-
     try:
         # If conversion failed or file is still .webp, send as document
         if upload_path.lower().endswith('.webp'):
@@ -319,7 +253,7 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
         # Clean up converted file if we created one
         if upload_path != file_path and ospath.exists(upload_path):
             try:
-                os.remove(upload_path)
+                ospath.remove(upload_path)
             except Exception:
                 pass
 

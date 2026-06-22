@@ -13,7 +13,7 @@ LeechBot downloader modules.
 This package contains all downloader implementations for various sources.
 """
 
-from .aria2 import aria2_Download, get_Aria2c_Name
+from .aria2 import aria2_Download, get_Aria2c_Name, Aria2c
 from .gdrive import build_service, g_DownLoad, get_Gfolder_size, getFileMetadata, getIDFromURL
 from .mega import megadl
 from .ytdl import YTDL_Status, get_YT_Name
@@ -27,6 +27,7 @@ from .manager import downloadManager, calDownSize, get_d_name
 __all__ = [
     "aria2_Download",
     "get_Aria2c_Name",
+    "Aria2c",
     "build_service",
     "g_DownLoad",
     "get_Gfolder_size",
