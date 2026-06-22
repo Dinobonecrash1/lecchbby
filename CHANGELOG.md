@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.1.86] - 2026-06-22
+
+### Fixed
+- **🎬 FFmpeg merge error** — use mp4-compatible format string to avoid codec conflicts
+
 ## [3.1.85] - 2026-06-22
 
 ### Fixed
