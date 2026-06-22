@@ -137,7 +137,7 @@ async def handle_url(client, message):
             BOT.Mode.type = "normal"
 
             MSG.status_msg = await app.send_message(
-                chat_id=OWNER,
+                chat_id=message.from_user.id,
                 text="<b>🚀 Initializing Gallery Download...</b>\n\nPlease wait while I prepare your download",
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]

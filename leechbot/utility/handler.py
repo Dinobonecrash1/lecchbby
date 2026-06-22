@@ -23,7 +23,7 @@ from datetime import datetime
 from os import makedirs, path as ospath
 from leechbot.uploader.telegram import upload_file, upload_photos_batch  # Added import
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer
+from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, current_user_id
 from leechbot.utility.converters import archive, extract, videoConverter, sizeChecker
 from leechbot.utility.helper import fileType, getSize, getTime, keyboard, shortFileName, sizeUnit, sysINFO
 
@@ -463,7 +463,7 @@ async def cancelTask(reason: str):
         # Notify user
         try:
             await app.send_message(
-                chat_id=OWNER,
+                chat_id=current_user_id.get(),
                 text=text,
                 disable_web_page_preview=True,
                 reply_markup=InlineKeyboardMarkup([

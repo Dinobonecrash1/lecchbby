@@ -25,7 +25,7 @@ from leechbot import OWNER, app, DUMP_ID
 from leechbot.downloader.manager import calDownSize, get_d_name, downloadManager
 from leechbot.utility.helper import getSize, applyCustomName, keyboard, sysINFO, is_google_drive, is_ytdl_link, is_mega, is_terabox, is_torrent
 from leechbot.utility.handler import Leech, Unzip_Handler, Zip_Handler, SendLogs, cancelTask
-from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError, BotStats
+from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer, TaskError, BotStats, current_user_id
 
 logger = logging.getLogger(__name__)
 
@@ -200,7 +200,7 @@ async def taskScheduler():
     if img and ospath.exists(img):
         try:
             MSG.status_msg = await app.send_photo(
-                chat_id=OWNER,
+                chat_id=current_user_id.get(),
                 photo=img,
                 caption=caption,
                 reply_markup=keyboard()
@@ -208,14 +208,14 @@ async def taskScheduler():
         except Exception as e:
             logger.error("send_photo failed: %s — falling back to text", e)
             MSG.status_msg = await app.send_message(
-                chat_id=OWNER,
+                chat_id=current_user_id.get(),
                 text=caption,
                 reply_markup=keyboard(),
                 disable_web_page_preview=True
             )
     else:
         MSG.status_msg = await app.send_message(
-            chat_id=OWNER,
+            chat_id=current_user_id.get(),
             text=caption,
             reply_markup=keyboard(),
             disable_web_page_preview=True

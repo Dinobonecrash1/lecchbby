@@ -25,7 +25,7 @@ from asyncio import get_running_loop
 
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, DUMP_ID
-from leechbot.utility.variables import BOT, MSG, Messages, YTDL, BotTimes, BotStats, Paths, Transfer
+from leechbot.utility.variables import BOT, MSG, Messages, YTDL, BotTimes, BotStats, Paths, Transfer, current_user_id
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
 import config
@@ -1154,21 +1154,21 @@ async def _handle_anime_download(client, callback_query, data: str):
         if img and ospath.exists(img):
             try:
                 MSG.status_msg = await app.send_photo(
-                    chat_id=OWNER,
+                    chat_id=current_user_id.get(),
                     photo=img,
                     caption=caption,
                     reply_markup=keyboard()
                 )
             except Exception:
                 MSG.status_msg = await app.send_message(
-                    chat_id=OWNER,
+                    chat_id=current_user_id.get(),
                     text=caption,
                     reply_markup=keyboard(),
                     disable_web_page_preview=True
                 )
         else:
             MSG.status_msg = await app.send_message(
-                chat_id=OWNER,
+                chat_id=current_user_id.get(),
                 text=caption,
                 reply_markup=keyboard(),
                 disable_web_page_preview=True

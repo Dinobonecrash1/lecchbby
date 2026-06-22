@@ -63,6 +63,7 @@ class UserPaths:
     thumbnails: Path = field(default_factory=Path)
 
     # Derived paths used by code
+    WORK_PATH: str = ""
     temp_zpath: str = ""
     temp_unzip_path: str = ""
     temp_files_dir: str = ""
@@ -73,6 +74,8 @@ class UserPaths:
     VIDEO_FRAME: str = ""
     HERO_IMAGE: str = ""
     DEFAULT_HERO: str = ""
+    FONT_FILE: str = ""
+    MOUNTED_DRIVE: str = "/content/drive"
     mirror_dir: str = ""
     access_token: str = ""
     ytdl_cookies: str = ""
@@ -99,6 +102,7 @@ class UserPaths:
         )
 
         # Set derived paths
+        paths.WORK_PATH = str(work)
         paths.temp_zpath = str(temp / "zipped")
         paths.temp_unzip_path = str(temp / "unzipped")
         paths.temp_files_dir = str(temp / "leech_temp")
