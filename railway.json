@@ -1,9 +1,8 @@
 {
   "build": {
-    "builder": "nixpacks"
+    "builder": "DOCKERFILE"
   },
   "deploy": {
-    "startCommand": "python3 -m leechbot",
     "restartPolicy": "on_failure"
   }
 }
