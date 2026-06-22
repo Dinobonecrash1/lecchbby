@@ -158,7 +158,7 @@ class AnimexAPI:
     async def _get_session(self) -> aiohttp.ClientSession:
         if self.session is None or self.session.closed:
             self.session = aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=30),
+                timeout=aiohttp.ClientTimeout(total=45),
                 headers={"User-Agent": "LeechBot/3.1.49"}
             )
         return self.session
@@ -303,7 +303,9 @@ class AnimexAPI:
         """Format search results for display."""
         formatted = []
         for item in results[:10]:
-            title = item.get("titleRomaji") or item.get("titleEnglish") or "Unknown"
+            title_en = item.get("titleEnglish") or ""
+            title_jp = item.get("titleRomaji") or ""
+            title = title_en or title_jp or "Unknown"
             anime_id = item.get("anilistId") or item.get("id", "")
             slug = item.get("id", "")
             episodes = item.get("episodeCount", "?")
@@ -313,6 +315,10 @@ class AnimexAPI:
             score = item.get("averageScore", 0)
             genres = item.get("genres", [])
             banner = item.get("bannerImage", "")
+
+            # Show English title, with Japanese subtitle if different
+            display_title = title_en if title_en else title_jp
+            subtitle = f"\n<i>{title_jp}</i>" if title_en and title_jp and title_en != title_jp else ""
 
             formatted.append({
                 "id": anime_id,
@@ -325,7 +331,7 @@ class AnimexAPI:
                 "status": status,
                 "score": score,
                 "genres": genres,
-                "display": f"🎬 {title} ({format_type})\n📺 {episodes} episodes | ⭐ {score}%"
+                "display": f"🎬 {display_title}{subtitle}\n({format_type}) 📺 {episodes} eps | ⭐ {score}%"
             })
 
         return formatted

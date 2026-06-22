@@ -1102,7 +1102,8 @@ async def anime_command(client, message):
         BOT.State.anime_search_provider = result.get("provider", "animex")
         
         # Format results and create inline keyboard
-        formatted = anime_client.format_search_results(results[:8])
+        search_provider = result.get("provider", "animex")
+        formatted = anime_client.format_search_results(results[:8], provider=search_provider)
         
         buttons = []
         for i, item in enumerate(formatted):
