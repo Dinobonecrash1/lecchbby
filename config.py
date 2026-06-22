@@ -147,7 +147,7 @@ MAX_WARNS = int(os.getenv("MAX_WARNS", "3"))  # Auto-ban after N warns
 # =============================================================================
 # Version Info
 # =============================================================================
-VERSION = "3.2.2"
+VERSION = "3.2.3"
 
 # Cloudflare bypass proxy — NOT compatible with yt-dlp (reverse proxy, not CONNECT proxy)
 # Use http_headers with Referer/Origin for Cloudflare bypass instead
