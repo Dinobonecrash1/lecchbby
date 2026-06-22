@@ -151,9 +151,11 @@ def _build_command(url: str, headers: list, out: str, bandwidth_limit: str) -> l
         command += [
             "-x16",
             "-s16",
+            "-k1M",
             "--seed-time=0",
             "--summary-interval=1",
             "--max-tries=3",
+            "--max-concurrent-downloads=5",
             "--console-log-level=notice",
             "--optimize-concurrent-downloads=true",
             "--file-allocation=prealloc",

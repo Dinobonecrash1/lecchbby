@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.6] - 2026-06-22
+
+### Changed
+- **⚡ Speed optimizations** — faster downloads and uploads:
+  - `aria2c`: enabled `-k 1M` min-split-size and `--max-concurrent-downloads=5` for non-torrent HTTP/FTP downloads (already using `-x 16 -s 16`).
+  - `StreamTape` downloader: added `--min-split-size=1M` to match main aria2c settings.
+  - `yt-dlp`: reduced `concurrent_fragment_downloads` from 5 to 4 for stable HLS/DASH parallel downloads.
+  - Pyrogram client: raised `max_concurrent_transmissions` from 5 to 10 to improve parallel upload throughput.
+
+---
+
 ## [3.2.5] - 2026-06-22
 
 ### Added

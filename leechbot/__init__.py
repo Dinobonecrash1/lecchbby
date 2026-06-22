@@ -91,7 +91,7 @@ app = Client(
     bot_token=BOT_TOKEN,
     workdir=str(config.SESSIONS_PATH),
     workers=100,
-    max_concurrent_transmissions=5,
+    max_concurrent_transmissions=10,
 )
 
 logger.info("LeechBot client initialized (v%s)", config.VERSION)

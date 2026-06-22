@@ -100,6 +100,7 @@ async def streamtape_download(link: str, num: int):
         f"--out={filename}",
         "--max-connection-per-server=16",
         "--split=16",
+        "--min-split-size=1M",
         "--continue=true",
         "--summary-interval=0",
         "--console-log-level=error",
