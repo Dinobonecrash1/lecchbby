@@ -45,6 +45,7 @@
 - [📥 How to Deploy](#-how-to-deploy)
 - [📋 Commands](#-commands)
 - [🛠️ Technology Stack](#️-technology-stack)
+- [⚠️ Disclaimer](#-disclaimer)
 - [🙏 Acknowledgements](#-acknowledgements)
 - [📄 License](#-license)
 - [🫂 Updates & Support](#-updates--support)
@@ -374,6 +375,22 @@ LeechBot/
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
+
+## ⚠️ Disclaimer
+
+> [!WARNING]
+> **You Should NOT use it as it goes against Google Colab's Policy**
+> Resources in Colab are prioritized for interactive use cases. We prohibit actions associated with `bulk compute`, actions that negatively impact others, as well as actions associated with bypassing our policies. The following are disallowed from Colab runtime:
+> - [X] File Hosting, Media Serving, Or Other Web Service Offerings Not Related To Interactive Compute With Colab
+> - [X] Downloading Torrents Or Engaging In Peer-to-peer File-sharing
+> - [X] Using A Remote Desktop Or Ssh
+> - [X] Connecting To Remote Proxies
+> - [X] Mining Cryptocurrency
+> - [X] Running Denial-of-service Attacks
+> - [X] Password Cracking
+> 
+> <sub>Source: [Colab FAQ](https://research.google.com/colaboratory/faq.html) </sub>
+
 
 ## 🙏 Acknowledgements
 
