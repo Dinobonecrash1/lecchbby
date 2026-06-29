@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.47-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.3.0-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -55,14 +55,20 @@
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
 
-## ✨ What's New in v3.1.47
+## ✨ What's New in v3.3.0
 
-### 🔒 Security & Stability
-- Fixed WebSocket auth bypass, CORS wildcard, shell injection in aria2
-- Fixed NameError on `HELP_KEYBOARD`, dead `"danger"` button, missing `BOT.Options.file_name`
-- Removed 1659 lines of dead code, 14 unused imports, unused dependencies
+### 🎬 Anime Downloader
+- `/anime <name>` — search and download anime from MiruroAPI
+- `/anime <name> ep 1-5 sub` — quick download with episode range
+- Sub/Dub toggle with inline buttons
+- Optimized for 1000+ episodes (One Piece, etc.)
+- Auto-rename template support
 
-> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **32 commands across 6 categories**
+### ✏️ Auto-Rename Template
+- `/autorename <template>` — set custom filename templates
+- Placeholders: `{season}`, `{episode}`, `{quality}`, `{audio}`, `{title}`, `{chapter}`
+
+> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **34 commands across 6 categories**
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -78,6 +84,7 @@
 | 📁 **Directory Leech** | Upload entire local directories recursively |
 | 🎬 **Video Converter** | Convert to MP4/MKV with FFmpeg (GPU accelerated) |
 | ✂️ **Smart Splitting** | Split files >2GB into chunks |
+| 🎌 **Anime Downloader** | Search & download anime with Sub/Dub, auto-rename templates |
 | 🗜️ **Archive Handling** | Create/extract ZIP, RAR, 7z, TAR, GZ with password support |
 | 🖼️ **Auto Thumbnail** | Generate from video or use custom images |
 | 📸 **Photo Upload Mode** | Group (batch of 10) or Single (one by one) |

@@ -143,6 +143,8 @@ async def _register_commands():
         BotCommand("setcookies", "📤 Upload cookies.txt"),
         BotCommand("clearcookies", "🗑️ Delete cookies file"),
         BotCommand("update", "🔄 Check for updates"),
+        BotCommand("anime", "🎬 Search & download anime"),
+        BotCommand("autorename", "✏️ Set auto-rename template"),
     ]
 
     try:

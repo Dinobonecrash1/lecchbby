@@ -578,14 +578,69 @@ def isTimeOver() -> bool:
 # Custom Name Application
 # =============================================================================
 def applyCustomName():
-    """Rename downloaded files to the user-specified custom name."""
+    """Rename downloaded files to the user-specified custom name.
+    
+    Supports placeholders:
+        {season}    — Season number (from Messages or default "1")
+        {episode}   — Episode number (from Messages or default "01")
+        {quality}   — Video quality (from Messages or default "Unknown")
+        {audio}     — Audio type (from Messages or default "SUB")
+        {title}     — Title (from Messages.download_name or default)
+        {chapter}   — Chapter number (from Messages or default "1")
+    """
     if BOT.Options.custom_name and BOT.Mode.type not in ("zip", "undzip"):
+        import re
         files = os.listdir(Paths.down_path)
+        
         for file_ in files:
             current = ospath.join(Paths.down_path, file_)
-            new = ospath.join(Paths.down_path, BOT.Options.custom_name)
+            if not ospath.isfile(current):
+                continue
+                
+            # Get file extension
+            _, ext = ospath.splitext(file_)
+            
+            # Parse template with placeholders
+            template = BOT.Options.custom_name
+            new_name = template
+            
+            # Extract context from Messages if available
+            download_name = Messages.download_name or ""
+            
+            # Try to extract episode/season from download_name
+            # Pattern: [S1 E05] or similar
+            ep_match = re.search(r'E(\d+)', download_name)
+            season_match = re.search(r'S(\d+)', download_name)
+            
+            # Replace placeholders
+            replacements = {
+                "{season}": season_match.group(1) if season_match else "1",
+                "{episode}": ep_match.group(1) if ep_match else "01",
+                "{quality}": "Unknown",
+                "{audio}": "SUB",
+                "{title}": download_name.split(']')[1].strip().split('[')[0].strip() if ']' in download_name else download_name,
+                "{chapter}": ep_match.group(1) if ep_match else "1",
+            }
+            
+            for placeholder, value in replacements.items():
+                new_name = new_name.replace(placeholder, str(value))
+            
+            # Clean up any remaining placeholders
+            new_name = re.sub(r'\{[^}]+\}', '', new_name)
+            
+            # Clean up extra spaces
+            new_name = ' '.join(new_name.split()).strip()
+            
+            # Add file extension if not present
+            if not new_name.endswith(ext):
+                new_name += ext
+            
+            new_path = ospath.join(Paths.down_path, new_name)
+            
             try:
-                os.rename(current, new)
+                if current != new_path:
+                    os.rename(current, new_path)
+                    logger.info(f"Renamed: {file_} -> {new_name}")
             except OSError as e:
                 logger.error(f"Rename error: {e}")
 

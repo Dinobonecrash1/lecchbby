@@ -4,6 +4,36 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.3.0] - 2026-06-29
+
+### Added
+- **🎬 Anime Downloader** — search and download anime from MiruroAPI:
+  - `/anime <name>` — search for anime by name
+  - `/anime <name> ep 1-5 sub` — quick download with parameters
+  - Interactive episode selection with inline keyboard buttons
+  - **Sub/Dub toggle** — switch between Japanese (Sub) and English (Dub) audio
+  - **Optimized for 1000+ episodes** — pagination and range-based navigation for long-running series like One Piece
+  - **Multi-provider fallback** — tries 12 providers (kiwi, pewe, bonk, bee, ally, moo, hop, nun, bun, twin, cog, telli) for reliable streaming
+  - **M3U8 stream support** — downloads HLS streams via YT-DLP
+  - **Episode caching** — caches episode data for 5 minutes to reduce API calls
+  - **Batch download** — "Download All" button for entire seasons
+  - **Autorename template support** — works with `/autorename` placeholders
+  - New files: `leechbot/downloader/anime.py`, `leechbot/commands/anime.py`, `leechbot/callbacks/anime.py`
+- **✏️ Auto-Rename Template** — set custom filename templates for downloads:
+  - `/autorename <template>` — set template with placeholders
+  - `/autorename clear` — clear template
+  - **Placeholders:** `{season}`, `{episode}`, `{quality}`, `{audio}`, `{title}`, `{chapter}`
+  - Works with anime downloads to auto-rename files
+  - Example: `/autorename [S{season} E{episode}] One Piece [{quality}] [{audio}]`
+  - New file: `leechbot/commands/autorename.py`
+- **🔄 Updated `applyCustomName()`** — now parses template placeholders:
+  - Extracts episode/season from `Messages.download_name`
+  - Supports all placeholder types
+  - Preserves file extension automatically
+  - File: `leechbot/utility/helper.py`
+
+---
+
 ## [3.2.6] - 2026-06-22
 
 ### Changed
