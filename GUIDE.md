@@ -83,7 +83,7 @@ You need **5 values** to run the bot. Here's how to get each one:
 
 > 💡 You can create multiple bots with BotFather. Use `/mybots` to manage them.
 
-> ℹ️ **Note:** Bot commands are **auto-registered** on startup — you don't need to set them manually via BotFather. The bot registers all 32 commands with Telegram automatically when it starts.
+> ℹ️ **Note:** Bot commands are **auto-registered** on startup — you don't need to set them manually via BotFather. The bot registers all 34 commands with Telegram automatically when it starts.
 
 ### 3. OWNER_ID
 
@@ -419,6 +419,13 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 | `/setcookies` | Upload a cookies.txt file |
 | `/clearcookies` | Delete stored cookies file |
 
+### Screenshot
+
+| Command | Description |
+|---------|-------------|
+| `/screenshot [count]` | Generate 1-20 screenshots from video or PDF (default 5) |
+| `/setwm <text>` | Set watermark text on screenshots (owner only) |
+
 ### Admin
 
 | Command | Description |
@@ -434,7 +441,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 | `/restart` | Gracefully restart the bot (wrapper will respawn) |
 | `/logs [N]` | Show last N log lines (default 30, max 100) |
 | `/update` | Check for bot updates |
-| `/help` | **Category-button help menu** (6 categories, 30 commands). Try `/help ytupload` for direct command help. |
+| `/help` | **Category-button help menu** (7 categories, 34 commands). Try `/help ytupload` for direct command help. |
 
 ---
 

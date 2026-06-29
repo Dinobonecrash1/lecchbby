@@ -62,7 +62,7 @@
 - Fixed NameError on `HELP_KEYBOARD`, dead `"danger"` button, missing `BOT.Options.file_name`
 - Removed 1659 lines of dead code, 14 unused imports, unused dependencies
 
-> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **32 commands across 6 categories**
+> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **34 commands across 7 categories**
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -146,7 +146,7 @@ Real-time browser dashboard runs alongside the bot on port `8080`.
 | 📁 Files | Recent uploads list |
 | ⚙️ Settings | Current bot configuration |
 | 💻 System | CPU, RAM, disk usage |
-| 📖 Commands | Quick reference for all 30 commands |
+| 📖 Commands | Quick reference for all 34 commands |
 | 🟢 WebSocket | Real-time updates every 3s |
 
 ```bash
@@ -278,6 +278,7 @@ All bot commands are organized into categories in the **interactive `/help`** me
 | **🗂 Files** | 5 | `zipaswd`, `unzipaswd`, `queue`, `cancel`, `cancel_all` |
 | **⚙️ Status & Settings** | 7 | `settings`, `status`, `stats`, `logs`, `ping`, `restart`, `update` |
 | **🍪 Cookies** | 3 | `cookies`, `setcookies`, `clearcookies` |
+| **📸 Screenshot** | 2 | `screenshot`, `setwm` |
 | **🛠 Admin** | 2 | `admin`, `broadcast` |
 | **📰 RSS** | 4 | `rss_add`, `rss_list`, `rss_remove`, `rss_check` |
 
@@ -324,11 +325,12 @@ LeechBot/
 │   ├── __init__.py          # Pyrogram client
 │   ├── __main__.py          # Entry point
 │   ├── aliases.py           # Command alias pre-processor
-│   ├── commands/            # /command handlers (32 commands)
+│   ├── commands/            # /command handlers (34 commands)
 │   │   ├── __init__.py
 │   │   ├── admin.py         # Admin & control commands
 │   │   ├── downloads.py     # Download / upload commands
 │   │   ├── options.py       # Quick option commands + aliases
+│   │   ├── screenshot.py    # Video/PDF screenshot generator
 │   │   ├── settings.py      # Settings / format / speed commands
 │   │   ├── start_help.py    # /start and /help commands
 │   │   └── status.py        # Status / stats / queue commands

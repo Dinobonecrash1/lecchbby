@@ -63,7 +63,7 @@ __main__.py
 
 commands/  ──────────────────────────────────────────────┐
   │ admin.py / downloads.py / options.py / settings.py    │
-  │ start_help.py / status.py                             │
+  │ start_help.py / status.py / screenshot.py             │
   ├── imports: app, OWNER                                │
   ├── imports: variables.BOT, Queue, BotStats            │
   ├── imports: task_manager.task_starter                  │

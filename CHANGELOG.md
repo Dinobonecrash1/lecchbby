@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.7] - 2026-06-29
+
+### Added
+- **📸 Screenshot Generator** — new `/screenshot` command for generating thumbnails from videos and PDFs
+  - `/screenshot [count]` — extract 1-20 frames (default 5) from video or PDF
+  - `/setwm <text>` — set watermark text on screenshots (owner only)
+  - Supports MP4, MKV, AVI, MOV, WebM, PDF
+  - Uses ffmpeg (video) and Pillow (watermark) from existing stack
+  - Per-user lock prevents concurrent processing
+
+---
+
 ## [3.2.6] - 2026-06-22
 
 ### Changed
