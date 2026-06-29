@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.1.47-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.2.7-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -38,7 +38,7 @@
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
 - [🗺️ Roadmap](ROADMAP.md)
-- [✨ What's New?](#-whats-new-in-v3145)
+- [✨ What's New?](#-whats-new-in-v327)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
 - [🌐 Web Dashboard](#-web-dashboard)
@@ -55,12 +55,13 @@
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
 
-## ✨ What's New in v3.1.47
+## ✨ What's New in v3.2.7
 
-### 🔒 Security & Stability
-- Fixed WebSocket auth bypass, CORS wildcard, shell injection in aria2
-- Fixed NameError on `HELP_KEYBOARD`, dead `"danger"` button, missing `BOT.Options.file_name`
-- Removed 1659 lines of dead code, 14 unused imports, unused dependencies
+### 📸 Screenshot Generator (NEW)
+- `/screenshot [count]` — generate 1-20 screenshots from video or PDF
+- `/setwm <text>` — set watermark text on screenshots (owner only)
+- Supports MP4, MKV, AVI, MOV, WebM, PDF
+- Uses ffmpeg + Pillow from existing stack, no new dependencies
 
 > 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **34 commands across 7 categories**
 
