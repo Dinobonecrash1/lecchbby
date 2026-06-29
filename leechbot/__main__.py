@@ -142,6 +142,8 @@ async def _register_commands():
         BotCommand("cookies", "🍪 YT-DLP auth status"),
         BotCommand("setcookies", "📤 Upload cookies.txt"),
         BotCommand("clearcookies", "🗑️ Delete cookies file"),
+        BotCommand("screenshot", "📸 Generate screenshots from video/PDF"),
+        BotCommand("setwm", "✏️ Set watermark text for screenshots"),
         BotCommand("update", "🔄 Check for updates"),
     ]
 

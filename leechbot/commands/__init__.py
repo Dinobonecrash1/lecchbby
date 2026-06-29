@@ -5,6 +5,7 @@ from . import admin
 from . import downloads
 from . import options
 from . import rss
+from . import screenshot
 from . import settings
 from . import start_help
 from . import status
