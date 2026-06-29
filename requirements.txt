@@ -8,7 +8,7 @@
 # =============================================================================
 
 # Core framework
-pyrotgfork>=2.0.106
+kurigram>=2.2.23
 tgcrypto>=1.2.5
 
 # Configuration
