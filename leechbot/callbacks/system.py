@@ -36,10 +36,10 @@ from .common import safe_answer
 # =============================================================================
 def _strip_sysinfo(text: str) -> str:
     """Strip existing system info block from message text."""
-    for separator in ("<b>─── System ───</b>", "┏━━━━ **System Info", "⌬─────"):
-        parts = text.split(separator)
-        if len(parts) >= 2:
-            return parts[0].rstrip()
+    for separator in ("<b>─── System ───</b>", "<b>📊 System Info (Detailed)</b>"):
+        idx = text.find(separator)
+        if idx != -1:
+            return text[:idx].rstrip()
     return text
 
 async def _handle_sys_refresh(client, callback_query):
