@@ -18,7 +18,6 @@ import logging
 from pyrogram import types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from leechbot import app
-from leechbot.utility.variables import Paths
 
 logger = logging.getLogger(__name__)
 

@@ -37,19 +37,12 @@ from leechbot.utility.variables import (
 )
 from leechbot.utility.helper import sysINFO, keyboard, sizeUnit
 from leechbot.utility.handler import SendLogs
+from .common import safe_answer
 
 logger = logging.getLogger(__name__)
 
 # Provider fallback order
 PROVIDER_FALLBACK_ORDER = ["kiwi", "ally", "miruro", "animex"]
-
-
-async def safe_answer(callback_query, text="", show_alert=False):
-    """Safely answer callback query."""
-    try:
-        await callback_query.answer(text=text, show_alert=show_alert)
-    except Exception:
-        pass
 
 
 async def _download_anime_poster(poster_url: str):
