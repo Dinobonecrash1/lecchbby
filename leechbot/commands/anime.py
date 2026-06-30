@@ -28,6 +28,7 @@ from os import makedirs, listdir
 from os import path as ospath
 
 from pyrogram import filters
+from pyrogram import types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from leechbot import app, OWNER, DUMP_ID
@@ -206,7 +207,7 @@ async def _quick_download(message, query, ep_start, ep_end, category, quality):
             await _download_anime_poster(cover)
 
         # Send task log to dump channel
-        dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
+        dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, link_preview_options=types.LinkPreviewOptions(is_disabled=True))
         Messages.src_link = f"https://t.me/c/{Messages.link_p}/{dump_msg.id}"
         Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
 
@@ -246,14 +247,14 @@ async def _quick_download(message, query, ep_start, ep_end, category, quality):
                     chat_id=OWNER,
                     text=caption,
                     reply_markup=keyboard(),
-                    disable_web_page_preview=True
+                    link_preview_options=types.LinkPreviewOptions(is_disabled=True)
                 )
         else:
             MSG.status_msg = await app.send_message(
                 chat_id=OWNER,
                 text=caption,
                 reply_markup=keyboard(),
-                disable_web_page_preview=True
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True)
             )
 
         status = MSG.status_msg
@@ -447,7 +448,7 @@ async def _quick_download(message, query, ep_start, ep_end, category, quality):
         try:
             await dump_msg.edit_text(
                 text=Messages.dump_task,
-                disable_web_page_preview=True
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True)
             )
         except Exception:
             pass
@@ -512,7 +513,7 @@ async def _interactive_search(message, query):
         await status.edit_text(
             result_text,
             reply_markup=InlineKeyboardMarkup(buttons),
-            disable_web_page_preview=True,
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
         )
     except Exception as e:
         logger.error(f"Anime search error: {e}")
