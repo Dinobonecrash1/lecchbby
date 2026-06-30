@@ -13,7 +13,8 @@
 Anime episode selection callback handlers.
 
 Handles inline keyboard callbacks for anime search results,
-episode selection, category (sub/dub) toggle, and download.
+episode selection, category (sub/dub) toggle, quality selection,
+and download with multi-provider fallback.
 """
 
 import logging
@@ -38,6 +39,9 @@ from leechbot.utility.helper import sysINFO, keyboard, sizeUnit
 from leechbot.utility.handler import SendLogs
 
 logger = logging.getLogger(__name__)
+
+# Provider fallback order
+PROVIDER_FALLBACK_ORDER = ["kiwi", "ally", "miruro", "animex"]
 
 
 async def safe_answer(callback_query, text="", show_alert=False):
@@ -72,7 +76,7 @@ async def _download_anime_poster(poster_url: str):
 
 
 async def _handle_anime_select(client, callback_query, data: str):
-    """Handle anime selection from search results."""
+    """Handle anime selection from search results — shows info card + episodes."""
     from leechbot.downloader.anime import anime_client
 
     try:
@@ -103,6 +107,21 @@ async def _handle_anime_select(client, callback_query, data: str):
         BOT.State.anime_selected["cover"] = cover
         BOT.State.anime_selected["total_episodes"] = episodes
 
+        # Build anime info card
+        description = selected.get("description", "")
+        if isinstance(description, str):
+            description = re.sub(r'<[^>]+>', '', description)[:400]
+        rating = selected.get("averageScore") or selected.get("meanScore") or "?"
+        genres = selected.get("genres", [])
+        if isinstance(genres, list):
+            genres_str = " · ".join(genres[:5])
+        else:
+            genres_str = str(genres) if genres else ""
+        status = selected.get("status", "")
+        total_ep = selected.get("episodes", "?")
+        season = selected.get("season", "")
+        year = selected.get("year", "")
+
         await callback_query.message.edit_text(
             f"<b>🎬 Loading episodes for:</b> <code>{title}</code>...",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❌ Cancel", callback_data="close")]])
@@ -131,11 +150,32 @@ async def _handle_anime_select(client, callback_query, data: str):
             )
             return
 
+        # Build info card text
+        info_text = f"<b>🎬 {title}</b>\n\n"
+        if description:
+            info_text += f"<b>📖 Synopsis:</b>\n{description}\n\n"
+        if rating and rating != "?":
+            info_text += f"<b>⭐ Rating:</b> <code>{rating}%</code>\n"
+        if genres_str:
+            info_text += f"<b>🏷️ Genres:</b> <code>{genres_str}</code>\n"
+        if status:
+            info_text += f"<b>📊 Status:</b> <code>{status}</code>\n"
+        if season or year:
+            info_text += f"<b>🗓️ Season:</b> <code>{season} {year}</code>\n"
+        info_text += f"<b>📺 Episodes:</b> <code>{total_episodes}</code>\n"
+        info_text += f"\n<b>🔊 Select audio & episodes:</b>"
+
+        # Build buttons
         buttons = []
         category = BOT.State.anime_selected.get("category", "sub")
         buttons.append([
             InlineKeyboardButton(f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub", callback_data="anime_cat_sub"),
             InlineKeyboardButton(f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub", callback_data="anime_cat_dub"),
+        ])
+
+        # Quality selector
+        buttons.append([
+            InlineKeyboardButton("🔧 Quality", callback_data="anime_quality_menu"),
         ])
 
         if total_episodes <= 25:
@@ -178,10 +218,9 @@ async def _handle_anime_select(client, callback_query, data: str):
         buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
 
         await callback_query.message.edit_text(
-            f"<b>🎬 {title}</b>\n\n"
-            f"<b>📺 Total Episodes:</b> <code>{total_episodes}</code>\n\n"
-            f"<b>Select category and episode range:</b>",
+            info_text,
             reply_markup=InlineKeyboardMarkup(buttons),
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
         )
 
         await safe_answer(callback_query, f"Selected: {title}")
@@ -203,6 +242,7 @@ async def _handle_anime_episode(client, callback_query, data: str):
         title = BOT.State.anime_selected.get("title", "Unknown")
         category = BOT.State.anime_selected.get("category", "sub")
         category_label = "🇯🇵 Sub" if category == "sub" else "🇺🇸 Dub"
+        quality = BOT.State.anime_selected.get("quality", "default")
 
         ep_label = f"Ep {start_ep}" if start_ep == end_ep else f"Ep {start_ep}-{end_ep}"
         buttons = [
@@ -220,13 +260,32 @@ async def _handle_anime_episode(client, callback_query, data: str):
                     callback_data="anime_cat_dub"
                 ),
             ],
+            [InlineKeyboardButton("🔧 Quality", callback_data="anime_quality_menu")],
             [InlineKeyboardButton("❌ Cancel", callback_data="close")],
         ]
+
+        # Show episode titles if available
+        episodes_data = BOT.State.anime_episodes
+        ep_titles = []
+        if episodes_data:
+            from leechbot.downloader.anime import anime_client
+            for ep_num in range(start_ep, min(end_ep + 1, start_ep + 5)):
+                ep_info = anime_client.get_episode_stream_info(episodes_data, ep_num, category)
+                if ep_info and ep_info.get("title"):
+                    ep_titles.append(f"• Ep {ep_num}: {ep_info['title']}")
+
+        title_text = ""
+        if ep_titles:
+            title_text = "\n\n<b>📝 Episodes:</b>\n" + "\n".join(ep_titles)
+            if end_ep - start_ep > 4:
+                title_text += f"\n... and {end_ep - start_ep - 4} more"
 
         await callback_query.message.edit_text(
             f"<b>🎬 {title}</b>\n\n"
             f"<b>🔊 Audio:</b> <code>{category_label}</code>\n"
-            f"<b>📺 Selected:</b> <code>{ep_label}</code>\n\n"
+            f"<b>📺 Selected:</b> <code>{ep_label}</code>\n"
+            f"<b>🎯 Quality:</b> <code>{quality}</code>"
+            f"{title_text}\n\n"
             f"<b>Ready to download:</b>",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
@@ -254,6 +313,7 @@ async def _handle_anime_category(client, callback_query, data: str):
                 InlineKeyboardButton(f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub", callback_data="anime_cat_sub"),
                 InlineKeyboardButton(f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub", callback_data="anime_cat_dub"),
             ],
+            [InlineKeyboardButton("🔧 Quality", callback_data="anime_quality_menu")],
         ]
 
         if total_episodes <= 25:
@@ -311,8 +371,166 @@ async def _handle_anime_category(client, callback_query, data: str):
         await safe_answer(callback_query, "Error setting category", show_alert=True)
 
 
+async def _handle_anime_quality(client, callback_query, data: str):
+    """Handle quality selection menu."""
+    try:
+        current_quality = BOT.State.anime_selected.get("quality", "default")
+
+        buttons = [
+            [
+                InlineKeyboardButton(f"{'✅ ' if current_quality == '1080p' else ''}1080p", callback_data="anime_q_1080p"),
+                InlineKeyboardButton(f"{'✅ ' if current_quality == '720p' else ''}720p", callback_data="anime_q_720p"),
+                InlineKeyboardButton(f"{'✅ ' if current_quality == '480p' else ''}480p", callback_data="anime_q_480p"),
+            ],
+            [
+                InlineKeyboardButton(f"{'✅ ' if current_quality == 'default' else ''}Auto (Best)", callback_data="anime_q_default"),
+            ],
+            [InlineKeyboardButton("◀️ Back", callback_data="anime_back")],
+        ]
+
+        await callback_query.message.edit_text(
+            "<b>🔧 Select Video Quality</b>\n\n"
+            "<b>📝 Note:</b> Quality depends on source availability.\n"
+            "If selected quality is unavailable, best available will be used.",
+            reply_markup=InlineKeyboardMarkup(buttons),
+        )
+
+        await safe_answer(callback_query, "Quality menu")
+
+    except Exception as e:
+        logger.error("Anime quality menu error: %s", e)
+
+
+async def _handle_anime_quality_select(client, callback_query, data: str):
+    """Handle quality selection."""
+    try:
+        quality = data.replace("anime_q_", "")
+        BOT.State.anime_selected["quality"] = quality
+
+        title = BOT.State.anime_selected.get("title", "Unknown")
+        category = BOT.State.anime_selected.get("category", "sub")
+        category_label = "🇯🇵 Sub" if category == "sub" else "🇺🇸 Dub"
+        total_episodes = BOT.State.anime_selected.get("total_episodes", 0)
+        if isinstance(total_episodes, str):
+            total_episodes = int(total_episodes) if total_episodes.isdigit() else 0
+
+        buttons = [
+            [
+                InlineKeyboardButton(f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub", callback_data="anime_cat_sub"),
+                InlineKeyboardButton(f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub", callback_data="anime_cat_dub"),
+            ],
+            [InlineKeyboardButton("🔧 Quality", callback_data="anime_quality_menu")],
+        ]
+
+        if total_episodes <= 25:
+            row = []
+            for ep in range(1, total_episodes + 1):
+                row.append(InlineKeyboardButton(f"{ep}", callback_data=f"anime_ep_{ep}_{ep}"))
+                if len(row) == 5:
+                    buttons.append(row)
+                    row = []
+            if row:
+                buttons.append(row)
+            buttons.append([InlineKeyboardButton(
+                f"⬇️ Download All (1-{total_episodes})",
+                callback_data=f"anime_dl_1_{total_episodes}"
+            )])
+        elif total_episodes <= 100:
+            for start in range(1, total_episodes + 1, 12):
+                end = min(start + 11, total_episodes)
+                buttons.append([
+                    InlineKeyboardButton(
+                        f"📺 Ep {start}-{end}",
+                        callback_data=f"anime_ep_{start}_{end}"
+                    )
+                ])
+        else:
+            for start in range(1, min(total_episodes + 1, 600), 24):
+                end = min(start + 23, total_episodes)
+                buttons.append([
+                    InlineKeyboardButton(
+                        f"📺 Ep {start}-{end}",
+                        callback_data=f"anime_ep_{start}_{end}"
+                    )
+                ])
+
+        buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
+
+        quality_label = quality.upper() if quality != "default" else "Auto (Best)"
+        await callback_query.message.edit_text(
+            f"<b>🎬 {title}</b>\n\n"
+            f"<b>🔊 Audio:</b> <code>{category_label}</code>\n"
+            f"<b>📺 Episodes:</b> <code>{total_episodes}</code>\n"
+            f"<b>🎯 Quality:</b> <code>{quality_label}</code>\n\n"
+            f"<b>Select episodes to download:</b>",
+            reply_markup=InlineKeyboardMarkup(buttons),
+        )
+
+        await safe_answer(callback_query, f"Quality: {quality_label}")
+
+    except Exception as e:
+        logger.error("Anime quality select error: %s", e)
+
+
+async def _handle_anime_back(client, callback_query, data: str):
+    """Handle back button — return to episode selection."""
+    try:
+        title = BOT.State.anime_selected.get("title", "Unknown")
+        category = BOT.State.anime_selected.get("category", "sub")
+        total_episodes = BOT.State.anime_selected.get("total_episodes", 0)
+        if isinstance(total_episodes, str):
+            total_episodes = int(total_episodes) if total_episodes.isdigit() else 0
+
+        buttons = [
+            [
+                InlineKeyboardButton(f"{'✅ ' if category == 'sub' else ''}🇯🇵 Sub", callback_data="anime_cat_sub"),
+                InlineKeyboardButton(f"{'✅ ' if category == 'dub' else ''}🇺🇸 Dub", callback_data="anime_cat_dub"),
+            ],
+            [InlineKeyboardButton("🔧 Quality", callback_data="anime_quality_menu")],
+        ]
+
+        if total_episodes <= 25:
+            row = []
+            for ep in range(1, total_episodes + 1):
+                row.append(InlineKeyboardButton(f"{ep}", callback_data=f"anime_ep_{ep}_{ep}"))
+                if len(row) == 5:
+                    buttons.append(row)
+                    row = []
+            if row:
+                buttons.append(row)
+            buttons.append([InlineKeyboardButton(
+                f"⬇️ Download All (1-{total_episodes})",
+                callback_data=f"anime_dl_1_{total_episodes}"
+            )])
+        elif total_episodes <= 100:
+            for start in range(1, total_episodes + 1, 12):
+                end = min(start + 11, total_episodes)
+                buttons.append([
+                    InlineKeyboardButton(
+                        f"📺 Ep {start}-{end}",
+                        callback_data=f"anime_ep_{start}_{end}"
+                    )
+                ])
+
+        buttons.append([InlineKeyboardButton("❌ Cancel", callback_data="close")])
+
+        category_label = "🇯🇵 Sub" if category == "sub" else "🇺🇸 Dub"
+        await callback_query.message.edit_text(
+            f"<b>🎬 {title}</b>\n\n"
+            f"<b>🔊 Audio:</b> <code>{category_label}</code>\n"
+            f"<b>📺 Episodes:</b> <code>{total_episodes}</code>\n\n"
+            f"<b>Select episodes to download:</b>",
+            reply_markup=InlineKeyboardMarkup(buttons),
+        )
+
+        await safe_answer(callback_query, "Back")
+
+    except Exception as e:
+        logger.error("Anime back error: %s", e)
+
+
 async def _handle_anime_download(client, callback_query, data: str):
-    """Handle anime episode download."""
+    """Handle anime episode download with multi-provider fallback."""
     from leechbot.uploader.telegram import upload_file
     from leechbot.downloader.anime import anime_client
 
@@ -333,6 +551,7 @@ async def _handle_anime_download(client, callback_query, data: str):
         anime_id = selected.get("anime_id", "")
         category = selected.get("category", "sub")
         cover = selected.get("cover", "")
+        quality = selected.get("quality", "default")
 
         ep_label_range = f"Ep {start_ep}" if start_ep == end_ep else f"Ep {start_ep}-{end_ep}"
         total = end_ep - start_ep + 1
@@ -432,10 +651,16 @@ async def _handle_anime_download(client, callback_query, data: str):
 
             ep_label = f"Ep {ep_num:02d}"
             file_name = f"{title} - {ep_label}"
+            progress_counter = f"[{ep_num - start_ep + 1}/{total}]"
+
+            # Get episode title
+            episodes_data = BOT.State.anime_episodes
+            ep_info = anime_client.get_episode_stream_info(episodes_data, ep_num, category)
+            ep_title = ep_info.get("title", f"Episode {ep_num}") if ep_info else f"Episode {ep_num}"
 
             Messages.status_head = (
-                f"<b>📥 Downloading</b> <code>{ep_label}</code>\n\n"
-                f"<code>{title}</code>\n"
+                f"<b>📥 Downloading</b> <code>{ep_label}</code> {progress_counter}\n\n"
+                f"<code>{title}</code> — <code>{ep_title}</code>\n"
             )
 
             try:
@@ -446,36 +671,39 @@ async def _handle_anime_download(client, callback_query, data: str):
             except Exception:
                 pass
 
-            episodes_data = BOT.State.anime_episodes
-            ep_info = anime_client.get_episode_stream_info(episodes_data, ep_num, category)
             if not ep_info:
                 logger.warning("Ep %d: no episode info found, skipping", ep_num)
                 failed += 1
                 continue
 
-            # Use the provider/slug from episode info
-            prov = ep_info.get("provider", "kiwi")
+            # Multi-provider fallback
+            prov = ep_info.get("provider", provider)
             anilist_id = ep_info.get("anilist_id") or anime_id
             cat = ep_info.get("category", category)
             slug = ep_info.get("slug", "")
 
             stream_result = None
             stream_url = None
+
+            # Try with fallback
             try:
-                result = await anime_client.get_stream(prov, anilist_id, cat, slug)
+                result = await anime_client.get_stream_with_fallback(
+                    anilist_id, cat, slug, preferred_provider=prov
+                )
                 results = result.get("results", {})
                 url = results.get("url") if isinstance(results, dict) else None
                 if result.get("success") and url:
                     stream_result = result
                     stream_url = url
-                    logger.info("Ep %d: stream found via %s", ep_num, prov)
+                    used_prov = results.get("provider_used", prov)
+                    logger.info("Ep %d: stream via %s", ep_num, used_prov)
                 else:
-                    logger.warning("Ep %d: provider %s failed — %s", ep_num, prov, result.get("message", "no stream"))
+                    logger.warning("Ep %d: all providers failed — %s", ep_num, result.get("message", "no stream"))
             except Exception as e:
-                logger.warning("Ep %d: provider %s error — %s", ep_num, prov, e)
+                logger.warning("Ep %d: stream error — %s", ep_num, e)
 
             if not stream_result or not stream_url:
-                logger.error("Ep %d: provider %s failed, skipping", ep_num, prov)
+                logger.error("Ep %d: all providers failed, skipping", ep_num)
                 failed += 1
                 continue
 
@@ -549,7 +777,7 @@ async def _handle_anime_download(client, callback_query, data: str):
                         q = q_match.group(1).upper()
                 file_metadata = {
                     'title': title,
-                    'audio': category.upper(),
+                    'audio': cat.upper(),
                     'episode': str(ep_num),
                     'season': '1',
                     'quality': q,
@@ -564,8 +792,8 @@ async def _handle_anime_download(client, callback_query, data: str):
                     pass
 
             Messages.status_head = (
-                f"<b>📤 Uploading</b> <code>{ep_label}</code>\n\n"
-                f"<code>{title}</code>\n"
+                f"<b>📤 Uploading</b> <code>{ep_label}</code> {progress_counter}\n\n"
+                f"<code>{title}</code> — <code>{ep_title}</code>\n"
             )
             try:
                 await MSG.status_msg.edit_text(

@@ -51,6 +51,9 @@ from .anime import (
     _handle_anime_episode,
     _handle_anime_category,
     _handle_anime_download,
+    _handle_anime_quality,
+    _handle_anime_quality_select,
+    _handle_anime_back,
 )
 
 
@@ -231,6 +234,18 @@ async def handle_callback(client, callback_query):
         # --- Anime download ---
         elif data.startswith("anime_dl_"):
             await _handle_anime_download(client, callback_query, data)
+
+        # --- Anime quality menu ---
+        elif data == "anime_quality_menu":
+            await _handle_anime_quality(client, callback_query, data)
+
+        # --- Anime quality selection ---
+        elif data.startswith("anime_q_"):
+            await _handle_anime_quality_select(client, callback_query, data)
+
+        # --- Anime back to episode selection ---
+        elif data == "anime_back":
+            await _handle_anime_back(client, callback_query, data)
 
         # --- Format selection ---
         elif data.startswith("fmt-"):

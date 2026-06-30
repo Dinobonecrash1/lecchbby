@@ -4,6 +4,9 @@ import re
 
 logger = logging.getLogger(__name__)
 
+# Provider fallback order — try these if primary fails
+PROVIDER_FALLBACK_ORDER = ["kiwi", "ally", "miruro", "animex"]
+
 
 class MiruroAPI:
     """Miruro API client for anime search, episodes, and streaming."""
@@ -54,7 +57,7 @@ class MiruroAPI:
         return {"success": True, "results": results}
 
     async def get_stream(self, provider: str, anilist_id: int, category: str, slug: str) -> dict:
-        """Get streaming URL for an episode."""
+        """Get streaming URL for an episode from a specific provider."""
         url = f"{self.base_url}/watch/{provider}/{anilist_id}/{category}/{slug}"
         data = await self._get(url)
         if "error" in data:
@@ -80,13 +83,53 @@ class MiruroAPI:
                     "fansub": best_stream.get("fansub", ""),
                     "audio": best_stream.get("audio", "sub"),
                     "referer": best_stream.get("referer", "https://kwik.cx/"),
+                    "subtitles": results.get("subtitles", []),
                 }
             }
 
         return {"success": False, "message": "No M3U8 stream found"}
 
+    async def get_stream_with_fallback(self, anilist_id: int, category: str, slug: str,
+                                        preferred_provider: str = None) -> dict:
+        """Get stream URL with multi-provider fallback.
+
+        Tries preferred provider first, then falls back through PROVIDER_FALLBACK_ORDER.
+        If category (dub) fails, falls back to sub.
+        """
+        # Build provider list: preferred first, then fallbacks
+        providers_to_try = []
+        if preferred_provider:
+            providers_to_try.append(preferred_provider)
+        for p in PROVIDER_FALLBACK_ORDER:
+            if p not in providers_to_try:
+                providers_to_try.append(p)
+
+        # Try with requested category first, then fallback to sub
+        categories_to_try = [category]
+        if category != "sub":
+            categories_to_try.append("sub")
+
+        for cat in categories_to_try:
+            for prov in providers_to_try:
+                try:
+                    result = await self.get_stream(prov, anilist_id, cat, slug)
+                    if result.get("success"):
+                        result["results"]["provider_used"] = prov
+                        result["results"]["category_used"] = cat
+                        if cat != category:
+                            logger.info("Fallback: %s → %s for provider %s", category, cat, prov)
+                        return result
+                except Exception as e:
+                    logger.warning("Provider %s category %s failed: %s", prov, cat, e)
+                    continue
+
+        return {"success": False, "message": "All providers failed"}
+
     def get_episode_stream_info(self, episodes_data: dict, ep_num: int, category: str = "sub") -> dict:
-        """Extract stream info for specific episode number."""
+        """Extract stream info for specific episode number with dub→sub fallback.
+
+        Returns episode info including title, or None if not found.
+        """
         if not episodes_data:
             return None
 
@@ -94,45 +137,63 @@ class MiruroAPI:
         if not providers:
             return None
 
-        for provider_name, provider_data in providers.items():
-            eps = provider_data.get("episodes", {}).get(category, [])
-            for ep in eps:
-                if ep.get("number") == ep_num:
-                    ep_id = ep.get("id", "")
-                    # Parse episode ID: "watch/kiwi/20/sub/animepahe-1"
-                    parts = ep_id.split("/")
-                    if len(parts) >= 5:
-                        prov = parts[1]
-                        anilist_id = int(parts[2])
-                        cat = parts[3]
-                        slug = parts[4]
-                    else:
-                        prov = provider_name
-                        anilist_id = None
-                        cat = category
-                        slug = ep_id
+        # Try requested category first, then sub as fallback
+        categories_to_try = [category]
+        if category != "sub":
+            categories_to_try.append("sub")
 
-                    return {
-                        "provider": prov,
-                        "anilist_id": anilist_id,
-                        "category": cat,
-                        "slug": slug,
-                        "episode_id": ep_id,
-                        "number": ep_num,
-                        "title": ep.get("title", ""),
-                    }
+        for cat in categories_to_try:
+            for provider_name, provider_data in providers.items():
+                eps = provider_data.get("episodes", {}).get(cat, [])
+                for ep in eps:
+                    if ep.get("number") == ep_num:
+                        ep_id = ep.get("id", "")
+                        # Parse episode ID: "watch/kiwi/20/sub/animepahe-1"
+                        parts = ep_id.split("/")
+                        if len(parts) >= 5:
+                            prov = parts[1]
+                            anilist_id = int(parts[2])
+                            parsed_cat = parts[3]
+                            slug = parts[4]
+                        else:
+                            prov = provider_name
+                            anilist_id = None
+                            parsed_cat = cat
+                            slug = ep_id
+
+                        return {
+                            "provider": prov,
+                            "anilist_id": anilist_id,
+                            "category": parsed_cat,
+                            "slug": slug,
+                            "episode_id": ep_id,
+                            "number": ep_num,
+                            "title": ep.get("title", f"Episode {ep_num}"),
+                            "requested_category": category,
+                            "actual_category": cat,
+                        }
 
         return None
 
+    def get_available_qualities(self, streams_data: dict) -> list:
+        """Extract available quality options from stream results."""
+        # This is a placeholder — actual quality list comes from the API
+        # For now return common options
+        return ["1080p", "720p", "480p"]
+
     def format_search_results(self, results: list) -> list:
-        """Format search results for display."""
+        """Format search results for display with info card data."""
         formatted = []
         for item in results:
             title = item.get("title", {})
             if isinstance(title, dict):
                 title_str = title.get("english") or title.get("romaji") or "Unknown"
+                title_romaji = title.get("romaji", "")
+                title_english = title.get("english", "")
             else:
                 title_str = str(title) if title else "Unknown"
+                title_romaji = ""
+                title_english = title_str
 
             episodes = item.get("episodes", "?")
             cover = item.get("coverImage", {})
@@ -142,14 +203,45 @@ class MiruroAPI:
                 cover_url = cover or ""
             anime_id = item.get("id", "")
 
+            # Extract info card data
+            description = item.get("description", "")
+            if isinstance(description, str):
+                # Strip HTML tags from description
+                description = re.sub(r'<[^>]+>', '', description)[:300]
+
+            rating = item.get("averageScore") or item.get("meanScore") or "?"
+            genres = item.get("genres", [])
+            if isinstance(genres, list):
+                genres_str = ", ".join(genres[:5])
+            else:
+                genres_str = str(genres) if genres else ""
+
+            status = item.get("status", "")
+            total_ep = item.get("episodes", "?")
+            season = item.get("season", "")
+            year = item.get("year", "")
+
             display = f"<b>{title_str}</b>\n📺 {episodes} episodes"
+            if rating and rating != "?":
+                display += f" | ⭐ {rating}"
+            if genres_str:
+                display += f"\n🏷️ {genres_str}"
 
             formatted.append({
                 "title": title_str,
+                "title_romaji": title_romaji,
+                "title_english": title_english,
                 "display": display,
                 "episodes": episodes,
+                "total_episodes": total_ep,
                 "cover": cover_url,
                 "id": anime_id,
+                "description": description,
+                "rating": rating,
+                "genres": genres_str,
+                "status": status,
+                "season": season,
+                "year": year,
                 "raw": item,
             })
 
