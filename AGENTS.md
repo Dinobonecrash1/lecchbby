@@ -6,10 +6,10 @@
 
 ## Project Overview
 
-LeechBot is a **Pyrogram-based Telegram bot** for downloading files from various sources (direct links, YouTube, Google Drive, Mega, galleries, etc.) and uploading them to Telegram or Google Drive. ~8000 lines of Python.
+LeechBot is a **Kurigram-based (Pyrogram fork) Telegram bot** for downloading files from various sources (direct links, YouTube, Google Drive, Mega, galleries, anime, etc.) and uploading them to Telegram or Google Drive. ~8000 lines of Python.
 
 **Language:** Python 3.10+  
-**Framework:** Pyrogram 2.0.106 (Telegram MTProto client)  
+**Framework:** Kurigram (actively maintained Pyrogram fork)  
 **License:** MIT
 
 ---
@@ -21,7 +21,7 @@ LeechBot is a **Pyrogram-based Telegram bot** for downloading files from various
 │                    __main__.py                       │
 │              (entry point, startup)                  │
 ├───────────┬───────────┬─────────────┬───────────────┤
-│ commands/ │ callbacks/│  handlers.py│  (Pyrogram    │
+│ commands/ │ callbacks/│  handlers.py│  (Kurigram    │
 │  /cmd     │  buttons  │  messages   │   handlers)   │
 ├───────────┴───────────┴─────────────┴───────────────┤
 │              utility/task_manager.py                 │
@@ -30,13 +30,14 @@ LeechBot is a **Pyrogram-based Telegram bot** for downloading files from various
 │  downloader/        │  uploader/                     │
 │  ├ manager.py       │  └ telegram.py                 │
 │  ├ aria2.py         │    (single + batch upload)     │
-│  ├ ytdl.py          │                                │
-│  ├ gallery.py       ├───────────────────────────────┤
-│  ├ gdrive.py        │  utility/                      │
-│  ├ mega.py          │  ├ handler.py (Leech, Zip...)  │
-│  ├ terabox.py       │  ├ helper.py (UI, links)       │
-│  ├ pixeldrain.py    │  ├ converters.py               │
-│  ├ mediafire.py     │  ├ variables.py (global state) │
+│  ├ anime.py         │                                │
+│  ├ ytdl.py          ├───────────────────────────────┤
+│  ├ gallery.py       │  utility/                      │
+│  ├ gdrive.py        │  ├ handler.py (Leech, Zip...)  │
+│  ├ mega.py          │  ├ helper.py (UI, links)       │
+│  ├ terabox.py       │  ├ converters.py               │
+│  ├ pixeldrain.py    │  ├ variables.py (global state) │
+│  ├ mediafire.py     │  ├ rss_manager.py              │
 │  └ __init__.py      │  └ task_manager.py             │
 ├─────────────────────┴───────────────────────────────┤
 │  web/server.py  ←→  public/index.html               │

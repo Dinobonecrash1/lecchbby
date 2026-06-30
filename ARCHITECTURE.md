@@ -21,7 +21,7 @@ This document provides a detailed technical overview of LeechBot's internals for
 
 ## System Architecture
 
-LeechBot is a single-process, async Python application built on Pyrogram (Telegram MTProto client). It runs as a long-lived bot that processes download/upload tasks sequentially with a queue.
+LeechBot is a single-process, async Python application built on Kurigram (Pyrogram fork, Telegram MTProto client). It runs as a long-lived bot that processes download/upload tasks sequentially with a queue.
 
 ```
                     ┌──────────────────────────┐
@@ -217,13 +217,19 @@ downloader/manager.py::downloadManager()
   ├─ is_ytdl_link()     → ytdl.py         (yt-dlp, 2000+ sites)
   ├─ is_google_drive()   → gdrive.py       (Google Drive API)
   ├─ is_mega()           → mega.py         (megatools CLI)
-  ├─ is_telegram()       → telegram.py     (Pyrogram media download)
+  ├─ is_telegram()       → telegram.py     (Kurigram media download)
   ├─ is_terabox()        → terabox.py      (direct link extraction)
   ├─ is_pixeldrain()     → pixeldrain.py   (API)
   ├─ is_mediafire()      → mediafire.py    (scraping)
   ├─ is_gallery()        → gallery.py      (gallery-dl, 100+ sites)
   ├─ is_torrent()        → torrent.py      (magnet/libtorrent)
   └─ default             → aria2.py        (HTTP/FTP direct)
+
+downloader/anime.py::MiruroAPI (independent, via /anime command)
+  ├─ search()            → search results with episode counts
+  ├─ get_episodes()      → episode lists from multiple providers
+  ├─ get_stream()        → stream URLs with quality/codec info
+  └─ fallback chain:     → kiwi → ally → miruro → animex
 ```
 
 Each downloader:

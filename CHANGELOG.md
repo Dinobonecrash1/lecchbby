@@ -7,24 +7,40 @@ All notable changes to this project will be documented in this file.
 ## [3.2.8] - 2026-06-30
 
 ### Added
-- **🎬 Anime Episode Downloader** — restored `/anime` command for searching and downloading anime episodes
-  - `/anime <name>` — interactive search with inline buttons
+- **🎬 Anime Episode Downloader** — full-featured anime downloading with 9 advanced features
+  - `/anime <name>` — interactive search with inline buttons, episode titles, and info cards
   - `/anime <name> ep 1-5 sub` — quick batch download mode
+  - Multi-provider fallback (kiwi → ally → miruro → animex)
+  - Dub→sub fallback when dub unavailable
+  - Quality selector (480p/720p/1080p/Auto) in interactive mode
+  - Batch progress counter (Ep 3/10)
+  - Resume interrupted downloads (`/anime resume`)
+  - Subtitle embedding in MKV via mkvmerge/ffmpeg
+  - Multi-episode zip before upload (`/anime ... zip`)
   - Sub/Dub audio category toggle
-  - Multi-provider support (kiwi, ally, moo, bee, bonk, hop, pewe)
-  - Poster thumbnail in status messages
-  - Batch download: download 1, upload 1, repeat
 - **🏷️ Auto-Rename Template** — new `/autorename` command
   - `/autorename <template>` — set rename pattern with placeholders
   - Supports: `{season}`, `{episode}`, `{quality}`, `{audio}`, `{title}`, `{chapter}`
   - `/autorename clear` — remove template
 - **ANIME_API_URL config** — required env var for anime feature
   - Set in `.env`: `ANIME_API_URL=<your-api-url>`
-  - Error message with buy link if not configured
+  - Error message with buy link (`t.me/Shineii86`) if not configured
 
 ### Changed
+- **Migrated from Pyrogram to Kurigram** — actively maintained Pyrogram fork
+  - `disable_web_page_preview=True` → `link_preview_options=types.LinkPreviewOptions(is_disabled=True)` (30 occurrences, 14 files)
+  - `reply_to_message_id=` → `reply_parameters=types.ReplyParameters(...)` (7 occurrences in uploader/telegram.py)
+  - Removed deprecated `warnings.filterwarnings` deprecation suppress
+  - Added `from pyrogram import types` to all modified files
 - Registered `/anime` and `/autorename` BotCommands with Telegram
-- Updated command count from 36 to 38
+- Updated command count from 34 to 38
+
+### Fixed
+- `reply_to_message_id` deprecation warnings from Pyrogram (now using kurigram API)
+- Status_head ownership issue (YTDL_Status was overwriting Messages.status_head)
+
+### Improved
+- yt-dlp concurrent fragment downloads: 4 → 8 for faster HLS/DASH
 
 ---
 

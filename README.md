@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.2.7-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.2.8-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -38,7 +38,7 @@
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
 - [🗺️ Roadmap](ROADMAP.md)
-- [✨ What's New?](#-whats-new-in-v327)
+- [✨ What's New?](#-whats-new-in-v328)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
 - [🌐 Web Dashboard](#-web-dashboard)
@@ -55,15 +55,22 @@
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
 
-## ✨ What's New in v3.2.7
+## ✨ What's New in v3.2.8
 
-### 📸 Screenshot Generator (NEW)
-- `/screenshot [count]` — generate 1-20 screenshots from video or PDF
-- `/setwm <text>` — set watermark text on screenshots (owner only)
-- Supports MP4, MKV, AVI, MOV, WebM, PDF
-- Uses ffmpeg + Pillow from existing stack, no new dependencies
+### 🎬 Anime Downloader (NEW)
+- `/anime <title>` — search, browse, download anime episodes
+- 9 advanced features: multi-provider fallback, episode titles, batch progress, dub→sub fallback, anime info cards, quality selector, resume, subtitle embedding, multi-episode zip
+- 4 streaming providers with automatic fallback (kiwi → ally → miruro → animex)
 
-> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **34 commands across 7 categories**
+### ✏️ Auto-Rename Templates (NEW)
+- `/autorename <template>` — set custom filename templates with placeholders
+- Supports `{season}`, `{episode}`, `{quality}`, `{audio}`, `{title}`, `{chapter}`
+
+### ⚡ Kurigram Migration
+- Migrated from Pyrogram to [Kurigram](https://github.com/KurimuzonAkworker) (actively maintained fork)
+- Fixed deprecated patterns across 16+ files
+
+> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **38 commands across 8 categories**
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -89,11 +96,12 @@
 | 👥 **Multi-User** | Admin panel to allow/deny users |
 | 🔄 **Auto-Retry** | Automatic retry on download failures |
 | 🔒 **Password Protection** | ZIP/unzip passwords |
-| 🏷️ **Custom Filename** | `/setname` or inline `[name]` syntax |
+| 🏷️ **Custom Filename** | `/setname`, `/autorename` templates, or inline `[name]` syntax |
 | ⏳ **Auto-Delete** | Configurable auto-delete for bot messages |
 | 🎬 **YouTube PO Tokens** | Auto-generated — no manual cookie setup |
 | 📸 **Photo Galleries** | Twitter, Pinterest, Pixiv via gallery-dl |
 | 🌐 **Web Dashboard** | Real-time browser monitoring and control |
+| 🎬 **Anime Downloader** | Search, browse, stream anime with multi-provider fallback, quality selector, subtitle embedding |
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -147,7 +155,7 @@ Real-time browser dashboard runs alongside the bot on port `8080`.
 | 📁 Files | Recent uploads list |
 | ⚙️ Settings | Current bot configuration |
 | 💻 System | CPU, RAM, disk usage |
-| 📖 Commands | Quick reference for all 34 commands |
+| 📖 Commands | Quick reference for all 38 commands |
 | 🟢 WebSocket | Real-time updates every 3s |
 
 ```bash
@@ -277,6 +285,7 @@ All bot commands are organized into categories in the **interactive `/help`** me
 |----------|----------|-------|
 | **📥 Downloads** | 10 | `tupload`, `gdupload`, `drupload`, `ytupload`, `glupload`, `setname`, `format`, `formats`, `preview`, `speed` |
 | **🗂 Files** | 5 | `zipaswd`, `unzipaswd`, `queue`, `cancel`, `cancel_all` |
+| **🎬 Anime** | 2 | `anime`, `autorename` |
 | **⚙️ Status & Settings** | 7 | `settings`, `status`, `stats`, `logs`, `ping`, `restart`, `update` |
 | **🍪 Cookies** | 3 | `cookies`, `setcookies`, `clearcookies` |
 | **📸 Screenshot** | 2 | `screenshot`, `setwm` |
@@ -294,7 +303,7 @@ All bot commands are organized into categories in the **interactive `/help`** me
 
 | Component | Technology |
 |-----------|------------|
-| Framework | [Pyrogram](https://docs.pyrogram.org/) 2.0.106 |
+| Framework | [Kurigram](https://github.com/KurimuzonAkworker) (Pyrogram fork) |
 | Downloads | [aria2c](https://aria2.github.io/) + [yt-dlp](https://github.com/yt-dlp/yt-dlp) + [gallery-dl](https://github.com/mikf/gallery-dl) |
 | YouTube Auth | [bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider) |
 | Video Processing | FFmpeg, MoviePy, GPUtil |
@@ -326,17 +335,21 @@ LeechBot/
 │   ├── __init__.py          # Pyrogram client
 │   ├── __main__.py          # Entry point
 │   ├── aliases.py           # Command alias pre-processor
-│   ├── commands/            # /command handlers (34 commands)
+│   ├── commands/            # /command handlers (38 commands)
 │   │   ├── __init__.py
 │   │   ├── admin.py         # Admin & control commands
+│   │   ├── anime.py         # Anime search, episodes, download, batch, resume
+│   │   ├── autorename.py    # Auto-rename template commands
 │   │   ├── downloads.py     # Download / upload commands
 │   │   ├── options.py       # Quick option commands + aliases
+│   │   ├── rss.py           # RSS subscription commands
 │   │   ├── screenshot.py    # Video/PDF screenshot generator
 │   │   ├── settings.py      # Settings / format / speed commands
 │   │   ├── start_help.py    # /start and /help commands
 │   │   └── status.py        # Status / stats / queue commands
 │   ├── callbacks/           # Button callbacks
 │   │   ├── __init__.py
+│   │   ├── anime.py         # Anime selection, quality, back, info cards
 │   │   ├── common.py        # Shared callback utilities
 │   │   ├── dispatcher.py    # Main callback router
 │   │   ├── navigation.py    # Help / about / start navigation
@@ -349,6 +362,7 @@ LeechBot/
 │   ├── updater.py           # Auto-update
 │   ├── downloader/
 │   │   ├── aria2.py         # HTTP/FTP downloads
+│   │   ├── anime.py         # MiruroAPI client (search, episodes, streams)
 │   │   ├── torrent.py       # Magnet/torrent (libtorrent)
 │   │   ├── ytdl.py          # YouTube, 2000+ sites
 │   │   ├── gallery.py       # Photo galleries (100+ sites)
@@ -370,6 +384,7 @@ LeechBot/
 │       ├── handler.py       # Task handlers
 │       ├── helper.py        # UI, links, formatting
 │       ├── converters.py    # Video/archive conversion
+│       ├── rss_manager.py   # RSS subscription manager
 │       └── task_manager.py  # Task orchestrator
 └── notebooks/
     └── LeechBot.ipynb        # Colab notebook
