@@ -463,7 +463,7 @@ async def _quick_download(message, query, ep_start, ep_end, category, quality):
         except Exception:
             pass
     except Exception as e:
-        logger.error(f"Anime quick download error: {e}")
+        logger.error("Anime quick download error: %s", e, exc_info=True)
         try:
             await status.edit_text(f"<b>❌ Error:</b> <code>{e}</code>")
         except Exception:
