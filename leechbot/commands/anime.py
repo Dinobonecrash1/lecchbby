@@ -293,7 +293,7 @@ async def _quick_download(message, query, ep_start, ep_end, category, quality):
                 pass
 
             # Fetch stream URL
-            ep_info = anime_client.miruro.get_episode_stream_info(episodes_list, ep_num, category)
+            ep_info = anime_client.get_episode_stream_info(episodes_data, ep_num, category)
             if not ep_info:
                 logger.warning("Ep %d: no episode info found, skipping", ep_num)
                 failed += 1

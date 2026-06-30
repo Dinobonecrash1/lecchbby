@@ -52,6 +52,7 @@ class BOT:
         photo_mode: str = "Group"  # "Group" (batch of 10) or "Single" (one by one)
         auto_delete: bool = False
         auto_delete_delay: int = 30
+        autorename_template: str = ""
 
     class Options:
         """Runtime options for the current task (reset each task)."""
