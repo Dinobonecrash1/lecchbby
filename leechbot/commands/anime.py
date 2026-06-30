@@ -491,7 +491,7 @@ async def _interactive_search(message, query):
         BOT.State.anime_search_provider = result.get("provider", "miruro")
 
         search_provider = result.get("provider", "miruro")
-        formatted = anime_client.format_search_results(results[:8], provider=search_provider)
+        formatted = anime_client.format_search_results(results[:8])
 
         buttons = []
         for i, item in enumerate(formatted):
