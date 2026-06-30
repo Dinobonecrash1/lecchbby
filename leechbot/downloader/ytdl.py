@@ -251,6 +251,7 @@ def YouTubeDL(url: str, loop=None):
         "subtitleslangs": ["en", "en-US", "en-GB"],
         "extractor_args": {
             "subtitlesformat": "srt",
+            "generic": {"impersonate": ["chrome"]},
         },
         "logger": MyLogger(loop),
         "user_agent": (
@@ -316,7 +317,11 @@ def YouTubeDL(url: str, loop=None):
 async def get_YT_Name(link: str) -> str:
     """Get video title from link without downloading."""
     try:
-        opts = {"logger": MyLogger(), "quiet": True}
+        opts = {
+            "logger": MyLogger(),
+            "quiet": True,
+            "extractor_args": {"generic": {"impersonate": ["chrome"]}},
+        }
         opts.update(_get_cookie_opts())
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(link, download=False)
@@ -337,7 +342,11 @@ async def list_formats(link: str) -> str:
         str: formatted list of available formats
     """
     try:
-        opts = {"quiet": True, "no_warnings": True}
+        opts = {
+            "quiet": True,
+            "no_warnings": True,
+            "extractor_args": {"generic": {"impersonate": ["chrome"]}},
+        }
         opts.update(_get_cookie_opts())
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(link, download=False)
