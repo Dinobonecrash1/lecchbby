@@ -145,84 +145,52 @@ CATEGORIES = [
 # =============================================================================
 # /start
 # =============================================================================
-WELCOME_TEXT = (
-    "<b>Hello There, I'm LeechBot 👋</b>\n"
-    "I have lots of features like File Transloading, Google Drive Mirroring, "
-    "YT-DLP Downloads, Anime Downloader, Gallery DL, and many other useful commands!\n"
-    "Click on the buttons below to get documentation about specific modules."
-)
+WELCOME_TEXT = """<b>🤖 LeechBot</b> — Advanced Telegram File Transloader
+
+◈ Powerful · Fast · Secure
+◈ Download from 2000+ sources
+◈ Upload to Telegram or Google Drive
+
+<b>📥 Send any link to start downloading.</b>
+
+Tap a button below to explore:"""
 
 
 def _start_keyboard():
     return InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("All", callback_data="help_all_0"),
-            InlineKeyboardButton("Downloads", callback_data="help_cat_Downloads"),
+            InlineKeyboardButton("📖 Help", callback_data="help_all_0"),
+            InlineKeyboardButton("ℹ️ About", callback_data="about"),
         ],
+        [InlineKeyboardButton("⚙️ Bot Settings", callback_data="settings_menu")],
         [
-            InlineKeyboardButton("Files", callback_data="help_cat_Files"),
-            InlineKeyboardButton("Anime", callback_data="help_cat_Anime"),
+            InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
+            InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
         ],
-        [
-            InlineKeyboardButton("Settings", callback_data="help_cat_Settings"),
-            InlineKeyboardButton("Auth", callback_data="help_cat_Auth"),
-        ],
-        [
-            InlineKeyboardButton("Tools", callback_data="help_cat_Tools"),
-            InlineKeyboardButton("Admin", callback_data="help_cat_Admin"),
-        ],
-        [InlineKeyboardButton("ℹ️ About", callback_data="about")],
+        [InlineKeyboardButton("💬 Support", url="https://t.me/MaximXGroup")],
     ])
 
 
 async def _send_welcome(client, message, edit: bool = False):
-    photo = _get_random_photo()
-    if photo:
-        if edit:
-            try:
-                await message.edit_media(
-                    InputMediaPhoto(photo, caption=WELCOME_TEXT),
-                    reply_markup=_start_keyboard(),
-                )
-                return
-            except Exception:
-                pass
+    if edit:
         try:
-            await message.delete()
-        except Exception:
-            pass
-        try:
-            await message.reply_photo(
-                photo=photo,
-                caption=WELCOME_TEXT,
-                reply_markup=_start_keyboard(),
-            )
-        except Exception:
-            await message.reply_text(
+            await message.edit_text(
                 WELCOME_TEXT,
                 reply_markup=_start_keyboard(),
                 link_preview_options=types.LinkPreviewOptions(is_disabled=True),
             )
-    else:
-        if edit:
-            try:
-                await message.edit_text(
-                    WELCOME_TEXT,
-                    reply_markup=_start_keyboard(),
-                    link_preview_options=types.LinkPreviewOptions(is_disabled=True),
-                )
-                return
-            except Exception:
-                pass
-        try:
-            await message.delete()
+            return
         except Exception:
             pass
-        await message.reply_text(
-            WELCOME_TEXT,
-            reply_markup=_start_keyboard(),
-            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
-        )
+    try:
+        await message.delete()
+    except Exception:
+        pass
+    await message.reply_text(
+        WELCOME_TEXT,
+        reply_markup=_start_keyboard(),
+        link_preview_options=types.LinkPreviewOptions(is_disabled=True),
+    )
 
 
 @app.on_message(filters.command("start") & filters.private)
