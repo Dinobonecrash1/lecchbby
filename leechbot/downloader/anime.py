@@ -91,10 +91,11 @@ class MiruroAPI:
 
     async def get_stream_with_fallback(self, anilist_id: int, category: str, slug: str,
                                         preferred_provider: str = None) -> dict:
-        """Get stream URL with multi-provider fallback.
+        """Get stream URL with multi-provider + multi-slug fallback.
 
         Tries preferred provider first, then falls back through PROVIDER_FALLBACK_ORDER.
         If category (dub) fails, falls back to sub.
+        If slug fails, tries alternate slug patterns.
         """
         # Build provider list: preferred first, then fallbacks
         providers_to_try = []
@@ -109,19 +110,38 @@ class MiruroAPI:
         if category != "sub":
             categories_to_try.append("sub")
 
+        # Generate alternate slugs from original
+        # e.g., "allmanga-1" → ["allmanga-1", "1", "all-manga-1", "allmanga1"]
+        slugs_to_try = [slug]
+        parts = slug.rsplit("-", 1)
+        if len(parts) == 2 and parts[1].isdigit():
+            # "allmanga-1" → try "1" as fallback
+            slugs_to_try.append(parts[1])
+        if "-" not in slug and any(c.isdigit() for c in slug):
+            # "allmanga1" → try "allmanga-1"
+            import re as _re
+            m = _re.match(r"([a-zA-Z]+)(\d+)$", slug)
+            if m:
+                slugs_to_try.append(f"{m.group(1)}-{m.group(2)}")
+        if slug not in slugs_to_try:
+            slugs_to_try.append(slug)
+
         for cat in categories_to_try:
             for prov in providers_to_try:
-                try:
-                    result = await self.get_stream(prov, anilist_id, cat, slug)
-                    if result.get("success"):
-                        result["results"]["provider_used"] = prov
-                        result["results"]["category_used"] = cat
-                        if cat != category:
-                            logger.info("Fallback: %s → %s for provider %s", category, cat, prov)
-                        return result
-                except Exception as e:
-                    logger.warning("Provider %s category %s failed: %s", prov, cat, e)
-                    continue
+                for try_slug in slugs_to_try:
+                    try:
+                        result = await self.get_stream(prov, anilist_id, cat, try_slug)
+                        if result.get("success"):
+                            result["results"]["provider_used"] = prov
+                            result["results"]["category_used"] = cat
+                            if cat != category:
+                                logger.info("Fallback: %s → %s for provider %s", category, cat, prov)
+                            if try_slug != slug:
+                                logger.info("Slug fallback: %s → %s", slug, try_slug)
+                            return result
+                    except Exception as e:
+                        logger.warning("Provider %s category %s slug %s failed: %s", prov, cat, try_slug, e)
+                        continue
 
         return {"success": False, "message": "All providers failed"}
 
