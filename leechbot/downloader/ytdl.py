@@ -243,7 +243,7 @@ def YouTubeDL(url: str, loop=None):
         "format": format_str,
         "merge_output_format": "mp4" if not is_audio_only else None,
         "writethumbnail": True,
-        "concurrent_fragment_downloads": 4,
+        "concurrent_fragment_downloads": 8,
         "overwrites": True,
         "progress_hooks": [_make_progress_hook(loop)],
         "writesubtitles": True,
