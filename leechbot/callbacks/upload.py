@@ -59,10 +59,11 @@ async def _handle_upload_type(client, callback_query, data: str):
 
     BOT.Mode.type = data
     await callback_query.message.delete()
-    await app.delete_messages(
-        chat_id=callback_query.message.chat.id,
-        message_ids=callback_query.message.reply_to_message_id,
-    )
+    if callback_query.message.reply_to_message_id:
+        await app.delete_messages(
+            chat_id=callback_query.message.chat.id,
+            message_ids=callback_query.message.reply_to_message_id,
+        )
 
     type_labels = {
         "normal": "📄 Regular",
