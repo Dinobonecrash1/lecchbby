@@ -452,6 +452,16 @@ def convertIMG(image_path: str) -> str:
         return image_path
 
 # =============================================================================
+# System Information Stripper
+# =============================================================================
+def _strip_sysinfo(text: str) -> str:
+    """Strip existing system info block from message text."""
+    for separator in ("<b>─── System ───</b>", "<b>📊 System Info (Detailed)</b>"):
+        idx = text.find(separator)
+        if idx != -1:
+            return text[:idx].rstrip()
+    return text
+
 # System Information (Basic)
 # =============================================================================
 def sysINFO() -> str:
@@ -735,13 +745,15 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
         f"📦 <b>Processed:</b> <code>{done}</code> / <code>{left}</code>\n"
         f"⏱️ <b>Elapsed:</b> <code>{elapsed}</code>\n"
         f"🔧 <b>Engine:</b> <code>{engine}</code>"
-        f"{sysINFO_full()}"
     )
+
+    # Append system info
+    text += sysINFO_full()
 
     try:
         if isTimeOver():
             await MSG.status_msg.edit_text(
-                text=down_msg + text,
+                text=_strip_sysinfo(down_msg) + text,
                 link_preview_options=types.LinkPreviewOptions(is_disabled=True),
                 reply_markup=status_keyboard()
             )

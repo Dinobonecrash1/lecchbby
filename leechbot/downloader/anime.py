@@ -162,10 +162,12 @@ class MiruroAPI:
         for cat in categories_to_try:
             # Collect slugs from ALL providers for this episode
             provider_slugs = {}
+            matched_ep = None
             for provider_name, provider_data in providers.items():
                 eps = provider_data.get("episodes", {}).get(cat, [])
                 for ep in eps:
                     if ep.get("number") == ep_num:
+                        matched_ep = ep
                         ep_id = ep.get("id", "")
                         parts = ep_id.split("/")
                         if len(parts) >= 5:
@@ -190,9 +192,9 @@ class MiruroAPI:
                     "category": parsed_cat,
                     "slug": first_slug,
                     "provider_slugs": provider_slugs,
-                    "episode_id": ep_id,
+                    "episode_id": matched_ep.get("id", "") if matched_ep else "",
                     "number": ep_num,
-                    "title": ep.get("title", f"Episode {ep_num}"),
+                    "title": matched_ep.get("title", f"Episode {ep_num}") if matched_ep else f"Episode {ep_num}",
                     "requested_category": category,
                     "actual_category": cat,
                 }
