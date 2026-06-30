@@ -363,7 +363,7 @@ async def _handle_anime_download(client, callback_query, data: str):
         if cover:
             await _download_anime_poster(cover)
 
-        dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, link_preview_options={"is_disabled": True})
+        dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
         Messages.src_link = f"https://t.me/c/{Messages.link_p}/{dump_msg.id}"
         Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
 
@@ -402,14 +402,14 @@ async def _handle_anime_download(client, callback_query, data: str):
                     chat_id=OWNER,
                     text=caption,
                     reply_markup=keyboard(),
-                    link_preview_options={"is_disabled": True}
+                    disable_web_page_preview=True
                 )
         else:
             MSG.status_msg = await app.send_message(
                 chat_id=OWNER,
                 text=caption,
                 reply_markup=keyboard(),
-                link_preview_options={"is_disabled": True}
+                disable_web_page_preview=True
             )
 
         BotTimes.current_time = time_mod.time()
@@ -594,7 +594,7 @@ async def _handle_anime_download(client, callback_query, data: str):
         try:
             await dump_msg.edit_text(
                 text=Messages.dump_task,
-                link_preview_options={"is_disabled": True}
+                disable_web_page_preview=True
             )
         except Exception:
             pass

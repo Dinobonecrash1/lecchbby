@@ -206,7 +206,7 @@ async def _quick_download(message, query, ep_start, ep_end, category, quality):
             await _download_anime_poster(cover)
 
         # Send task log to dump channel
-        dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, link_preview_options={"is_disabled": True})
+        dump_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
         Messages.src_link = f"https://t.me/c/{Messages.link_p}/{dump_msg.id}"
         Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
 
@@ -246,14 +246,14 @@ async def _quick_download(message, query, ep_start, ep_end, category, quality):
                     chat_id=OWNER,
                     text=caption,
                     reply_markup=keyboard(),
-                    link_preview_options={"is_disabled": True}
+                    disable_web_page_preview=True
                 )
         else:
             MSG.status_msg = await app.send_message(
                 chat_id=OWNER,
                 text=caption,
                 reply_markup=keyboard(),
-                link_preview_options={"is_disabled": True}
+                disable_web_page_preview=True
             )
 
         status = MSG.status_msg
@@ -447,7 +447,7 @@ async def _quick_download(message, query, ep_start, ep_end, category, quality):
         try:
             await dump_msg.edit_text(
                 text=Messages.dump_task,
-                link_preview_options={"is_disabled": True}
+                disable_web_page_preview=True
             )
         except Exception:
             pass
@@ -512,7 +512,7 @@ async def _interactive_search(message, query):
         await status.edit_text(
             result_text,
             reply_markup=InlineKeyboardMarkup(buttons),
-            link_preview_options={"is_disabled": True},
+            disable_web_page_preview=True,
         )
     except Exception as e:
         logger.error(f"Anime search error: {e}")
