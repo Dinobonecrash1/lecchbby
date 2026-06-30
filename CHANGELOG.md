@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.9] - 2026-06-30
+
+### Added
+- **📖 Shinobu-style Help Menu** — complete rewrite of /start and /help with photo support
+  - `/start` → random photo from assets + welcome text + category grid buttons
+  - `/help` → random photo + category grid navigation
+  - "All" → paginated 3-column module grid (← 1/2 →) with random photo on each page
+  - Category view → filtered module grid with random photo
+  - Module detail → command list with `❖` formatting and random photo
+  - About page → random photo + version info
+  - Smooth transitions via `edit_media()` — no delete+resend needed
+- **📊 Permanent System Info** — CPU, RAM, Disk, Network, Uptime now always visible in progress bar
+  - No need to click "📊 Stats" button anymore
+  - Compact `sysINFO()` at initial status, detailed `sysINFO_full()` on every progress update
+
+### Changed
+- `/start` keyboard: removed "Help" button, added "All" category grid directly
+- Help navigation uses `edit_media(InputMediaPhoto)` for smooth photo+text transitions
+- Status bar now includes `sysINFO_full()` by default (was on-demand only)
+
+---
+
 ## [3.2.8] - 2026-06-30
 
 ### Added

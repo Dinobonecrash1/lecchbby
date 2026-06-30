@@ -10,114 +10,28 @@
 # =============================================================================
 
 """
-All inline keyboard callback query handlers.
-
-Each callback category is handled by a dedicated async function
-for clarity, testability, and maintainability.
+About and Start navigation callbacks with photo support.
 """
 
-import os
-import sys
 import logging
-from datetime import datetime
-from asyncio import get_running_loop
 
 from pyrogram import types
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from leechbot import app, OWNER
-from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
-from leechbot.utility.handler import cancelTask
-from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
-import config
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
+from leechbot import app
+from leechbot.utility.variables import Paths
 
 logger = logging.getLogger(__name__)
 
-
-
 from .common import safe_answer
 
-# =============================================================================
-# /help inline keyboard handlers  (3.1.34)
-# =============================================================================
-HELP_TEXT = """<b>📖 LeechBot Help Menu</b>
-
-<b>─── Download Commands ───</b>
-• /start — Start the bot
-• /tupload — Upload to Telegram
-• /gdupload — Mirror to Google Drive
-• /drupload — Upload local directory
-• /ytupload — Download with YT-DLP
-• /glupload — Download image galleries
-• /preview — Dry-run a gallery URL
-
-<b>─── Queue &amp; Control ───</b>
-• /queue — View download queue
-• /cancel — Cancel current task
-• /cancel_all — Cancel &amp; clear queue
-
-<b>─── Settings ───</b>
-• /settings — Bot settings menu
-• /setname — Set custom filename
-• /zipaswd — Set zip password
-• /unzipaswd — Set unzip password
-• /format — Set YT-DLP quality
-• /formats — List available formats
-• /speed — Set bandwidth limit
-
-<b>─── Admin ───</b>
-• /admin — Manage allowed users
-• /broadcast — Send file to multiple chats
-• /stats — Bot &amp; system statistics
-• /update — Check for updates
-
-<b>─── YT-DLP Auth ───</b>
-• /cookies — Check auth status
-• /setcookies — Upload cookies.txt
-• /clearcookies — Delete stored cookies
-
-<b>🖼️ Thumbnail:</b> Send any image to set thumbnail"""
-
-HELP_KEYBOARD = InlineKeyboardMarkup([
-    [
-        InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
-        InlineKeyboardButton("💬 Support", url="https://t.me/MaximXGroup"),
-    ],
-    [
-        InlineKeyboardButton("🧑‍💻 Developer", url="https://t.me/Shineii86"),
-        InlineKeyboardButton("🔔 Updates", url="https://t.me/MaximXBots"),
-    ],
-    [InlineKeyboardButton("⌂ Home", callback_data="start_back"),
-     InlineKeyboardButton("🔒 Close", callback_data="close")],
-])
-
-
-async def _handle_help_main(client, callback_query):
-    """Show the help main menu, or close the help message."""
-    if callback_query.data == "help_close":
-        try:
-            await callback_query.message.delete()
-        except Exception as e:
-            logger.debug("Help close (delete) failed: %s", e)
-            await callback_query.message.edit_text("<b>✅ Help closed.</b>")
-        await safe_answer(callback_query, "Closed")
-        return
-
-    try:
-        await callback_query.message.edit_text(
-            text=HELP_TEXT,
-            reply_markup=HELP_KEYBOARD,
-            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
-        )
-    except Exception as e:
-        logger.debug("Help main edit failed: %s", e)
-    try:
-        await safe_answer(callback_query)
-    except Exception:
-        pass
+try:
+    from ..commands.start_help import _get_random_photo
+except ImportError:
+    from leechbot.commands.start_help import _get_random_photo
 
 
 # =============================================================================
-# About + Start navigation  (3.1.35)
+# About
 # =============================================================================
 ABOUT_TEXT = """<b>ℹ️ About LeechBot</b>
 
@@ -130,7 +44,7 @@ ABOUT_TEXT = """<b>ℹ️ About LeechBot</b>
 
 <b>📊 Stats:</b>
 • Supports <b>2000+</b> download sources
-• <b>Pyrogram</b> 2.0.106 + asyncio
+• <b>Kurigram</b> (Pyrogram fork) + asyncio
 
 <b>🛠 Features:</b>
 • Telegram, Google Drive, direct-URL, YouTube, galleries
@@ -144,30 +58,37 @@ responsible for misuse."""
 
 
 async def _handle_about(client, callback_query):
-    """Show the About card (edits the message in place)."""
+    """Show the About card with random photo."""
     import config
 
-    version = config.VERSION
-    build_date = config.BUILD_DATE
-
     text = ABOUT_TEXT.format(
-        version=version,
-        build_date=build_date,
+        version=config.VERSION,
+        build_date=config.BUILD_DATE,
     )
 
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("📖 Help", callback_data="help_main"),
+            InlineKeyboardButton("📖 Help", callback_data="help_all_0"),
             InlineKeyboardButton("⚙️ Settings", callback_data="settings_menu"),
         ],
         [
             InlineKeyboardButton("📂 GitHub", url="https://github.com/Shineii86/LeechBot"),
             InlineKeyboardButton("💬 Support", url="https://t.me/MaximXGroup"),
         ],
-        [InlineKeyboardButton("⌂ Home", callback_data="start_back"),
-         InlineKeyboardButton("🔒 Close", callback_data="close")],
+        [InlineKeyboardButton("⟵ Back", callback_data="start_back")],
     ])
 
+    photo = _get_random_photo()
+    if photo:
+        try:
+            await callback_query.message.edit_media(
+                InputMediaPhoto(photo, caption=text),
+                reply_markup=keyboard,
+            )
+            await safe_answer(callback_query)
+            return
+        except Exception:
+            pass
     try:
         await callback_query.message.edit_text(
             text=text,
@@ -182,7 +103,7 @@ async def _handle_about(client, callback_query):
 
 async def _handle_start_back(client, callback_query):
     """Re-show the /start welcome message in place."""
-    from leechbot.commands import _send_welcome
+    from leechbot.commands.start_help import _send_welcome
 
     try:
         await _send_welcome(client, callback_query.message, edit=True)

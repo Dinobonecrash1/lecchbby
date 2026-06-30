@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 from .common import safe_answer
-from .navigation import _handle_help_main, _handle_about, _handle_start_back
+from .navigation import _handle_about, _handle_start_back
 from .upload import _handle_upload_type, _handle_ytdl_confirm
 from .settings import (
     _handle_video_settings,
@@ -55,6 +55,11 @@ from .anime import (
     _handle_anime_quality_select,
     _handle_anime_back,
 )
+from ..commands.start_help import (
+    _handle_help_all,
+    _handle_help_cat,
+    _handle_help_mod,
+)
 
 
 # =============================================================================
@@ -67,9 +72,18 @@ async def handle_callback(client, callback_query):
     logger.debug("Callback: %s", data)
 
     try:
-        # --- Help system (3.1.34) ---
-        if data == "help_main" or data == "help_close":
-            await _handle_help_main(client, callback_query)
+        # --- Help system ---
+        if data.startswith("help_all_"):
+            page = int(data.split("_")[-1])
+            await _handle_help_all(client, callback_query, page)
+        elif data.startswith("help_cat_"):
+            cat_id = data[len("help_cat_"):]
+            await _handle_help_cat(client, callback_query, cat_id)
+        elif data.startswith("help_mod_"):
+            mod_id = data[len("help_mod_"):]
+            await _handle_help_mod(client, callback_query, mod_id)
+        elif data == "noop":
+            await safe_answer(callback_query)
 
         # --- About + Start navigation (3.1.35) ---
         elif data == "about":

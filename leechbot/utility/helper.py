@@ -711,8 +711,8 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
           🔧  **Engine**     →  `yt-dlp`
         └───────────────────────────────┘
 
-    System info (CPU / RAM / disk) is shown on-demand via the
-    "📊 Stats" or "🔄 Refresh" buttons — no longer auto-appended.
+    System info (CPU / RAM / disk / network / uptime) is always
+    appended below the progress bar.
     """
     bar_length = 12
     filled = int(percentage / 100 * bar_length)
@@ -728,6 +728,7 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
         f"📦 <b>Processed:</b> <code>{done}</code> / <code>{left}</code>\n"
         f"⏱️ <b>Elapsed:</b> <code>{elapsed}</code>\n"
         f"🔧 <b>Engine:</b> <code>{engine}</code>"
+        f"{sysINFO_full()}"
     )
 
     try:
