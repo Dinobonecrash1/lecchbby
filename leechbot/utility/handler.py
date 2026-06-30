@@ -29,6 +29,95 @@ from leechbot.utility.helper import fileType, getSize, getTime, keyboard, shortF
 
 logger = logging.getLogger(__name__)
 
+
+# =============================================================================
+# Auto-Rename Template
+# =============================================================================
+def _apply_autorename_template(original_name: str, template: str, metadata: dict = None) -> str:
+    """
+    Apply auto-rename template to a file name.
+
+    Args:
+        original_name: Original file name (with extension)
+        template: Rename template with placeholders
+        metadata: Optional metadata dict with keys like 'episode', 'season', 'quality', 'audio', 'title'
+
+    Returns:
+        New file name based on template
+
+    Supported placeholders:
+        {chapter} - Chapter number (auto-detected or from metadata)
+        {season} - Season number (auto-detected or from metadata)
+        {episode} - Episode number (auto-detected or from metadata)
+        {quality} - Video quality (auto-detected or from metadata)
+        {audio} - Audio info (auto-detected or from metadata)
+        {title} - Anime title (from metadata only)
+    """
+    import re
+
+    # Get file extension from original name
+    _, ext = ospath.splitext(original_name)
+
+    # If template already has an extension at the end, strip it
+    if template.endswith(('.mkv', '.mp4', '.avi', '.webm', '.mov', '.flv')):
+        template = template[:len(template) - len(ext)]
+
+    # Start with metadata if provided, otherwise empty dict
+    detected = {}
+    if metadata:
+        detected.update(metadata)
+
+    # Auto-detect from filename (only if not already in metadata)
+    # Detect chapter number (e.g., Ch.001, Chapter 1, c001, c12)
+    if 'chapter' not in detected:
+        chapter_match = re.search(r'(?:ch(?:apter)?[\s.]?|c)(\d+)', original_name, re.IGNORECASE)
+        if chapter_match:
+            detected['chapter'] = chapter_match.group(1).lstrip('0') or '0'
+
+    # Detect season number (e.g., S01, Season 1, s01)
+    if 'season' not in detected:
+        season_match = re.search(r'(?:s(?:eason)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
+        if season_match:
+            detected['season'] = season_match.group(1).lstrip('0') or '0'
+
+    # Detect episode number (e.g., E01, Episode 1, ep01)
+    if 'episode' not in detected:
+        episode_match = re.search(r'(?:e(?:p(?:isode)?)?[\s.]?)(\d+)', original_name, re.IGNORECASE)
+        if episode_match:
+            detected['episode'] = episode_match.group(1).lstrip('0') or '0'
+
+    # Detect quality (e.g., 1080p, 720p, 4K, 2160p)
+    if 'quality' not in detected:
+        quality_match = re.search(r'(\d{3,4}p|4k|2160p|1080p|720p|480p|360p)', original_name, re.IGNORECASE)
+        if quality_match:
+            detected['quality'] = quality_match.group(1).upper()
+
+    # Detect audio info (e.g., AAC, FLAC, DTS, AC3, Dual Audio)
+    if 'audio' not in detected:
+        audio_match = re.search(r'(dual[\s-]?audio|aac|flac|dts|ac3|eac3|pcm|mp3|opus|7\.1|5\.1|2\.0|atmos)', original_name, re.IGNORECASE)
+        if audio_match:
+            detected['audio'] = audio_match.group(1).upper()
+
+    # Replace placeholders in template with detected values
+    result = template
+    for key, value in detected.items():
+        placeholder = '{' + key + '}'
+        if placeholder in result:
+            result = result.replace(placeholder, str(value))
+
+    # Remove any remaining unreplaced placeholders
+    result = re.sub(r'\{[^}]+\}', '', result)
+
+    # Clean up multiple spaces and trailing/leading spaces
+    result = re.sub(r'\s+', ' ', result).strip()
+
+    # Add extension back
+    if ext:
+        result += ext
+
+    return result
+
+
 # =============================================================================
 # Main Leech Function
 # =============================================================================

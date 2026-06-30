@@ -46,6 +46,12 @@ from .settings import (
 )
 from .system import _handle_sys_refresh, _handle_sys_stats
 from .update import _handle_do_update
+from .anime import (
+    _handle_anime_select,
+    _handle_anime_episode,
+    _handle_anime_category,
+    _handle_anime_download,
+)
 
 
 # =============================================================================
@@ -209,6 +215,22 @@ async def handle_callback(client, callback_query):
         elif data == "cancel":
             await safe_answer(callback_query, "Cancelling...")
             await cancelTask("User cancelled the task")
+
+        # --- Anime search selection ---
+        elif data.startswith("anime_select_"):
+            await _handle_anime_select(client, callback_query, data)
+
+        # --- Anime episode selection ---
+        elif data.startswith("anime_ep_"):
+            await _handle_anime_episode(client, callback_query, data)
+
+        # --- Anime category (sub/dub) ---
+        elif data.startswith("anime_cat_"):
+            await _handle_anime_category(client, callback_query, data)
+
+        # --- Anime download ---
+        elif data.startswith("anime_dl_"):
+            await _handle_anime_download(client, callback_query, data)
 
         # --- Format selection ---
         elif data.startswith("fmt-"):

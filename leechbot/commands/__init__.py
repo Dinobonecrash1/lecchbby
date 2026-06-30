@@ -2,6 +2,8 @@
 
 # Import submodules to register Pyrogram handlers
 from . import admin
+from . import anime
+from . import autorename
 from . import downloads
 from . import options
 from . import rss

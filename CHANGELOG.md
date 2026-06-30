@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.2.8] - 2026-06-30
+
+### Added
+- **🎬 Anime Episode Downloader** — restored `/anime` command for searching and downloading anime episodes
+  - `/anime <name>` — interactive search with inline buttons
+  - `/anime <name> ep 1-5 sub` — quick batch download mode
+  - Sub/Dub audio category toggle
+  - Multi-provider support (kiwi, ally, moo, bee, bonk, hop, pewe)
+  - Poster thumbnail in status messages
+  - Batch download: download 1, upload 1, repeat
+- **🏷️ Auto-Rename Template** — new `/autorename` command
+  - `/autorename <template>` — set rename pattern with placeholders
+  - Supports: `{season}`, `{episode}`, `{quality}`, `{audio}`, `{title}`, `{chapter}`
+  - `/autorename clear` — remove template
+- **ANIME_API_URL config** — required env var for anime feature
+  - Set in `.env`: `ANIME_API_URL=<your-api-url>`
+  - Error message with buy link if not configured
+
+### Changed
+- Registered `/anime` and `/autorename` BotCommands with Telegram
+- Updated command count from 36 to 38
+
+---
+
 ## [3.2.7] - 2026-06-29
 
 ### Added
