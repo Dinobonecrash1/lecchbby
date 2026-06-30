@@ -710,6 +710,11 @@ async def _handle_anime_download(client, callback_query, data: str):
             if ospath.exists(ep_dir):
                 shutil.rmtree(ep_dir)
             makedirs(ep_dir, exist_ok=True)
+            # Ensure parent dir exists (Colab path may not exist yet)
+            parent = ospath.dirname(ep_dir)
+            if not ospath.exists(parent):
+                makedirs(parent, exist_ok=True)
+                makedirs(ep_dir, exist_ok=True)
             Paths.down_path = ep_dir
 
             download_ok = False
