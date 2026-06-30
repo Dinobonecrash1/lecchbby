@@ -18,7 +18,7 @@ import os
 import signal
 import sys
 from datetime import datetime
-from pyrogram import filters
+from pyrogram import filters, types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, LOG_FILE
 from leechbot.utility.variables import BOT, BotStats, BotTimes, Transfer, Messages, Queue, Paths
@@ -67,7 +67,7 @@ async def _send_welcome(client, message, edit: bool = False):
             await message.edit_text(
                 WELCOME_TEXT,
                 reply_markup=_start_keyboard(),
-                disable_web_page_preview=True,
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True),
             )
             return
         except Exception:
@@ -79,7 +79,7 @@ async def _send_welcome(client, message, edit: bool = False):
     await message.reply_text(
         WELCOME_TEXT,
         reply_markup=_start_keyboard(),
-        disable_web_page_preview=True,
+        link_preview_options=types.LinkPreviewOptions(is_disabled=True),
     )
 
 

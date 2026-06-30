@@ -22,6 +22,7 @@ import logging
 from datetime import datetime
 from asyncio import get_running_loop
 
+from pyrogram import types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
@@ -105,7 +106,7 @@ async def _handle_help_main(client, callback_query):
         await callback_query.message.edit_text(
             text=HELP_TEXT,
             reply_markup=HELP_KEYBOARD,
-            disable_web_page_preview=True,
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
         )
     except Exception as e:
         logger.debug("Help main edit failed: %s", e)
@@ -171,7 +172,7 @@ async def _handle_about(client, callback_query):
         await callback_query.message.edit_text(
             text=text,
             reply_markup=keyboard,
-            disable_web_page_preview=True,
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
         )
         await safe_answer(callback_query)
     except Exception as e:

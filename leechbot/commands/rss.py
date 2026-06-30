@@ -15,7 +15,7 @@ Owner-only commands for managing RSS auto-download feeds.
 
 import logging
 
-from pyrogram import filters
+from pyrogram import filters, types
 
 from leechbot import app, OWNER
 from leechbot.utility.helper import message_deleter
@@ -55,7 +55,7 @@ async def rss_add_command(client, message):
             f"<b>Command:</b> <code>/{command}</code>\n"
             f"<b>Interval:</b> <code>{interval} min</code>",
             quote=True,
-            disable_web_page_preview=True,
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
         )
     except Exception as e:
         logger.error("rss_add failed: %s", e)
@@ -87,7 +87,7 @@ async def rss_list_command(client, message):
     msg = await message.reply_text(
         f"<b>📰 RSS Feeds</b>\n\n" + "\n\n".join(lines),
         quote=True,
-        disable_web_page_preview=True,
+        link_preview_options=types.LinkPreviewOptions(is_disabled=True),
     )
     await message_deleter(message, msg)
 

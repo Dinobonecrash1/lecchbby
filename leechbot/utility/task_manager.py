@@ -17,6 +17,7 @@ import random
 import logging
 from time import time
 from datetime import datetime
+from pyrogram import types
 
 import config
 from asyncio import sleep
@@ -170,7 +171,7 @@ async def taskScheduler():
         pass
 
     # Send task log
-    MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, disable_web_page_preview=True)
+    MSG.sent_msg = await app.send_message(chat_id=DUMP_ID, text=Messages.dump_task, link_preview_options=types.LinkPreviewOptions(is_disabled=True))
     Messages.src_link = f"https://t.me/c/{Messages.link_p}/{MSG.sent_msg.id}"
     Messages.task_msg += f"[{BOT.Mode.type.capitalize()} {mode_label} as {BOT.Setting.stream_upload}]({Messages.src_link})\n\n"
 
@@ -194,14 +195,14 @@ async def taskScheduler():
                 chat_id=OWNER,
                 text=caption,
                 reply_markup=keyboard(),
-                disable_web_page_preview=True
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True)
             )
     else:
         MSG.status_msg = await app.send_message(
             chat_id=OWNER,
             text=caption,
             reply_markup=keyboard(),
-            disable_web_page_preview=True
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True)
         )
 
     # Calculate download size

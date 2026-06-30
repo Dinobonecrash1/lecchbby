@@ -22,6 +22,7 @@ import logging
 from datetime import datetime
 from asyncio import get_running_loop
 
+from pyrogram import types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
@@ -53,7 +54,7 @@ async def _handle_sys_refresh(client, callback_query):
     try:
         await callback_query.message.edit_text(
             text=new_text,
-            disable_web_page_preview=True,
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
             reply_markup=status_keyboard(),
         )
         await safe_answer(callback_query, "Refreshed ✓")
@@ -68,7 +69,7 @@ async def _handle_sys_stats(client, callback_query):
     try:
         await callback_query.message.edit_text(
             text=new_text,
-            disable_web_page_preview=True,
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
             reply_markup=status_keyboard(),
         )
         await safe_answer(callback_query, "Detailed stats ✓")

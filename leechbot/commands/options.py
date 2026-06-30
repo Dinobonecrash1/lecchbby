@@ -18,7 +18,7 @@ import os
 import signal
 import sys
 from datetime import datetime
-from pyrogram import filters
+from pyrogram import filters, types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, LOG_FILE
 from leechbot.utility.variables import BOT, BotStats, BotTimes, Transfer, Messages, Queue, Paths
@@ -73,7 +73,7 @@ async def formats_command(client, message):
     status = await message.reply_text("<b>🔍 Fetching available formats...</b>", quote=True)
     try:
         text = await list_formats(url)
-        await status.edit_text(text, disable_web_page_preview=True)
+        await status.edit_text(text, link_preview_options=types.LinkPreviewOptions(is_disabled=True))
     except Exception as e:
         logger.exception("formats_command failed")
         await status.edit_text(f"<b>❌ Failed to fetch formats:</b> <code>{e}</code>")
@@ -103,7 +103,7 @@ async def preview_command(client, message):
     status = await message.reply_text("<b>🔍 Inspecting gallery...</b>", quote=True)
     try:
         text = await list_gallery_content(url)
-        await status.edit_text(text, disable_web_page_preview=True)
+        await status.edit_text(text, link_preview_options=types.LinkPreviewOptions(is_disabled=True))
     except Exception as e:
         logger.exception("preview_command failed")
         await status.edit_text(f"<b>❌ Preview failed:</b> <code>{e}</code>")

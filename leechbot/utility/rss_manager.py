@@ -31,6 +31,7 @@ from types import SimpleNamespace
 import aiohttp
 import feedparser
 
+from pyrogram import types
 from leechbot import OWNER, app
 from leechbot.utility.helper import extract_links
 from leechbot.utility.variables import BOT, MSG, BotTimes
@@ -56,11 +57,11 @@ class _FakeMessage:
     async def delete(self):
         pass
 
-    async def reply_text(self, text, quote=True, disable_web_page_preview=False, reply_markup=None):
+    async def reply_text(self, text, quote=True, link_preview_options=None, reply_markup=None):
         return await app.send_message(
             chat_id=self.chat.id,
             text=text,
-            disable_web_page_preview=disable_web_page_preview,
+            link_preview_options=link_preview_options,
             reply_markup=reply_markup,
         )
 
@@ -167,7 +168,7 @@ async def _dispatch_url(url: str, command: str):
                 chat_id=OWNER,
                 text=f"<b>⏳ RSS item queued</b>\n\n<code>{url[:200]}</code>\n\n"
                      f"Current task complete hone ke baad auto-start hoga.",
-                disable_web_page_preview=True,
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True),
             )
         except Exception:
             pass
@@ -198,7 +199,7 @@ async def _start_task(url: str, command: str):
             text=f"<b>🚀 RSS Auto-Download Started</b>\n\n"
                  f"<b>Command:</b> <code>/{command}</code>\n"
                  f"<b>Source:</b> <code>{BOT.SOURCE[0][:200]}</code>",
-            disable_web_page_preview=True,
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
         )
     except Exception as e:
         logger.error("Failed to send RSS status message: %s", e)
@@ -272,7 +273,7 @@ async def check_feeds_once():
                             chat_id=OWNER,
                             text=f"<b>📰 RSS Update</b>\n\n{len(new_entries)} new item(s) from feed:\n"
                                  f"<code>{feed['url'][:100]}</code>\n\n{titles}",
-                            disable_web_page_preview=True,
+                            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
                         )
                     except Exception:
                         pass

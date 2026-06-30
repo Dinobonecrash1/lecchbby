@@ -24,6 +24,7 @@ from urllib.parse import urlparse
 from asyncio import get_running_loop, sleep
 
 from leechbot import app
+from pyrogram import types
 from pyrogram.errors import BadRequest
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 
@@ -733,7 +734,7 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
         if isTimeOver():
             await MSG.status_msg.edit_text(
                 text=down_msg + text,
-                disable_web_page_preview=True,
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True),
                 reply_markup=status_keyboard()
             )
     except BadRequest:

@@ -28,6 +28,7 @@ from leechbot.utility.variables import BOT, MSG, BotTimes, Paths
 from leechbot.utility.handler import cancelTask
 from leechbot.utility.helper import send_settings, sysINFO, sysINFO_full, status_keyboard
 import config
+from pyrogram import types
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ async def _handle_upload_type(client, callback_query, data: str):
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
         ),
-        disable_web_page_preview=True
+        link_preview_options=types.LinkPreviewOptions(is_disabled=True)
     )
 
     BOT.State.task_going = True
@@ -113,7 +114,7 @@ async def _handle_ytdl_confirm(client, callback_query, data: str):
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
         ),
-        disable_web_page_preview=True
+        link_preview_options=types.LinkPreviewOptions(is_disabled=True)
     )
 
     BOT.State.task_going = True

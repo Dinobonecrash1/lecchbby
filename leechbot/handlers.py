@@ -14,7 +14,7 @@ Message handlers for replies, URLs, photos, and text input.
 """
 
 import logging
-from pyrogram import filters
+from pyrogram import filters, types
 
 from leechbot import app, OWNER
 from leechbot.utility.variables import BOT, Paths, MSG, BotTimes, BotStats
@@ -107,7 +107,7 @@ async def handle_url(client, message):
                 reply_markup=InlineKeyboardMarkup(
                     [[InlineKeyboardButton("🚫 Cancel", callback_data="cancel")]]
                 ),
-                disable_web_page_preview=True
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True)
             )
 
             await message.delete()

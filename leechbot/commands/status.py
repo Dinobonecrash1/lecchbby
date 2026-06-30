@@ -18,7 +18,7 @@ import os
 import signal
 import sys
 from datetime import datetime
-from pyrogram import filters
+from pyrogram import filters, types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, LOG_FILE
 from leechbot.utility.variables import BOT, BotStats, BotTimes, Transfer, Messages, Queue, Paths
@@ -70,7 +70,7 @@ async def ping_command(client, message):
   📡  Server    »  {server_status}
 └───────────────────────────────┘
 </code>"""
-    await msg.edit(ping_text, disable_web_page_preview=True)
+    await msg.edit(ping_text, link_preview_options=types.LinkPreviewOptions(is_disabled=True))
     await message_deleter(message, msg)
 
 # =============================================================================

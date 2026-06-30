@@ -22,6 +22,7 @@ from natsort import natsorted
 from datetime import datetime
 from os import makedirs, path as ospath
 from leechbot.uploader.telegram import upload_file, upload_photos_batch  # Added import
+from pyrogram import types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer
 from leechbot.utility.converters import archive, extract, videoConverter, sizeChecker
@@ -408,7 +409,7 @@ async def cancelTask(reason: str):
             await app.send_message(
                 chat_id=OWNER,
                 text=text,
-                disable_web_page_preview=True,
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True),
                 reply_markup=InlineKeyboardMarkup([
                     [
                         InlineKeyboardButton("📣 Channel", url="https://t.me/MaximXBots"),

@@ -20,6 +20,7 @@ import asyncio
 import logging
 import traceback
 from datetime import datetime
+from pyrogram import types
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,7 @@ class TelegramLogHandler(logging.Handler):
                 await self.client.send_message(
                     chat_id=self.dump_id,
                     text=msg,
-                    disable_web_page_preview=True,
+                    link_preview_options=types.LinkPreviewOptions(is_disabled=True),
                 )
             except Exception as e:
                 # Don't recurse — just log to stderr
@@ -159,7 +160,7 @@ class AsyncExceptionHandler:
             await self.client.send_message(
                 chat_id=self.dump_id,
                 text=msg[:4096],
-                disable_web_page_preview=True,
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True),
             )
         except Exception as e:
             print(f"[AsyncExceptionHandler] Failed to send: {e}", flush=True)
@@ -215,7 +216,7 @@ async def send_debug(client, dump_id: int, message: str, level: str = "info"):
         await client.send_message(
             chat_id=dump_id,
             text=text,
-            disable_web_page_preview=True,
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
         )
     except Exception:
         pass

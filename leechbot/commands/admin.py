@@ -18,7 +18,7 @@ import os
 import signal
 import sys
 from datetime import datetime
-from pyrogram import filters
+from pyrogram import filters, types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from leechbot import app, OWNER, LOG_FILE
 from leechbot.utility.variables import BOT, BotStats, BotTimes, Transfer, Messages, Queue, Paths
@@ -239,7 +239,7 @@ Upload a <code>cookies.txt</code> file here as a backup:
 
 📖 <a href="https://github.com/yt-dlp/yt-dlp/wiki/PO-Token-Guide">PO Token Guide</a>"""
 
-    msg = await message.reply_text(text, quote=True, disable_web_page_preview=True)
+    msg = await message.reply_text(text, quote=True, link_preview_options=types.LinkPreviewOptions(is_disabled=True))
     await message_deleter(message, msg)
 
 # =============================================================================
@@ -267,7 +267,7 @@ Send me your <code>cookies.txt</code> file <b>as a document</b> (not as text).
 
 ⚠️ <b>Security:</b> Cookies contain your session tokens. The bot stores them locally and never shares them. Delete with <code>/clearcookies</code> if needed."""
 
-    msg = await message.reply_text(text, quote=True, disable_web_page_preview=True)
+    msg = await message.reply_text(text, quote=True, link_preview_options=types.LinkPreviewOptions(is_disabled=True))
     await message_deleter(message, msg)
 
 # =============================================================================

@@ -22,6 +22,7 @@ from PIL import Image
 from asyncio import sleep
 from os import path as ospath
 from datetime import datetime
+from pyrogram import types
 from pyrogram.errors import FloodWait
 from pyrogram.types import InputMediaPhoto  # <--- Added for batch upload
 from leechbot.utility.variables import BOT, Transfer, BotTimes, Messages, MSG, Paths
@@ -113,7 +114,7 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 thumb=thmb_path,
                 duration=int(seconds),
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id,
+                reply_parameters=types.ReplyParameters(message_id=MSG.sent_msg.id),
             )
 
         elif f_type == "audio":
@@ -125,7 +126,7 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 caption=caption,
                 thumb=thmb_path,
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id,
+                reply_parameters=types.ReplyParameters(message_id=MSG.sent_msg.id),
             )
 
         elif f_type == "photo":
@@ -134,7 +135,7 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 photo=file_path,
                 caption=caption,
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id,
+                reply_parameters=types.ReplyParameters(message_id=MSG.sent_msg.id),
             )
 
         else:
@@ -151,7 +152,7 @@ async def upload_file(file_path: str, real_name: str, _retry_depth: int = 0):
                 caption=caption,
                 thumb=thmb_path,
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id,
+                reply_parameters=types.ReplyParameters(message_id=MSG.sent_msg.id),
             )
 
         # Track sent files
@@ -232,7 +233,7 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
                 document=upload_path,
                 caption=caption,
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id,
+                reply_parameters=types.ReplyParameters(message_id=MSG.sent_msg.id),
             )
             file_id = temp_msg.document.file_id
         else:
@@ -240,7 +241,7 @@ async def _upload_photo_with_progress(file_path: str, caption: Optional[str], ph
                 photo=upload_path,
                 caption=caption,
                 progress=progress_bar,
-                reply_to_message_id=MSG.sent_msg.id,
+                reply_parameters=types.ReplyParameters(message_id=MSG.sent_msg.id),
             )
             file_id = temp_msg.photo.file_id
 
@@ -343,7 +344,7 @@ async def upload_photos_batch(photo_paths: list, remove: bool = False):
 
                 messages = await MSG.sent_msg.reply_media_group(
                     media=media_group,
-                    reply_to_message_id=MSG.sent_msg.id
+                    reply_parameters=types.ReplyParameters(message_id=MSG.sent_msg.id)
                 )
 
                 # Update the chaining message to the first of this group

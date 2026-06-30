@@ -19,9 +19,6 @@ and sets up logging.
 import asyncio
 import logging
 import warnings
-
-# Suppress pyrogram deprecation warnings until LinkPreviewOptions is adopted
-warnings.filterwarnings("ignore", message=".*disable_web_page_preview.*")
 import sys
 
 from pyrogram import Client
