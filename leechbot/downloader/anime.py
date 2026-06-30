@@ -90,12 +90,13 @@ class MiruroAPI:
         return {"success": False, "message": "No M3U8 stream found"}
 
     async def get_stream_with_fallback(self, anilist_id: int, category: str, slug: str,
-                                        preferred_provider: str = None) -> dict:
-        """Get stream URL with multi-provider + multi-slug fallback.
+                                        preferred_provider: str = None,
+                                        provider_slugs: dict = None) -> dict:
+        """Get stream URL with multi-provider + per-provider slug fallback.
 
         Tries preferred provider first, then falls back through PROVIDER_FALLBACK_ORDER.
         If category (dub) fails, falls back to sub.
-        If slug fails, tries alternate slug patterns.
+        Uses provider_slugs dict to get the correct slug for each provider.
         """
         # Build provider list: preferred first, then fallbacks
         providers_to_try = []
@@ -110,25 +111,21 @@ class MiruroAPI:
         if category != "sub":
             categories_to_try.append("sub")
 
-        # Generate alternate slugs from original
-        # e.g., "allmanga-1" → ["allmanga-1", "1", "all-manga-1", "allmanga1"]
+        # Fallback slugs from original
         slugs_to_try = [slug]
         parts = slug.rsplit("-", 1)
         if len(parts) == 2 and parts[1].isdigit():
-            # "allmanga-1" → try "1" as fallback
             slugs_to_try.append(parts[1])
-        if "-" not in slug and any(c.isdigit() for c in slug):
-            # "allmanga1" → try "allmanga-1"
-            import re as _re
-            m = _re.match(r"([a-zA-Z]+)(\d+)$", slug)
-            if m:
-                slugs_to_try.append(f"{m.group(1)}-{m.group(2)}")
-        if slug not in slugs_to_try:
-            slugs_to_try.append(slug)
 
         for cat in categories_to_try:
             for prov in providers_to_try:
-                for try_slug in slugs_to_try:
+                # Use provider-specific slug if available, else fallback slugs
+                if provider_slugs and prov in provider_slugs:
+                    try_slugs = [provider_slugs[prov]] + [s for s in slugs_to_try if s != provider_slugs[prov]]
+                else:
+                    try_slugs = slugs_to_try
+
+                for try_slug in try_slugs:
                     try:
                         result = await self.get_stream(prov, anilist_id, cat, try_slug)
                         if result.get("success"):
@@ -137,7 +134,7 @@ class MiruroAPI:
                             if cat != category:
                                 logger.info("Fallback: %s → %s for provider %s", category, cat, prov)
                             if try_slug != slug:
-                                logger.info("Slug fallback: %s → %s", slug, try_slug)
+                                logger.info("Slug fallback: %s → %s (provider %s)", slug, try_slug, prov)
                             return result
                     except Exception as e:
                         logger.warning("Provider %s category %s slug %s failed: %s", prov, cat, try_slug, e)
@@ -148,7 +145,7 @@ class MiruroAPI:
     def get_episode_stream_info(self, episodes_data: dict, ep_num: int, category: str = "sub") -> dict:
         """Extract stream info for specific episode number with dub→sub fallback.
 
-        Returns episode info including title, or None if not found.
+        Returns episode info including per-provider slugs, or None if not found.
         """
         if not episodes_data:
             return None
@@ -163,12 +160,13 @@ class MiruroAPI:
             categories_to_try.append("sub")
 
         for cat in categories_to_try:
+            # Collect slugs from ALL providers for this episode
+            provider_slugs = {}
             for provider_name, provider_data in providers.items():
                 eps = provider_data.get("episodes", {}).get(cat, [])
                 for ep in eps:
                     if ep.get("number") == ep_num:
                         ep_id = ep.get("id", "")
-                        # Parse episode ID: "watch/kiwi/20/sub/animepahe-1"
                         parts = ep_id.split("/")
                         if len(parts) >= 5:
                             prov = parts[1]
@@ -180,18 +178,24 @@ class MiruroAPI:
                             anilist_id = None
                             parsed_cat = cat
                             slug = ep_id
+                        provider_slugs[prov] = slug
 
-                        return {
-                            "provider": prov,
-                            "anilist_id": anilist_id,
-                            "category": parsed_cat,
-                            "slug": slug,
-                            "episode_id": ep_id,
-                            "number": ep_num,
-                            "title": ep.get("title", f"Episode {ep_num}"),
-                            "requested_category": category,
-                            "actual_category": cat,
-                        }
+            if provider_slugs:
+                # Use first found provider's info as base
+                first_prov = list(provider_slugs.keys())[0]
+                first_slug = provider_slugs[first_prov]
+                return {
+                    "provider": first_prov,
+                    "anilist_id": anilist_id,
+                    "category": parsed_cat,
+                    "slug": first_slug,
+                    "provider_slugs": provider_slugs,
+                    "episode_id": ep_id,
+                    "number": ep_num,
+                    "title": ep.get("title", f"Episode {ep_num}"),
+                    "requested_category": category,
+                    "actual_category": cat,
+                }
 
         return None
 

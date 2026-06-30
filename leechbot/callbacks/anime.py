@@ -674,6 +674,7 @@ async def _handle_anime_download(client, callback_query, data: str):
             anilist_id = ep_info.get("anilist_id") or anime_id
             cat = ep_info.get("category", category)
             slug = ep_info.get("slug", "")
+            provider_slugs = ep_info.get("provider_slugs", {})
 
             stream_result = None
             stream_url = None
@@ -681,7 +682,8 @@ async def _handle_anime_download(client, callback_query, data: str):
             # Try with fallback
             try:
                 result = await anime_client.get_stream_with_fallback(
-                    anilist_id, cat, slug, preferred_provider=prov
+                    anilist_id, cat, slug, preferred_provider=prov,
+                    provider_slugs=provider_slugs
                 )
                 results = result.get("results", {})
                 url = results.get("url") if isinstance(results, dict) else None
