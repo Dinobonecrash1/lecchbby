@@ -202,6 +202,8 @@ async def Leech(folder_path, remove):
     # Separate photos from other files
     # Photos → upload_photos_batch() or upload_file()
     # Others → upload_file() with progress
+    # Auto-screenshot: if enabled, extract from local file before cleanup
+    #   → send as media group to dump channel
 ```
 
 ---

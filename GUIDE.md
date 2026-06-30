@@ -423,8 +423,8 @@ curl -H "Authorization: Bearer YOUR_TOKEN" http://localhost:8080/api/status
 
 | Command | Description |
 |---------|-------------|
-| `/screenshot [count]` | Generate 1-20 screenshots from video or PDF (default 5) |
-| `/setwm <text>` | Set watermark text on screenshots (owner only) |
+| `/screenshot [count]` | Manual screenshot generation (backup command) |
+| Auto-SS | Enable via Settings → 📸 Auto-SS (extracts after upload) |
 
 ### Anime
 
@@ -495,6 +495,14 @@ Example: Set prefix to `🎬` → caption becomes `🎬 filename.mp4`
 - Automatically deletes the bot's status messages after a delay
 - Set delay between 5-300 seconds
 - Useful for keeping chats clean
+
+### Auto-Screenshot
+- Extracts screenshots from video after upload completes
+- Enable/disable via toggle
+- Set count (1-20 screenshots)
+- Set watermark text (overlaid on each screenshot)
+- Sent as media group (batch) to dump channel
+- No re-download — extracts from local file before cleanup
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -1145,13 +1153,15 @@ Bot:   ⚙️ Bot Settings
        ┠➕ Suffix: ❎
        ┠🖼️ Thumb: ❎
        ┠📸 Photos: Group
-       ┗⏳ Auto-Delete: Off
+       ┠⏳ Auto-Delete: Off
+       ┗📸 Auto-SS: OFF
 
        [📤 Media] [🎬 Video]
        [📝 Caption] [🖼️ Thumb]
        [➕ Prefix] [➕ Suffix]
        [📸 Photos: Group]
        [⏳ Auto-Delete: OFF]
+       [📸 Auto-SS: OFF]
        [🔒 Close]
 
 You:   [➕ Prefix]

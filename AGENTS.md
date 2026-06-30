@@ -63,7 +63,7 @@ LeechBot is a **Kurigram-based (Pyrogram fork) Telegram bot** for downloading fi
 | `leechbot/handlers.py` | Message handlers (URL, photo, text, reply) |
 | `leechbot/utility/variables.py` | **ALL global mutable state** — single source of truth |
 | `leechbot/utility/helper.py` | Link detection, UI builders, file utils, status bar |
-| `leechbot/utility/handler.py` | `Leech()`, `Zip_Handler()`, `Unzip_Handler()`, `SendLogs()` |
+| `leechbot/utility/handler.py` | `Leech()`, `Zip_Handler()`, `Unzip_Handler()`, `SendLogs()`, `send_auto_screenshots()` |
 | `leechbot/utility/task_manager.py` | `task_starter()` — orchestrates download→upload pipeline |
 | `leechbot/utility/converters.py` | Video conversion, archive/extract, size checking |
 | `leechbot/downloader/manager.py` | Download router — dispatches to correct downloader |
@@ -102,6 +102,7 @@ User sends /tupload + link
     → utility/handler.py: Leech() processes files
       → converters.py: video conversion, zip/extract
       → uploader/telegram.py: upload with progress
+      → send_auto_screenshots() if enabled (extract from local file, send as batch)
     → handler.py: SendLogs() completion summary
 ```
 

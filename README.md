@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-3.2.8-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.3.0-8B5CF6?style=for-the-badge&logo=semver&logoColor=white" alt="Version" />
   <img src="https://img.shields.io/badge/License-MIT-06B6D4?style=for-the-badge&logo=opensourceinitiative&logoColor=white" alt="License" />
 
 ![Last Commit](https://img.shields.io/github/last-commit/Shineii86/LeechBot?style=for-the-badge)
@@ -38,7 +38,7 @@
 
 - [📖 Complete User Guide](GUIDE.md) ← **Start here if you're new**
 - [🗺️ Roadmap](ROADMAP.md)
-- [✨ What's New?](#-whats-new-in-v328)
+- [✨ What's New?](#-whats-new-in-v330)
 - [🚀 Features](#-features)
 - [🔗 Supported Sources](#-supported-sources)
 - [🌐 Web Dashboard](#-web-dashboard)
@@ -55,22 +55,32 @@
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
 </p>
 
-## ✨ What's New in v3.2.8
+## ✨ What's New in v3.3.0
 
-### 🎬 Anime Downloader (NEW)
+### 📸 Auto-Screenshot After Upload (NEW)
+- Screenshots extracted from local file after video upload — no re-download
+- Enable via Settings → 📸 Auto-SS: ON/OFF
+- Configurable count (1-20) and watermark text
+- Sent as media group (batch) to dump channel
+- Works for all upload sources (aria2, ytdl, gallery-dl, anime, etc.)
+
+### 📖 Shinobu-style Help Menu
+- `/start` → random photo + welcome text + category grid
+- `/help` → random photo + category navigation with smooth photo transitions
+- Module details with `❖` command formatting
+
+### 📊 Permanent System Info
+- CPU, RAM, Disk, Network, Uptime always visible in progress bar
+
+### 🎬 Anime Downloader
 - `/anime <title>` — search, browse, download anime episodes
-- 9 advanced features: multi-provider fallback, episode titles, batch progress, dub→sub fallback, anime info cards, quality selector, resume, subtitle embedding, multi-episode zip
-- 4 streaming providers with automatic fallback (kiwi → ally → miruro → animex)
+- 9 advanced features: multi-provider fallback, episode titles, batch progress, dub→sub fallback, quality selector, resume, subtitle embedding, multi-episode zip
 
-### ✏️ Auto-Rename Templates (NEW)
+### ✏️ Auto-Rename Templates
 - `/autorename <template>` — set custom filename templates with placeholders
 - Supports `{season}`, `{episode}`, `{quality}`, `{audio}`, `{title}`, `{chapter}`
 
-### ⚡ Kurigram Migration
-- Migrated from Pyrogram to [Kurigram](https://github.com/KurimuzonAkworker) (actively maintained fork)
-- Fixed deprecated patterns across 16+ files
-
-> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **38 commands across 8 categories**
+> 📋 **Full history:** [CHANGELOG.md](CHANGELOG.md) • **39 commands across 8 categories**
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
@@ -102,6 +112,7 @@
 | 📸 **Photo Galleries** | Twitter, Pinterest, Pixiv via gallery-dl |
 | 🌐 **Web Dashboard** | Real-time browser monitoring and control |
 | 🎬 **Anime Downloader** | Search, browse, stream anime with multi-provider fallback, quality selector, subtitle embedding |
+| 📸 **Auto-Screenshot** | Extract screenshots from video after upload, send as batch to dump channel |
 
 <p align="center">
   <img src="assets/divider.svg" width="600" alt="---divider---"/>
