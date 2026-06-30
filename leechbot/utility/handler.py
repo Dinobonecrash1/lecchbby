@@ -12,6 +12,7 @@ Main leech task handlers for file processing, zipping, and upload.
 """
 
 import os
+import asyncio
 import shutil
 import logging
 import pathlib
@@ -23,7 +24,7 @@ from datetime import datetime
 from os import makedirs, path as ospath
 from leechbot.uploader.telegram import upload_file, upload_photos_batch  # Added import
 from pyrogram import types
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer
 from leechbot.utility.converters import archive, extract, videoConverter, sizeChecker
 from leechbot.utility.helper import fileType, getSize, getTime, keyboard, shortFileName, sizeUnit, sysINFO
@@ -261,6 +262,10 @@ async def Leech(folder_path: str, remove: bool):
             await upload_file(new_path, file_name)
             Transfer.up_bytes.append(file_size)
 
+            # Auto-screenshot: extract before cleanup while file still on disk
+            if BOT.Setting.auto_screenshot and fileType(new_path) == "video":
+                await send_auto_screenshots(new_path)
+
             if remove:
                 if ospath.exists(new_path):
                     os.remove(new_path)
@@ -419,6 +424,103 @@ async def cancelTask(reason: str):
             )
         except Exception as e:
             logger.error("Failed to send cancel notification: %s", e)
+
+# =============================================================================
+# Auto-Screenshot After Upload
+# =============================================================================
+async def send_auto_screenshots(file_path: str):
+    """Extract screenshots from uploaded video and send as media group to dump channel."""
+    from leechbot.utility.variables import BOT, MSG, Paths
+
+    if not BOT.Setting.auto_screenshot:
+        return
+
+    if fileType(file_path) != "video":
+        return
+
+    count = BOT.Setting.screenshot_count
+    watermark = BOT.Setting.screenshot_watermark
+
+    screenshots = []
+    output_dir = Paths.temp_dirleech_path if ospath.exists(Paths.temp_dirleech_path) else "/tmp"
+    base_name = ospath.splitext(ospath.basename(file_path))[0]
+
+    try:
+        # Get video duration
+        probe_cmd = [
+            "ffprobe", "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            file_path
+        ]
+        proc = await asyncio.create_subprocess_exec(
+            *probe_cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, _ = await proc.communicate()
+        duration = float(stdout.decode().strip()) if stdout else 60.0
+
+        interval = duration / (count + 1)
+
+        for i in range(1, count + 1):
+            timestamp = interval * i
+            output_path = ospath.join(output_dir, f"{base_name}_auto_ss_{i}.jpg")
+
+            cmd = [
+                "ffmpeg", "-y",
+                "-ss", str(timestamp),
+                "-i", file_path,
+                "-vframes", "1",
+                "-q:v", "2",
+                output_path
+            ]
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            await proc.communicate()
+
+            if ospath.exists(output_path) and ospath.getsize(output_path) > 0:
+                # Add watermark if set
+                if watermark:
+                    try:
+                        from PIL import Image, ImageDraw, ImageFont
+                        img = Image.open(output_path)
+                        draw = ImageDraw.Draw(img)
+                        try:
+                            font = ImageFont.truetype("/usr/share/fonts/TTF/DejaVuSans-Bold.ttf", 36)
+                        except (OSError, IOError):
+                            font = ImageFont.load_default()
+                        bbox = draw.textbbox((0, 0), watermark, font=font)
+                        text_w = bbox[2] - bbox[0]
+                        text_h = bbox[3] - bbox[1]
+                        x = img.width - text_w - 20
+                        y = img.height - text_h - 20
+                        draw.text((x, y), watermark, fill="white", font=font)
+                        img.save(output_path)
+                    except Exception as e:
+                        logger.warning(f"Watermark failed: {e}")
+
+                screenshots.append(output_path)
+
+        if screenshots and MSG.sent_msg:
+            media_group = [InputMediaPhoto(screenshot) for screenshot in screenshots]
+            await MSG.sent_msg.reply_media_group(media=media_group)
+            logger.info(f"Auto-sent {len(screenshots)} screenshots")
+
+    except Exception as e:
+        logger.error(f"Auto-screenshot failed: {e}")
+    finally:
+        # Cleanup temp screenshots
+        for ss in screenshots:
+            try:
+                if ospath.exists(ss):
+                    os.remove(ss)
+            except OSError:
+                pass
+
 
 # =============================================================================
 # Completion Logs (unchanged)

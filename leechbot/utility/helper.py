@@ -654,6 +654,12 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
             ),
         ],
         [
+            InlineKeyboardButton(
+                f"📸 Auto-SS: {'ON' if BOT.Setting.auto_screenshot else 'OFF'}",
+                callback_data="screenshot",
+            ),
+        ],
+        [
             InlineKeyboardButton("🔒 Close", callback_data="close"),
         ],
     ])
@@ -673,7 +679,8 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
 • ➕ <b>Suffix:</b> {su}
 • 🖼️ <b>Thumb:</b> {thmb}
 • 📸 <b>Photos:</b> <code>{BOT.Setting.photo_mode}</code>
-• ⏳ <b>Auto-Delete:</b> <code>{auto_del}</code>"""
+• ⏳ <b>Auto-Delete:</b> <code>{auto_del}</code>
+• 📸 <b>Auto-SS:</b> <code>{'ON' if BOT.Setting.auto_screenshot else 'OFF'}</code>"""
 
     try:
         if is_command:

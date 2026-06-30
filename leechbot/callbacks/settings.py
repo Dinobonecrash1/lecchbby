@@ -185,3 +185,38 @@ async def _handle_photo_mode_menu(client, callback_query):
     )
     await safe_answer(callback_query)
 
+# =============================================================================
+# Screenshot Settings Menu
+# =============================================================================
+async def _handle_screenshot_menu(client, callback_query):
+    """Show auto-screenshot settings submenu."""
+    from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+    status = "✅ ON" if BOT.Setting.auto_screenshot else "❌ OFF"
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton(
+                f"📸 Auto-SS: {'ON' if BOT.Setting.auto_screenshot else 'OFF'}",
+                callback_data="toggle_autoss",
+            )
+        ],
+        [
+            InlineKeyboardButton("➖", callback_data="ss-count-minus"),
+            InlineKeyboardButton(f"Count: {BOT.Setting.screenshot_count}", callback_data="noop"),
+            InlineKeyboardButton("➕", callback_data="ss-count-plus"),
+        ],
+        [InlineKeyboardButton("💬 Watermark", callback_data="set_ss_watermark")],
+        [InlineKeyboardButton("❰ Back", callback_data="back")],
+    ])
+    await callback_query.message.edit_text(
+        f"<b>📸 Auto-Screenshot Settings</b>\n\n"
+        f"<b>Status:</b> {status}\n"
+        f"<b>Count:</b> {BOT.Setting.screenshot_count}\n"
+        f"<b>Watermark:</b> <code>{BOT.Setting.screenshot_watermark or 'None'}</code>\n\n"
+        f"💡 Screenshots are taken after video upload completes.\n"
+        f"Extracted from local file (no re-download).\n"
+        f"Sent as batch to dump channel.",
+        reply_markup=keyboard,
+    )
+    await safe_answer(callback_query)
+

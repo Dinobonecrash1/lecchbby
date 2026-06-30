@@ -39,6 +39,7 @@ from .settings import (
     _handle_delete_thumb,
     _handle_autodelete_menu,
     _handle_photo_mode_menu,
+    _handle_screenshot_menu,
 )
 from .system import _handle_sys_refresh, _handle_sys_stats
 from .update import _handle_do_update
@@ -288,6 +289,41 @@ async def handle_callback(client, callback_query):
         elif data == "sys_close":
             await callback_query.message.delete()
             await safe_answer(callback_query, "Closed")
+
+        # --- Screenshot settings ---
+        elif data == "screenshot":
+            await _handle_screenshot_menu(client, callback_query)
+
+        elif data == "toggle_autoss":
+            BOT.Setting.auto_screenshot = not BOT.Setting.auto_screenshot
+            await _handle_screenshot_menu(client, callback_query)
+            await safe_answer(callback_query, f"Auto-SS: {'ON' if BOT.Setting.auto_screenshot else 'OFF'}")
+
+        elif data == "ss-count-plus":
+            if BOT.Setting.screenshot_count < 20:
+                BOT.Setting.screenshot_count += 1
+            await _handle_screenshot_menu(client, callback_query)
+            await safe_answer(callback_query)
+
+        elif data == "ss-count-minus":
+            if BOT.Setting.screenshot_count > 1:
+                BOT.Setting.screenshot_count -= 1
+            await _handle_screenshot_menu(client, callback_query)
+            await safe_answer(callback_query)
+
+        elif data == "set_ss_watermark":
+            from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+            await callback_query.message.edit_text(
+                "<b>💬 Set Watermark Text</b>\n\n"
+                "Send your watermark text now.\n"
+                "This will be overlaid on each screenshot.\n\n"
+                "<b>💡 Send /cancel to clear watermark.</b>",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("❰ Back", callback_data="screenshot")]]
+                ),
+            )
+            BOT.State.set_ss_watermark = True
+            await safe_answer(callback_query)
 
         else:
             await safe_answer(callback_query, "⚠️ Unknown action", show_alert=True)

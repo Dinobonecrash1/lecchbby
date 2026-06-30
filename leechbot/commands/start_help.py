@@ -114,9 +114,9 @@ MODULES = [
         {"cmd": "/clearcookies", "desc": "Delete stored cookies file"},
     ]},
     # ── Tools ──
-    {"id": "screenshot", "name": "Screenshot", "desc": "Generate screenshots from videos and PDFs.", "cat": "Tools", "cmds": [
-        {"cmd": "/screenshot [count]", "desc": "Generate 1-20 screenshots (default 5)"},
-        {"cmd": "/setwm <text>", "desc": "Set watermark text on screenshots"},
+    {"id": "screenshot", "name": "Screenshot", "desc": "Auto-screenshot after upload (or manual).", "cat": "Tools", "cmds": [
+        {"cmd": "/screenshot [count]", "desc": "Manual screenshot (backup)"},
+        {"cmd": "Auto-SS", "desc": "Enable via Settings → 📸 Auto-SS (extracts after upload)"},
     ]},
     # ── Admin ──
     {"id": "admin", "name": "Admin", "desc": "Manage allowed users and broadcast files.", "cat": "Admin", "cmds": [

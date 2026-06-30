@@ -219,3 +219,16 @@ async def handle_text_input(client, message):
         except ValueError:
             await message.reply_text("<b>⚠️ Invalid number. Please try again.</b>")
             await message.delete()
+
+    # Screenshot watermark text
+    if getattr(BOT.State, "set_ss_watermark", False):
+        text = message.text.strip()
+        if text == "/cancel":
+            BOT.Setting.screenshot_watermark = ""
+            BOT.State.set_ss_watermark = False
+            await message.reply_text("<b>✅ Watermark cleared.</b>")
+        else:
+            BOT.Setting.screenshot_watermark = text
+            BOT.State.set_ss_watermark = False
+            await message.reply_text(f"<b>✅ Watermark set to:</b> <code>{text}</code>")
+        await message.delete()

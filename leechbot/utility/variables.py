@@ -53,6 +53,9 @@ class BOT:
         auto_delete: bool = False
         auto_delete_delay: int = 30
         autorename_template: str = ""
+        auto_screenshot: bool = False
+        screenshot_count: int = 5
+        screenshot_watermark: str = ""
 
     class Options:
         """Runtime options for the current task (reset each task)."""
@@ -83,6 +86,7 @@ class BOT:
         prefix: bool = False
         suffix: bool = False
         setting_autodelete_delay: bool = False
+        set_ss_watermark: bool = False
         shutting_down: bool = False  # Set True when SIGINT/SIGTERM received — blocks new long tasks
 
 

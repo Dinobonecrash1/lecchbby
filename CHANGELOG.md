@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [3.3.0] - 2026-06-30
+
+### Added
+- **📸 Auto-Screenshot After Upload** — screenshots extracted from local file after video upload
+  - Enabled via Settings → 📸 Auto-SS: ON/OFF
+  - Configurable count (1-20) and watermark text
+  - Screenshots sent as media group (batch) to dump channel
+  - No re-download — extracts directly from file on disk before cleanup
+  - Works for all upload sources (aria2, ytdl, gallery-dl, anime, etc.)
+
+### Changed
+- `/start` keyboard: removed "Help" button, added "All" category grid directly
+- Help navigation uses `edit_media(InputMediaPhoto)` for smooth photo+text transitions
+- Status bar now includes `sysINFO_full()` by default (was on-demand only)
+
+---
+
 ## [3.2.9] - 2026-06-30
 
 ### Added
