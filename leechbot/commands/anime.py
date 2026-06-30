@@ -309,9 +309,11 @@ async def _quick_download(message, query, ep_start, ep_end, category, quality):
             stream_url = None
             try:
                 result = await anime_client.get_stream(prov, anilist_id, cat, slug)
-                if result.get("success") and result.get("results", {}).get("url"):
+                results = result.get("results", {})
+                url = results.get("url") if isinstance(results, dict) else None
+                if result.get("success") and url:
                     stream_result = result
-                    stream_url = result["results"]["url"]
+                    stream_url = url
                     logger.info("Ep %d: stream found via %s", ep_num, prov)
                 else:
                     logger.warning("Ep %d: provider %s failed — %s", ep_num, prov, result.get("message", "no stream"))
