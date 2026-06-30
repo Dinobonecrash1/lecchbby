@@ -113,9 +113,10 @@ async def YTDL_Status(link: str, num: int):
     from asyncio import get_running_loop
 
     name = await get_YT_Name(link)
-    Messages.status_head = (
-        f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n<code>{name}</code>\n"
-    )
+    if not Messages.status_head or "📥 Downloading" not in Messages.status_head:
+        Messages.status_head = (
+            f"<b>📥 Downloading</b> <code>Link {str(num).zfill(2)}</code>\n\n<code>{name}</code>\n"
+        )
 
     loop = get_running_loop()
     ytdl_thread = Thread(
