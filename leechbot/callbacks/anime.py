@@ -804,7 +804,20 @@ async def _handle_anime_download(client, callback_query, data: str):
                 pass
 
             try:
-                await upload_file(file_path, real_name)
+                # Check file size — split if >2GB
+                file_size = ospath.getsize(file_path)
+                max_size = 2097152000  # 2GB
+                if file_size > max_size:
+                    from leechbot.utility.converters import sizeChecker
+                    was_split = await sizeChecker(file_path, remove=True)
+                    if was_split:
+                        # Upload split parts from temp dir
+                        from leechbot.utility.handler import Leech
+                        await Leech(Paths.temp_zpath, remove=True)
+                    else:
+                        await upload_file(file_path, real_name)
+                else:
+                    await upload_file(file_path, real_name)
                 Transfer.up_bytes.append(file_size)
                 uploaded += 1
             except Exception as e:

@@ -47,11 +47,17 @@ async def _handle_sys_refresh(client, callback_query):
     original_text = callback_query.message.text or callback_query.message.caption or ""
     new_text = _strip_sysinfo(original_text) + sysINFO()
     try:
-        await callback_query.message.edit_text(
-            text=new_text,
-            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
-            reply_markup=status_keyboard(),
-        )
+        if callback_query.message.photo:
+            await callback_query.message.edit_caption(
+                caption=new_text,
+                reply_markup=status_keyboard(),
+            )
+        else:
+            await callback_query.message.edit_text(
+                text=new_text,
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True),
+                reply_markup=status_keyboard(),
+            )
         await safe_answer(callback_query, "Refreshed ✓")
     except Exception as e:
         logger.debug("Sys refresh error: %s", e)
@@ -62,11 +68,17 @@ async def _handle_sys_stats(client, callback_query):
     original_text = callback_query.message.text or callback_query.message.caption or ""
     new_text = _strip_sysinfo(original_text) + sysINFO_full()
     try:
-        await callback_query.message.edit_text(
-            text=new_text,
-            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
-            reply_markup=status_keyboard(),
-        )
+        if callback_query.message.photo:
+            await callback_query.message.edit_caption(
+                caption=new_text,
+                reply_markup=status_keyboard(),
+            )
+        else:
+            await callback_query.message.edit_text(
+                text=new_text,
+                link_preview_options=types.LinkPreviewOptions(is_disabled=True),
+                reply_markup=status_keyboard(),
+            )
         await safe_answer(callback_query, "Detailed stats ✓")
     except Exception as e:
         logger.debug("Sys stats error: %s", e)

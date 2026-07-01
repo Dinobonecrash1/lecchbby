@@ -391,7 +391,8 @@ async def cancelTask(reason: str):
 
     if BOT.State.task_going:
         try:
-            BOT.TASK.cancel()
+            if BOT.TASK:
+                BOT.TASK.cancel()
         except Exception as e:
             logger.error("Task cancel error: %s", e)
 

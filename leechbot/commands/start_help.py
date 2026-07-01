@@ -172,7 +172,17 @@ def _start_keyboard():
 
 
 async def _send_welcome(client, message, edit: bool = False):
+    photo = _get_random_photo()
     if edit:
+        if photo:
+            try:
+                await message.edit_media(
+                    InputMediaPhoto(photo, caption=WELCOME_TEXT),
+                    reply_markup=_start_keyboard(),
+                )
+                return
+            except Exception:
+                pass
         try:
             await message.edit_text(
                 WELCOME_TEXT,
@@ -186,6 +196,16 @@ async def _send_welcome(client, message, edit: bool = False):
         await message.delete()
     except Exception:
         pass
+    if photo:
+        try:
+            await message.reply_photo(
+                photo=photo,
+                caption=WELCOME_TEXT,
+                reply_markup=_start_keyboard(),
+            )
+            return
+        except Exception:
+            pass
     await message.reply_text(
         WELCOME_TEXT,
         reply_markup=_start_keyboard(),
