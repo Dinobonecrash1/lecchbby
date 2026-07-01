@@ -507,9 +507,11 @@ async def send_auto_screenshots(file_path: str):
                 screenshots.append(output_path)
 
         if screenshots and MSG.sent_msg:
+            from leechbot import app
+            from config import DUMP_ID
             media_group = [InputMediaPhoto(screenshot) for screenshot in screenshots]
-            await MSG.sent_msg.reply_media_group(media=media_group)
-            logger.info(f"Auto-sent {len(screenshots)} screenshots")
+            await app.send_media_group(chat_id=DUMP_ID, media=media_group)
+            logger.info(f"Auto-sent {len(screenshots)} screenshots to dump channel")
 
     except Exception as e:
         logger.error(f"Auto-screenshot failed: {e}")
