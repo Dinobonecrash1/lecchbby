@@ -45,7 +45,7 @@ async def progress_bar(current: int, total: int):
 
     Args:
         current: bytes uploaded
-        total: total bytes
+        total: total file size (from Pyrogram)
     """
     elapsed = max((datetime.now() - BotTimes.task_start).total_seconds(), 0.01)
 
@@ -54,17 +54,20 @@ async def progress_bar(current: int, total: int):
     else:
         upload_speed = 4 * 1024 * 1024  # Default 4MB/s
 
-    remaining = max(Transfer.total_down_size - current - sum(Transfer.up_bytes), 0)
+    # Use Pyrogram's total if available, fall back to Transfer.total_down_size
+    file_total = total if total > 0 else Transfer.total_down_size
+    done = current + sum(Transfer.up_bytes)
+    remaining = max(file_total - done, 0)
     eta = remaining / upload_speed if upload_speed > 0 else 0
-    percentage = min((current + sum(Transfer.up_bytes)) / max(Transfer.total_down_size, 1) * 100, 100)
+    percentage = min(done / max(file_total, 1) * 100, 100)
 
     await status_bar(
         down_msg=Messages.status_head,
         speed=f"{sizeUnit(upload_speed)}/s",
         percentage=percentage,
         eta=getTime(eta),
-        done=sizeUnit(current + sum(Transfer.up_bytes)),
-        left=sizeUnit(Transfer.total_down_size),
+        done=sizeUnit(done),
+        left=sizeUnit(file_total),
         engine="Telegram 📤"
     )
 
