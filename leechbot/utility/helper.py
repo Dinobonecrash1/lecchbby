@@ -773,21 +773,15 @@ def keyboard():
     ])
 
 def status_keyboard():
-    """Status keyboard with Refresh, Stats, and Cancel buttons.
+    """Status keyboard with Refresh and Cancel buttons.
 
     - **🔄 Refresh**: Appends compact system info (CPU / RAM / disk) below
       the progress bar. Useful for quick health checks.
-    - **📊 Stats**: Replaces the progress bar with detailed system info
-      (CPU, RAM, disk, network, uptime). Click again or send /status
-      to return to the progress view.
     - **❌ Cancel**: Aborts the current task.
     """
     return InlineKeyboardMarkup([
         [
             InlineKeyboardButton("🔄 Refresh", callback_data="sys_refresh"),
-            InlineKeyboardButton("📊 Stats", callback_data="sys_stats"),
-        ],
-        [
             InlineKeyboardButton("❌ Cancel", callback_data="cancel")
         ]
     ])

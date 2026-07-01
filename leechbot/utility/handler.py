@@ -27,7 +27,7 @@ from pyrogram import types
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from leechbot.utility.variables import BOT, MSG, BotTimes, Messages, Paths, Transfer
 from leechbot.utility.converters import archive, extract, videoConverter, sizeChecker
-from leechbot.utility.helper import fileType, getSize, getTime, keyboard, shortFileName, sizeUnit, sysINFO
+from leechbot.utility.helper import fileType, getSize, getTime, keyboard, shortFileName, sizeUnit, sysINFO, _strip_sysinfo
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +164,7 @@ async def Leech(folder_path: str, remove: bool):
             # Group mode: batch upload in groups of 10 (Telegram limit)
             try:
                 MSG.status_msg = await MSG.status_msg.edit_text(
-                    text=Messages.task_msg + "\n<b>📸 Uploading photos in batches...</b>" + sysINFO(),
+                    text=_strip_sysinfo(Messages.task_msg) + "\n<b>📸 Uploading photos in batches...</b>" + sysINFO(),
                     reply_markup=keyboard()
                 )
             except Exception as e:
@@ -180,7 +180,7 @@ async def Leech(folder_path: str, remove: bool):
 
                 try:
                     MSG.status_msg = await MSG.status_msg.edit_text(
-                        text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
+                        text=_strip_sysinfo(Messages.task_msg + Messages.status_head) + "\n⏳ Starting..." + sysINFO(),
                         reply_markup=keyboard()
                     )
                 except Exception as e:
@@ -217,7 +217,7 @@ async def Leech(folder_path: str, remove: bool):
 
                 try:
                     MSG.status_msg = await MSG.status_msg.edit_text(
-                        text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
+                        text=_strip_sysinfo(Messages.task_msg + Messages.status_head) + "\n⏳ Starting..." + sysINFO(),
                         reply_markup=keyboard()
                     )
                 except Exception as e:
@@ -252,7 +252,7 @@ async def Leech(folder_path: str, remove: bool):
 
             try:
                 MSG.status_msg = await MSG.status_msg.edit_text(
-                    text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
+                    text=_strip_sysinfo(Messages.task_msg + Messages.status_head) + "\n⏳ Starting..." + sysINFO(),
                     reply_markup=keyboard()
                 )
             except Exception as e:
@@ -302,7 +302,7 @@ async def Zip_Handler(down_path: str, is_split: bool, remove: bool):
 
     try:
         MSG.status_msg = await MSG.status_msg.edit_text(
-            text=Messages.task_msg + Messages.status_head + sysINFO(),
+            text=_strip_sysinfo(Messages.task_msg + Messages.status_head) + sysINFO(),
             reply_markup=keyboard()
         )
     except Exception as e:
@@ -338,7 +338,7 @@ async def Unzip_Handler(down_path: str, remove: bool):
     Messages.status_head = f"\n<b>📂 Extracting</b>\n\n<code>{Messages.download_name}</code>\n"
 
     MSG.status_msg = await MSG.status_msg.edit_text(
-        text=Messages.task_msg + Messages.status_head + "\n⏳ Starting..." + sysINFO(),
+        text=_strip_sysinfo(Messages.task_msg + Messages.status_head) + "\n⏳ Starting..." + sysINFO(),
         reply_markup=keyboard()
     )
 

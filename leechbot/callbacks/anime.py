@@ -35,7 +35,7 @@ from leechbot import app, OWNER, DUMP_ID
 from leechbot.utility.variables import (
     BOT, MSG, Paths, Messages, Transfer, BotTimes, BotStats, config
 )
-from leechbot.utility.helper import sysINFO, keyboard, sizeUnit
+from leechbot.utility.helper import sysINFO, keyboard, sizeUnit, _strip_sysinfo
 from leechbot.utility.handler import SendLogs
 from .common import safe_answer
 
@@ -592,8 +592,7 @@ async def _handle_anime_download(client, callback_query, data: str):
                 img = Paths.HERO_IMAGE
 
         caption = (
-            Messages.task_msg
-            + Messages.status_head
+            _strip_sysinfo(Messages.task_msg + Messages.status_head)
             + "\n📝 Initializing..." + sysINFO()
         )
 
@@ -658,14 +657,13 @@ async def _handle_anime_download(client, callback_query, data: str):
 
             try:
                 await MSG.status_msg.edit_text(
-                    text=Messages.task_msg + Messages.status_head + sysINFO(),
+                    text=_strip_sysinfo(Messages.task_msg + Messages.status_head) + sysINFO(),
                     reply_markup=keyboard()
                 )
             except Exception:
                 pass
 
-            if not ep_info:
-                logger.warning("Ep %d: no episode info found, skipping", ep_num)
+            if not download_ok:
                 failed += 1
                 continue
 
@@ -799,7 +797,7 @@ async def _handle_anime_download(client, callback_query, data: str):
             )
             try:
                 await MSG.status_msg.edit_text(
-                    text=Messages.task_msg + Messages.status_head + sysINFO(),
+                    text=_strip_sysinfo(Messages.task_msg + Messages.status_head) + sysINFO(),
                     reply_markup=keyboard()
                 )
             except Exception:
