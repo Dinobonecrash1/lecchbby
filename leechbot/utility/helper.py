@@ -753,8 +753,11 @@ async def status_bar(down_msg: str, speed: str, percentage: float, eta: str,
 
     try:
         if isTimeOver():
+            # Always strip from full prefix to prevent duplicate sysinfo blocks
+            from leechbot.utility.variables import Messages
+            full_prefix = _strip_sysinfo(Messages.task_msg + Messages.status_head)
             await MSG.status_msg.edit_text(
-                text=_strip_sysinfo(down_msg) + text,
+                text=full_prefix + text,
                 link_preview_options=types.LinkPreviewOptions(is_disabled=True),
                 reply_markup=status_keyboard()
             )

@@ -24,7 +24,7 @@ from os import makedirs, path as ospath
 
 import config
 from leechbot.utility.variables import YTDL, MSG, Messages, Paths, BOT
-from leechbot.utility.helper import getTime, keyboard, sizeUnit, status_bar, sysINFO
+from leechbot.utility.helper import getTime, keyboard, sizeUnit, status_bar, sysINFO, _strip_sysinfo
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +128,7 @@ async def YTDL_Status(link: str, num: int):
         if YTDL.header:
             try:
                 await MSG.status_msg.edit_text(
-                    text=Messages.task_msg + Messages.status_head + YTDL.header + sysINFO(),
+                    text=_strip_sysinfo(Messages.task_msg + Messages.status_head + YTDL.header) + sysINFO(),
                     reply_markup=keyboard()
                 )
             except Exception:
@@ -136,7 +136,7 @@ async def YTDL_Status(link: str, num: int):
         else:
             try:
                 await status_bar(
-                    down_msg=Messages.status_head,
+                    down_msg=Messages.task_msg + Messages.status_head,
                     speed=YTDL.speed,
                     percentage=float(YTDL.percentage),
                     eta=YTDL.eta,
