@@ -670,6 +670,7 @@ async def send_settings(client, message, msg_id: int, is_command: bool):
             ),
         ],
         [
+            InlineKeyboardButton("❰ Back", callback_data="start_back"),
             InlineKeyboardButton("🔒 Close", callback_data="close"),
         ],
     ])

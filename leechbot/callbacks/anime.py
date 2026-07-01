@@ -691,6 +691,8 @@ async def _handle_anime_download(client, callback_query, data: str):
                     stream_result = result
                     stream_url = url
                     used_prov = results.get("provider_used", prov)
+                    # Add source to dump task
+                    Messages.dump_task += f"\n📁 Ep {ep_num}: `{used_prov}` → <a href=\"{stream_url}\">{ep_title}</a>"
                     logger.info("Ep %d: stream via %s", ep_num, used_prov)
                 else:
                     logger.warning("Ep %d: all providers failed — %s", ep_num, result.get("message", "no stream"))
